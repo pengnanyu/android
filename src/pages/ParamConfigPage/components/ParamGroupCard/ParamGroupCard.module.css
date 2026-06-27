@@ -17,6 +17,7 @@
   font-size: 13px;
   font-weight: 500;
   color: var(--color-foreground);
+  -webkit-user-select: none;
   user-select: none;
 }
 
