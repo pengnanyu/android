@@ -1,0 +1,13 @@
+{
+  "assets": {
+    "directory": "dist"
+  },
+  "build": {
+    "command": "npm run build"
+  },
+  "routes": {
+    "exclude": [
+      "/api/*"
+    ]
+  }
+}
