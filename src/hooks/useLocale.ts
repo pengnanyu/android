@@ -16,7 +16,7 @@ export function useLocale(): UseLocaleReturn {
     i18n.changeLanguage(newLocale);
     try {
       localStorage.setItem('bms-locale', newLocale);
-    } catch { }
+    } catch (_e) { }
   }, [i18n]);
 
   return { locale, changeLanguage };

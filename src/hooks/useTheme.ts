@@ -11,7 +11,7 @@ function getStoredTheme(): Theme | null {
   try {
     const stored = localStorage.getItem('bms-theme');
     if (stored === 'light' || stored === 'dark') return stored;
-  } catch { }
+  } catch (_e) { }
   return null;
 }
 
@@ -26,7 +26,7 @@ function applyTheme(theme: Theme): void {
   document.documentElement.setAttribute('data-theme', theme);
   try {
     localStorage.setItem('bms-theme', theme);
-  } catch { }
+  } catch (_e) { }
 }
 
 export function useTheme(): UseThemeReturn {

@@ -7,7 +7,7 @@ export function useStorage<T>(key: string, defaultValue: T): [T, (value: T) => v
     if (item !== null) {
       try {
         return JSON.parse(item) as T;
-      } catch {
+      } catch (_e) {
         return defaultValue;
       }
     }

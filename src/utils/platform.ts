@@ -6,7 +6,7 @@ export function detectPlatform(): PlatformType {
   if (isMiniProgram) return 'miniapp';
   try {
     if (window.self !== window.top) return 'embedded';
-  } catch {
+  } catch (_e) {
     return 'embedded';
   }
   return 'web';

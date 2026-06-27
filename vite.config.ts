@@ -13,7 +13,7 @@ export default defineConfig({
     port: 5173,
   },
   build: {
-    target: 'esnext',
+    target: 'es2020',
     cssMinify: true,
     rollupOptions: {
       output: {
