@@ -4,7 +4,7 @@ import type { BmsStore, LogEntry } from './context';
 import { BmsContext } from './context';
 import { useBridgeMessage } from '@/hooks/useBridgeMessage';
 import { isEmbedded } from '@/utils/platform';
-import { parseModbusResponse, appendCrc } from '@/utils/modbus';
+import { parseModbusResponse, appendCrc, swap16, bigEndianHex } from '@/utils/modbus';
 import i18n from '@/i18n';
 
 const PROTOCOL_API_URL = 'https://sql.hzxhhc.com/api/data/';
@@ -15,12 +15,8 @@ function toHex(data: number[]): string {
   return data.map(b => b.toString(16).toUpperCase().padStart(2, '0')).join(' ');
 }
 
-function hexToVersion(registers: number[]): string | null {
-  if (registers.length < 1) return null;
-  const val = registers[0]!;
-  const major = (val >> 8) & 0xFF;
-  const minor = val & 0xFF;
-  return `${major}.${minor}`;
+function registerToVersionHex(register: number): string {
+  return bigEndianHex(register);
 }
 
 function isInstructionRow(row: Record<string, unknown>): boolean {
@@ -249,13 +245,17 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     if (!parsed) return;
 
     if (!versionRef.current && parsed.registers.length > 0) {
-      const ver = hexToVersion(parsed.registers);
-      if (ver) {
-        versionRef.current = ver;
-        setDeviceVersion(ver);
-        stopVersionRetry();
-        loadProtocolDb(ver);
-      }
+      const verHex = registerToVersionHex(parsed.registers[0]!);
+      versionRef.current = verHex;
+      setDeviceVersion(verHex);
+      stopVersionRetry();
+      addLog({
+        timestamp: Date.now(),
+        direction: 'RX',
+        parsedInfo: `Version: ${verHex}`,
+        rawHex: '',
+      });
+      loadProtocolDb(verHex);
     }
 
     setParsedFields(prev => {

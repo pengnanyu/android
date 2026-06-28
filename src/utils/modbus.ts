@@ -70,6 +70,15 @@ export function buildModbusFrame(
   ]);
 }
 
+export function swap16(value: number): number {
+  return ((value & 0xFF) << 8) | ((value >> 8) & 0xFF);
+}
+
+export function bigEndianHex(value: number): string {
+  const swapped = swap16(value);
+  return swapped.toString(16).toUpperCase().padStart(4, '0');
+}
+
 export function parseModbusResponse(data: number[]): {
   slaveAddr: number;
   funcCode: number;
@@ -89,7 +98,7 @@ export function parseModbusResponse(data: number[]): {
   for (let i = 0; i < byteCount; i += 2) {
     const hi = data[3 + i]!;
     const lo = data[3 + i + 1]!;
-    registers.push((hi << 8) | lo);
+    registers.push((lo << 8) | hi);
   }
 
   return { slaveAddr, funcCode, byteCount, registers };
