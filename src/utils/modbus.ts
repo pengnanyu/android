@@ -98,6 +98,7 @@ export interface ParsedDataField {
   rowIndex: number;
   parentInstructionIndex: number;
   offsetAddr: number;
+  absAddr: number;
   byteOffset: number;
   regLen: number;
   byteLen: number;
@@ -117,6 +118,7 @@ export function parseProtocolRows(rows: Record<string, unknown>[]): ParsedProtoc
   const instructions: ParsedInstruction[] = [];
   const dataFields: ParsedDataField[] = [];
   let currentInstrIdx = -1;
+  let currentStartAddr = 0;
   let accumulatedBytes = 0;
 
   for (let i = 0; i < rows.length; i++) {
@@ -130,6 +132,7 @@ export function parseProtocolRows(rows: Record<string, unknown>[]): ParsedProtoc
       const startAddr = buildRegisterAddr(registerCode, registerAddress);
 
       currentInstrIdx = instructions.length;
+      currentStartAddr = startAddr;
       accumulatedBytes = 0;
 
       instructions.push({
@@ -144,6 +147,7 @@ export function parseProtocolRows(rows: Record<string, unknown>[]): ParsedProtoc
 
       const byteLen = parseNum(row['Length'], 10);
       const offsetAddr = Math.floor(accumulatedBytes / 2);
+      const absAddr = currentStartAddr + offsetAddr;
       const byteOffset = accumulatedBytes % 2;
       const regLen = Math.ceil(byteLen / 2);
       const dataType = String(row['DataType'] ?? '');
@@ -156,6 +160,7 @@ export function parseProtocolRows(rows: Record<string, unknown>[]): ParsedProtoc
         rowIndex: i,
         parentInstructionIndex: currentInstrIdx,
         offsetAddr,
+        absAddr,
         byteOffset,
         regLen,
         byteLen,

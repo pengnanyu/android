@@ -24,9 +24,9 @@ export function DynamicTable({ database, parsedValues, onFillCommand }: DynamicT
   }, [parsedValues]);
 
   const dataFieldMap = useMemo(() => {
-    const map = new Map<number, { offsetAddr: number; regLen: number }>();
+    const map = new Map<number, { absAddr: number; regLen: number }>();
     for (const df of parsed.dataFields) {
-      map.set(df.rowIndex, { offsetAddr: df.offsetAddr, regLen: df.regLen });
+      map.set(df.rowIndex, { absAddr: df.absAddr, regLen: df.regLen });
     }
     return map;
   }, [parsed.dataFields]);
@@ -63,7 +63,7 @@ export function DynamicTable({ database, parsedValues, onFillCommand }: DynamicT
 
             const instInfo = instructionMap.get(i);
             const dataInfo = dataFieldMap.get(i);
-            const addr = isCmd && instInfo ? instInfo.startAddr : (dataInfo ? dataInfo.offsetAddr : 0);
+            const addr = isCmd && instInfo ? instInfo.startAddr : (dataInfo ? dataInfo.absAddr : 0);
             const regLen = isCmd && instInfo ? instInfo.quantity : (dataInfo ? dataInfo.regLen : 0);
 
             return (
