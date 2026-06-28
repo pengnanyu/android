@@ -40,7 +40,7 @@ export function DynamicTable({ database, parsedValues, onFillCommand }: DynamicT
   }, [parsed.instructions]);
 
   const fixedCols = ['Type', 'Addr', 'RegLen', 'Value', 'Fill'];
-  const allCols = [...columns, ...fixedCols];
+  const allCols = [...columns.filter(c => !fixedCols.includes(c)), ...fixedCols];
 
   return (
     <div className={styles.tableWrapper}>
