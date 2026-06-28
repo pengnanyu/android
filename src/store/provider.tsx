@@ -4,7 +4,8 @@ import type { BmsStore, LogEntry } from './context';
 import { BmsContext } from './context';
 import { useBridgeMessage } from '@/hooks/useBridgeMessage';
 import { isEmbedded } from '@/utils/platform';
-import { parseModbusResponse, appendCrc, bigEndianHex, parseNum, buildRegisterAddr, calcRegLen } from '@/utils/modbus';
+import { parseModbusResponse, appendCrc, bigEndianHex, parseProtocolRows } from '@/utils/modbus';
+import type { ParsedProtocol } from '@/utils/modbus';
 import i18n from '@/i18n';
 
 const PROTOCOL_API_URL = 'https://sql.hzxhhc.com/api/data/';
@@ -19,47 +20,6 @@ function registerToVersionHex(register: number): string {
   return bigEndianHex(register);
 }
 
-function isInstructionRow(row: Record<string, unknown>): boolean {
-  return row['Code'] !== undefined && row['RegisterCode'] !== undefined && row['RegisterAddress'] !== undefined;
-}
-
-
-function parseInstructionRows(rows: Record<string, unknown>[]): Array<{
-  slaveAddr: number;
-  funcCode: number;
-  startAddr: number;
-  quantity: number;
-  length: number;
-  rowIndex: number;
-}> {
-  const instructions: Array<{
-    slaveAddr: number;
-    funcCode: number;
-    startAddr: number;
-    quantity: number;
-    length: number;
-    rowIndex: number;
-  }> = [];
-
-  for (let i = 0; i < rows.length; i++) {
-    const row = rows[i]!;
-    if (!isInstructionRow(row)) continue;
-
-    const slaveAddr = parseNum(row['Code'], 16);
-    const registerCode = parseNum(row['RegisterCode'], 16);
-    const registerAddress = parseNum(row['RegisterAddress'], 16);
-    const funcCode = registerCode & 0x3F;
-    const length = parseNum(row['Length'], 10);
-    const startAddr = buildRegisterAddr(registerCode, registerAddress);
-    const quantity = calcRegLen(length, true);
-
-    if (funcCode === 0x03 || funcCode === 0x04) {
-      instructions.push({ slaveAddr, funcCode, startAddr, quantity, length, rowIndex: i });
-    }
-  }
-
-  return instructions;
-}
 
 export interface RegisterKey {
   slaveAddr: number;
@@ -118,25 +78,29 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     }
   }, [addLog]);
 
+  const parsedProtocolRef = useRef<ParsedProtocol | null>(null);
+
   const autoReadInstructions = useCallback((db: ProtocolDatabase) => {
-    const instructions = parseInstructionRows(db.rows);
-    if (instructions.length === 0) {
+    const parsed = parseProtocolRows(db.rows);
+    parsedProtocolRef.current = parsed;
+
+    if (parsed.instructions.length === 0) {
       console.log('[BmsStore] No instruction rows found for auto-read');
       return;
     }
 
-    console.log('[BmsStore] Auto-reading', instructions.length, 'instructions');
+    console.log('[BmsStore] Auto-reading', parsed.instructions.length, 'instructions,', parsed.dataFields.length, 'data fields');
     addLog({
       timestamp: Date.now(),
       direction: 'TX',
-      parsedInfo: `Auto-read: ${instructions.length} instructions`,
+      parsedInfo: `Auto-read: ${parsed.instructions.length} instructions, ${parsed.dataFields.length} fields`,
       rawHex: '',
     });
 
     let idx = 0;
     const sendNext = () => {
-      if (idx >= instructions.length) return;
-      const inst = instructions[idx]!;
+      if (idx >= parsed.instructions.length) return;
+      const inst = parsed.instructions[idx]!;
       const frame = appendCrc([
         inst.slaveAddr,
         inst.funcCode,
@@ -147,7 +111,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       ]);
       sendFrame(frame);
       idx++;
-      if (idx < instructions.length) {
+      if (idx < parsed.instructions.length) {
         autoReadTimerRef.current = setTimeout(sendNext, AUTO_READ_INTERVAL);
       }
     };

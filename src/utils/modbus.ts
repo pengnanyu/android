@@ -76,14 +76,87 @@ export function parseNum(val: unknown, radix: number = 10): number {
   return 0;
 }
 
+export function isInstructionRow(row: Record<string, unknown>): boolean {
+  const code = row['Code'];
+  const regCode = row['RegisterCode'];
+  return code !== undefined && code !== '' && regCode !== undefined && regCode !== '';
+}
+
 export function buildRegisterAddr(registerCode: number, registerAddress: number): number {
   return ((registerCode & 0x3F) << 10) | (registerAddress & 0x3FF);
 }
 
-export function calcRegLen(length: number, isInstruction: boolean): number {
-  if (isInstruction) return length;
-  if (length <= 0) return 0;
-  return Math.ceil(length / 2);
+export interface ParsedInstruction {
+  slaveAddr: number;
+  funcCode: number;
+  startAddr: number;
+  quantity: number;
+  rowIndex: number;
+}
+
+export interface ParsedDataField {
+  rowIndex: number;
+  parentInstructionIndex: number;
+  offsetAddr: number;
+  byteOffset: number;
+  regLen: number;
+  byteLen: number;
+}
+
+export interface ParsedProtocol {
+  instructions: ParsedInstruction[];
+  dataFields: ParsedDataField[];
+}
+
+export function parseProtocolRows(rows: Record<string, unknown>[]): ParsedProtocol {
+  const instructions: ParsedInstruction[] = [];
+  const dataFields: ParsedDataField[] = [];
+  let currentInstrIdx = -1;
+  let accumulatedBytes = 0;
+
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i]!;
+
+    if (isInstructionRow(row)) {
+      const slaveAddr = parseNum(row['Code'], 16);
+      const registerCode = parseNum(row['RegisterCode'], 16);
+      const registerAddress = parseNum(row['RegisterAddress'], 16);
+      const funcCode = registerCode & 0x3F;
+      const length = parseNum(row['Length'], 10);
+      const startAddr = buildRegisterAddr(registerCode, registerAddress);
+
+      currentInstrIdx = instructions.length;
+      accumulatedBytes = 0;
+
+      instructions.push({
+        slaveAddr,
+        funcCode,
+        startAddr,
+        quantity: length,
+        rowIndex: i,
+      });
+    } else {
+      if (currentInstrIdx < 0) continue;
+
+      const byteLen = parseNum(row['Length'], 10);
+      const offsetAddr = Math.floor(accumulatedBytes / 2);
+      const byteOffset = accumulatedBytes % 2;
+      const regLen = Math.ceil(byteLen / 2);
+
+      dataFields.push({
+        rowIndex: i,
+        parentInstructionIndex: currentInstrIdx,
+        offsetAddr,
+        byteOffset,
+        regLen,
+        byteLen,
+      });
+
+      accumulatedBytes += byteLen;
+    }
+  }
+
+  return { instructions, dataFields };
 }
 
 export function swap16(value: number): number {

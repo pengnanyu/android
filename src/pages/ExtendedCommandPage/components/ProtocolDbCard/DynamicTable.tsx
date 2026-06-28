@@ -1,5 +1,6 @@
+import { useMemo } from 'react';
 import type { ProtocolDatabase } from '@/types';
-import { buildRegisterAddr, calcRegLen, parseNum } from '@/utils/modbus';
+import { parseProtocolRows, isInstructionRow, parseNum, buildRegisterAddr } from '@/utils/modbus';
 import styles from './DynamicTable.module.css';
 
 interface DynamicTableProps {
@@ -7,12 +8,26 @@ interface DynamicTableProps {
   onFillCommand: (hex: string) => void;
 }
 
-function isInstructionRow(row: Record<string, unknown>): boolean {
-  return row['Code'] !== undefined && row['RegisterCode'] !== undefined && row['RegisterAddress'] !== undefined;
-}
-
 export function DynamicTable({ database, onFillCommand }: DynamicTableProps) {
   const { columns, rows } = database;
+
+  const parsed = useMemo(() => parseProtocolRows(rows), [rows]);
+
+  const dataFieldMap = useMemo(() => {
+    const map = new Map<number, { offsetAddr: number; regLen: number }>();
+    for (const df of parsed.dataFields) {
+      map.set(df.rowIndex, { offsetAddr: df.offsetAddr, regLen: df.regLen });
+    }
+    return map;
+  }, [parsed.dataFields]);
+
+  const instructionMap = useMemo(() => {
+    const map = new Map<number, { slaveAddr: number; funcCode: number; startAddr: number; quantity: number }>();
+    for (const inst of parsed.instructions) {
+      map.set(inst.rowIndex, { slaveAddr: inst.slaveAddr, funcCode: inst.funcCode, startAddr: inst.startAddr, quantity: inst.quantity });
+    }
+    return map;
+  }, [parsed.instructions]);
 
   const fixedCols = ['Type', 'Addr', 'RegLen', 'Value', 'Fill'];
   const dynamicCols = columns.filter(
@@ -40,31 +55,28 @@ export function DynamicTable({ database, onFillCommand }: DynamicTableProps) {
               isHidden ? styles.rowHidden : '',
             ].filter(Boolean).join(' ');
 
-            const registerCode = parseNum(row['RegisterCode'], 16);
-            const registerAddress = parseNum(row['RegisterAddress'], 16);
-            const addr = isCmd ? buildRegisterAddr(registerCode, registerAddress) : 0;
-            const length = parseNum(row['Length'], 10);
-            const regLen = calcRegLen(length, isCmd);
+            const instInfo = instructionMap.get(i);
+            const dataInfo = dataFieldMap.get(i);
+            const addr = isCmd && instInfo ? instInfo.startAddr : (dataInfo ? dataInfo.offsetAddr : 0);
+            const regLen = isCmd && instInfo ? instInfo.quantity : (dataInfo ? dataInfo.regLen : 0);
 
             return (
               <tr key={i} className={rowClass || undefined}>
                 {allCols.map((col) => (
                   <td key={col}>
                     {col === 'Type' && (isCmd ? 'CMD' : 'DAT')}
-                    {col === 'Addr' && (isCmd ? `0x${addr.toString(16).toUpperCase().padStart(4, '0')}` : '')}
+                    {col === 'Addr' && `0x${addr.toString(16).toUpperCase().padStart(4, '0')}`}
                     {col === 'RegLen' && String(regLen)}
                     {col === 'Value' && (row['Value'] !== undefined ? String(row['Value']) : '')}
-                    {col === 'Fill' && isCmd && (
+                    {col === 'Fill' && isCmd && instInfo && (
                       <button className={styles.fillBtn} onClick={() => {
-                        const slaveAddr = parseNum(row['Code'], 16);
-                        const funcCode = registerCode & 0x3F;
                         const hex = [
-                          slaveAddr,
-                          funcCode,
-                          (addr >> 8) & 0xFF,
-                          addr & 0xFF,
-                          (regLen >> 8) & 0xFF,
-                          regLen & 0xFF,
+                          instInfo.slaveAddr,
+                          instInfo.funcCode,
+                          (instInfo.startAddr >> 8) & 0xFF,
+                          instInfo.startAddr & 0xFF,
+                          (instInfo.quantity >> 8) & 0xFF,
+                          instInfo.quantity & 0xFF,
                         ]
                           .map((v) => v.toString(16).toUpperCase().padStart(2, '0'))
                           .join(' ');
