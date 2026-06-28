@@ -50,6 +50,9 @@ export function BmsProvider({ children }: { children: ReactNode }) {
   const [logs, setLogs] = useState<LogEntry[]>([]);
 
   const parsedValuesMapRef = useRef<Map<number, FieldValue>>(new Map());
+  const pendingFieldsUpdateRef = useRef<Map<string, number> | null>(null);
+  const pendingValuesUpdateRef = useRef(false);
+  const pendingDmUpdateRef = useRef(false);
 
   const sendMessageRef = useRef<((msg: BridgeMessage) => void) | null>(null);
   const versionRef = useRef<string | null>(null);
@@ -213,6 +216,41 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     sendInstructionFrame(regIndices[0]!);
   }, [sendInstructionFrame, addLog]);
 
+  const flushUpdates = useCallback(() => {
+    if (pendingFieldsUpdateRef.current) {
+      setParsedFields(pendingFieldsUpdateRef.current);
+      pendingFieldsUpdateRef.current = null;
+    }
+    if (pendingValuesUpdateRef.current) {
+      setParsedValues(Array.from(parsedValuesMapRef.current.values()));
+      pendingValuesUpdateRef.current = false;
+    }
+    if (pendingDmUpdateRef.current) {
+      const dmValues: FieldValue[] = [];
+      for (const v of parsedValuesMapRef.current.values()) {
+        if (v.configType === 'Data Memery') dmValues.push(v);
+      }
+      const groupMap = new Map<string, FieldValue[]>();
+      for (const v of dmValues) {
+        const key = v.configNameEn || v.configNameZh || 'Unknown';
+        const list = groupMap.get(key) ?? [];
+        list.push(v);
+        groupMap.set(key, list);
+      }
+      const groups: DataMemeryGroup[] = [];
+      for (const [key, fields] of groupMap) {
+        const first = fields[0]!;
+        groups.push({
+          configNameEn: first.configNameEn || key,
+          configNameZh: first.configNameZh || key,
+          fields,
+        });
+      }
+      setDataMemeryGroups(groups);
+      pendingDmUpdateRef.current = false;
+    }
+  }, []);
+
   const advancePoll = useCallback(() => {
     if (responseTimerRef.current) {
       clearTimeout(responseTimerRef.current);
@@ -226,6 +264,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       if (pollIdxRef.current < allIndices.length) {
         sendInstructionFrame(allIndices[pollIdxRef.current]!);
       } else {
+        flushUpdates();
         addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: 'Initial poll complete', rawHex: '' });
         startPeriodicPoll();
       }
@@ -235,6 +274,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       if (pollIdxRef.current < regIndices.length) {
         sendInstructionFrame(regIndices[pollIdxRef.current]!);
       } else {
+        flushUpdates();
         pollTimerRef.current = setTimeout(() => {
           pollTimerRef.current = null;
           pollIdxRef.current = 0;
@@ -242,7 +282,8 @@ export function BmsProvider({ children }: { children: ReactNode }) {
         }, POLL_INTERVAL);
       }
     }
-  }, [sendInstructionFrame, addLog, startPeriodicPoll]);
+  }, [sendInstructionFrame, addLog, startPeriodicPoll, flushUpdates]);
+
 
   const handleRawData = useCallback((payload: unknown) => {
     const p = payload as { data: number[] };
@@ -273,13 +314,12 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    setParsedFields(prev => {
-      const newFields = new Map(prev);
-      for (let i = 0; i < parsed.registers.length; i++) {
-        newFields.set(makeRegisterKey(parsed.slaveAddr, parsed.funcCode, i), parsed.registers[i]!);
-      }
-      return newFields;
-    });
+    if (!pendingFieldsUpdateRef.current) {
+      pendingFieldsUpdateRef.current = new Map(parsedFields);
+    }
+    for (let i = 0; i < parsed.registers.length; i++) {
+      pendingFieldsUpdateRef.current.set(makeRegisterKey(parsed.slaveAddr, parsed.funcCode, i), parsed.registers[i]!);
+    }
 
     const instrIdx = currentSentInstrIdxRef.current;
     const protocol = parsedProtocolRef.current;
@@ -287,37 +327,18 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       const fieldValues = parseDataFields(parsed.registers, protocol.dataFields, instrIdx, protocol.instructions);
       if (fieldValues.length > 0) {
         const map = parsedValuesMapRef.current;
-        let dmChanged = false;
         for (const fv of fieldValues) {
-          if (!dmChanged && fv.configType === 'Data Memery') dmChanged = true;
+          if (!pendingDmUpdateRef.current && fv.configType === 'Data Memery') {
+            pendingDmUpdateRef.current = true;
+          }
           map.set(fv.rowIndex, fv);
         }
-        setParsedValues(Array.from(map.values()));
-        if (dmChanged) {
-          const dmValues = Array.from(map.values()).filter(v => v.configType === 'Data Memery');
-          const groupMap = new Map<string, FieldValue[]>();
-          for (const v of dmValues) {
-            const key = v.configNameEn || v.configNameZh || 'Unknown';
-            const list = groupMap.get(key) ?? [];
-            list.push(v);
-            groupMap.set(key, list);
-          }
-          const groups: DataMemeryGroup[] = [];
-          for (const [key, fields] of groupMap) {
-            const first = fields[0]!;
-            groups.push({
-              configNameEn: first.configNameEn || key,
-              configNameZh: first.configNameZh || key,
-              fields,
-            });
-          }
-          setDataMemeryGroups(groups);
-        }
+        pendingValuesUpdateRef.current = true;
       }
     }
 
     advancePoll();
-  }, [addLog, stopVersionRetry, loadProtocolDb, advancePoll, resetToVersionQuery]);
+  }, [parsedFields, addLog, stopVersionRetry, loadProtocolDb, advancePoll, resetToVersionQuery, flushUpdates]);
 
   const handleConnectionStatus = useCallback((payload: unknown) => {
     const p = payload as { status: ConnectionStatus };

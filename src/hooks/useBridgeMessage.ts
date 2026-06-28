@@ -16,13 +16,9 @@ export function useBridgeMessage(options: UseBridgeMessageOptions = {}) {
       const data = event.data as BridgeMessage | undefined;
       if (!data?.type?.startsWith('bms:')) return;
 
-      console.log('[useBridgeMessage] Received:', data.type, data.payload);
-
       const handler = handlersRef.current?.[data.type];
       if (handler) {
         handler(data.payload);
-      } else {
-        console.warn('[useBridgeMessage] No handler for:', data.type);
       }
     };
 
@@ -32,10 +28,7 @@ export function useBridgeMessage(options: UseBridgeMessageOptions = {}) {
 
   const sendMessage = useCallback((message: BridgeMessage) => {
     if (window.parent && window.parent !== window) {
-      console.log('[useBridgeMessage] Sending:', message.type, message.payload);
       window.parent.postMessage(message, '*');
-    } else {
-      console.warn('[useBridgeMessage] Not embedded, cannot send:', message.type);
     }
   }, []);
 
