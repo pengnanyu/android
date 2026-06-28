@@ -73,12 +73,10 @@ export function BmsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const sendFrame = useCallback((frame: number[]) => {
-    const hex = toHex(frame);
-    addLog({ timestamp: Date.now(), direction: 'TX', rawHex: hex });
     if (sendMessageRef.current) {
       sendMessageRef.current({ type: 'bms:frame-send', payload: { frame } });
     }
-  }, [addLog]);
+  }, []);
 
   const stopAllTimers = useCallback(() => {
     if (versionRetryRef.current) { clearInterval(versionRetryRef.current); versionRetryRef.current = null; }
@@ -246,17 +244,10 @@ export function BmsProvider({ children }: { children: ReactNode }) {
 
   const handleRawData = useCallback((payload: unknown) => {
     const p = payload as { data: number[] };
-    const hex = (p.data && p.data.length > 0) ? toHex(p.data) : '(empty)';
-
-    addLog({ timestamp: Date.now(), direction: 'RX', rawHex: hex });
 
     if (!p.data || p.data.length === 0) return;
 
     const parsed = parseModbusResponse(p.data);
-
-    if (parsed) {
-      addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `FC:${parsed.funcCode.toString(16).toUpperCase()} BC:${parsed.byteCount} Regs:${parsed.registers.length}`, rawHex: hex });
-    }
 
     if (!parsed) {
       addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: 'Invalid response, resetting', rawHex: '' });
@@ -265,7 +256,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     }
 
     if (parsed.funcCode & 0x80) {
-      addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `Modbus exception: FC=0x${parsed.funcCode.toString(16).toUpperCase()}, device may have changed`, rawHex: hex });
+      addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `Modbus exception: FC=0x${parsed.funcCode.toString(16).toUpperCase()}, device may have changed`, rawHex: '' });
       resetToVersionQuery();
       return;
     }
