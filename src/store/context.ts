@@ -1,23 +1,27 @@
 import { createContext, useContext } from 'react';
 import type { ConnectionStatus, ProtocolDatabase } from '@/types';
 
+export interface LogEntry {
+  id: string;
+  timestamp: number;
+  direction: 'TX' | 'RX';
+  configType?: 'data-memory' | 'info-register' | 'calendar';
+  parsedInfo?: string;
+  rawHex: string;
+}
+
 export interface BmsState {
   connectionStatus: ConnectionStatus;
   protocolDb: ProtocolDatabase | null;
   protocolLoading: boolean;
-  versionQuerySent: boolean;
   deviceVersion: string | null;
   parsedFields: Map<string, number>;
+  logs: LogEntry[];
 }
 
 export interface BmsActions {
-  setConnectionStatus: (status: ConnectionStatus) => void;
-  setProtocolDb: (db: ProtocolDatabase | null) => void;
-  setProtocolLoading: (loading: boolean) => void;
-  setVersionQuerySent: (sent: boolean) => void;
-  setDeviceVersion: (version: string | null) => void;
-  updateParsedFields: (fields: Map<string, number>) => void;
   sendFrame: (frame: number[]) => void;
+  clearLogs: () => void;
 }
 
 export type BmsStore = BmsState & BmsActions;

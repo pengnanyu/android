@@ -1,18 +1,12 @@
 import { useTranslation } from 'react-i18next';
 import { CardShell } from '@/components/shared/CardShell';
 import { LogItem } from './LogItem';
+import type { LogEntry } from '@/store/context';
 import styles from './ReceiveLogCard.module.css';
 
 export type LogFilter = 'all' | 'data-memory';
 
-export interface LogEntry {
-  id: string;
-  timestamp: number;
-  direction: 'TX' | 'RX';
-  configType?: 'data-memory' | 'info-register' | 'calendar';
-  parsedInfo?: string;
-  rawHex: string;
-}
+export type { LogEntry };
 
 interface ReceiveLogCardProps {
   logs: LogEntry[];

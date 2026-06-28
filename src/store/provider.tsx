@@ -1,12 +1,17 @@
 import { useState, useCallback, useMemo, useEffect, useRef, type ReactNode } from 'react';
 import type { ConnectionStatus, ProtocolDatabase, BridgeMessage } from '@/types';
-import type { BmsStore } from './context';
+import type { BmsStore, LogEntry } from './context';
 import { BmsContext } from './context';
 import { useBridgeMessage } from '@/hooks/useBridgeMessage';
 import { isEmbedded } from '@/utils/platform';
 import { parseModbusResponse, appendCrc } from '@/utils/modbus';
 
 const PROTOCOL_API_URL = 'https://sql.hzxhhc.com/api/data/';
+const VERSION_QUERY_INTERVAL = 1000;
+
+function toHex(data: number[]): string {
+  return data.map(b => b.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+}
 
 function hexToVersion(registers: number[]): string | null {
   if (registers.length < 1) return null;
@@ -20,17 +25,30 @@ export function BmsProvider({ children }: { children: ReactNode }) {
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected');
   const [protocolDb, setProtocolDb] = useState<ProtocolDatabase | null>(null);
   const [protocolLoading, setProtocolLoading] = useState(false);
-  const [versionQuerySent, setVersionQuerySent] = useState(false);
   const [deviceVersion, setDeviceVersion] = useState<string | null>(null);
   const [parsedFields, setParsedFields] = useState<Map<string, number>>(new Map());
+  const [logs, setLogs] = useState<LogEntry[]>([]);
 
   const sendMessageRef = useRef<((msg: BridgeMessage) => void) | null>(null);
+  const versionRef = useRef<string | null>(null);
+  const retryTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const logIdRef = useRef(0);
+
+  const addLog = useCallback((entry: Omit<LogEntry, 'id'>) => {
+    logIdRef.current += 1;
+    setLogs(prev => [...prev.slice(-200), { ...entry, id: `${entry.direction}_${logIdRef.current}` }]);
+  }, []);
 
   const sendFrame = useCallback((frame: number[]) => {
     if (sendMessageRef.current) {
       sendMessageRef.current({ type: 'bms:frame-send', payload: { frame } });
+      addLog({
+        timestamp: Date.now(),
+        direction: 'TX',
+        rawHex: toHex(frame),
+      });
     }
-  }, []);
+  }, [addLog]);
 
   const loadProtocolDb = useCallback(async (version: string) => {
     setProtocolLoading(true);
@@ -46,21 +64,61 @@ export function BmsProvider({ children }: { children: ReactNode }) {
           rows: data.rows,
           loadedAt: Date.now(),
         });
+        addLog({
+          timestamp: Date.now(),
+          direction: 'RX',
+          parsedInfo: `Protocol DB loaded: v${version} (${data.rows.length} rows)`,
+          rawHex: '',
+        });
       }
     } catch (_e) {
-      console.error('[BmsStore] Failed to load protocol DB:', _e);
+      addLog({
+        timestamp: Date.now(),
+        direction: 'RX',
+        parsedInfo: `Failed to load protocol DB: ${_e}`,
+        rawHex: '',
+      });
     } finally {
       setProtocolLoading(false);
     }
-  }, []);
+  }, [addLog]);
 
-  const versionRef = useRef<string | null>(null);
+  const sendVersionQuery = useCallback(() => {
+    const frame = appendCrc([0x00, 0x03, 0x00, 0x00, 0x00, 0x01]);
+    sendFrame(frame);
+  }, [sendFrame]);
+
+  const startVersionRetry = useCallback(() => {
+    if (retryTimerRef.current) return;
+    sendVersionQuery();
+    retryTimerRef.current = setInterval(() => {
+      if (!versionRef.current) {
+        sendVersionQuery();
+      }
+    }, VERSION_QUERY_INTERVAL);
+  }, [sendVersionQuery]);
+
+  const stopVersionRetry = useCallback(() => {
+    if (retryTimerRef.current) {
+      clearInterval(retryTimerRef.current);
+      retryTimerRef.current = null;
+    }
+  }, []);
 
   const handleRawData = useCallback((payload: unknown) => {
     const p = payload as { data: number[] };
     if (!p.data || p.data.length === 0) return;
 
+    const hex = toHex(p.data);
     const parsed = parseModbusResponse(p.data);
+
+    addLog({
+      timestamp: Date.now(),
+      direction: 'RX',
+      parsedInfo: parsed ? `FC:${parsed.funcCode.toString(16).toUpperCase()} BC:${parsed.byteCount} Regs:${parsed.registers.length}` : 'CRC fail',
+      rawHex: hex,
+    });
+
     if (!parsed) return;
 
     if (!versionRef.current && parsed.registers.length > 0) {
@@ -68,6 +126,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       if (ver) {
         versionRef.current = ver;
         setDeviceVersion(ver);
+        stopVersionRetry();
         loadProtocolDb(ver);
       }
     }
@@ -79,7 +138,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       }
       return newFields;
     });
-  }, [loadProtocolDb]);
+  }, [addLog, stopVersionRetry, loadProtocolDb]);
 
   const handlers = useMemo(() => ({
     'bms:connection-status': (payload: unknown) => {
@@ -99,38 +158,32 @@ export function BmsProvider({ children }: { children: ReactNode }) {
   }, [sendMessage]);
 
   useEffect(() => {
-    if (connectionStatus === 'connected' && !versionQuerySent) {
-      setVersionQuerySent(true);
-      sendFrame(appendCrc([0x00, 0x03, 0x00, 0x00, 0x00, 0x01]));
-    }
-    if (connectionStatus !== 'connected') {
-      setVersionQuerySent(false);
+    if (connectionStatus === 'connected') {
+      startVersionRetry();
+    } else {
+      stopVersionRetry();
       versionRef.current = null;
       setDeviceVersion(null);
       setProtocolDb(null);
       setParsedFields(new Map());
     }
-  }, [connectionStatus, versionQuerySent, sendFrame]);
+    return () => stopVersionRetry();
+  }, [connectionStatus, startVersionRetry, stopVersionRetry]);
 
-  const updateParsedFields = useCallback((fields: Map<string, number>) => {
-    setParsedFields(fields);
+  const clearLogs = useCallback(() => {
+    setLogs([]);
   }, []);
 
   const store = useMemo<BmsStore>(() => ({
     connectionStatus,
     protocolDb,
     protocolLoading,
-    versionQuerySent,
     deviceVersion,
     parsedFields,
-    setConnectionStatus,
-    setProtocolDb,
-    setProtocolLoading,
-    setVersionQuerySent,
-    setDeviceVersion,
-    updateParsedFields,
+    logs,
     sendFrame,
-  }), [connectionStatus, protocolDb, protocolLoading, versionQuerySent, deviceVersion, parsedFields, updateParsedFields, sendFrame]);
+    clearLogs,
+  }), [connectionStatus, protocolDb, protocolLoading, deviceVersion, parsedFields, logs, sendFrame, clearLogs]);
 
   return (
     <BmsContext.Provider value={store}>
