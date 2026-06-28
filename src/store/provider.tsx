@@ -10,7 +10,7 @@ import i18n from '@/i18n';
 
 const PROTOCOL_API_URL = 'https://sql.hzxhhc.com/api/data/';
 const VERSION_QUERY_INTERVAL = 1000;
-const AUTO_READ_INTERVAL = 200;
+const RESPONSE_TIMEOUT = 2000;
 
 function toHex(data: number[]): string {
   return data.map(b => b.toString(16).toUpperCase().padStart(2, '0')).join(' ');
@@ -62,6 +62,9 @@ export function BmsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const autoReadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoReadIdxRef = useRef(0);
+  const autoReadRetryRef = useRef(0);
+  const waitingResponseRef = useRef(false);
 
   const sendFrame = useCallback((frame: number[]) => {
     const hex = toHex(frame);
@@ -80,6 +83,14 @@ export function BmsProvider({ children }: { children: ReactNode }) {
 
   const parsedProtocolRef = useRef<ParsedProtocol | null>(null);
 
+  const stopAutoRead = useCallback(() => {
+    if (autoReadTimerRef.current) {
+      clearTimeout(autoReadTimerRef.current);
+      autoReadTimerRef.current = null;
+    }
+    waitingResponseRef.current = false;
+  }, []);
+
   const autoReadInstructions = useCallback((db: ProtocolDatabase) => {
     const parsed = parseProtocolRows(db.rows);
     parsedProtocolRef.current = parsed;
@@ -89,6 +100,10 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    stopAutoRead();
+    autoReadIdxRef.current = 0;
+    autoReadRetryRef.current = 0;
+
     console.log('[BmsStore] Auto-reading', parsed.instructions.length, 'instructions,', parsed.dataFields.length, 'data fields');
     addLog({
       timestamp: Date.now(),
@@ -97,33 +112,31 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       rawHex: '',
     });
 
-    let idx = 0;
-    const sendNext = () => {
-      if (idx >= parsed.instructions.length) return;
-      const inst = parsed.instructions[idx]!;
-      const frame = appendCrc([
-        inst.slaveAddr,
-        inst.funcCode,
-        (inst.startAddr >> 8) & 0xFF,
-        inst.startAddr & 0xFF,
-        (inst.quantity >> 8) & 0xFF,
-        inst.quantity & 0xFF,
-      ]);
-      sendFrame(frame);
-      idx++;
-      if (idx < parsed.instructions.length) {
-        autoReadTimerRef.current = setTimeout(sendNext, AUTO_READ_INTERVAL);
-      }
-    };
-    sendNext();
-  }, [sendFrame, addLog]);
+    const inst = parsed.instructions[0]!;
+    const frame = appendCrc([
+      inst.slaveAddr,
+      inst.funcCode,
+      (inst.startAddr >> 8) & 0xFF,
+      inst.startAddr & 0xFF,
+      (inst.quantity >> 8) & 0xFF,
+      inst.quantity & 0xFF,
+    ]);
+    waitingResponseRef.current = true;
+    sendFrame(frame);
 
-  const stopAutoRead = useCallback(() => {
-    if (autoReadTimerRef.current) {
-      clearTimeout(autoReadTimerRef.current);
-      autoReadTimerRef.current = null;
-    }
-  }, []);
+    autoReadTimerRef.current = setTimeout(() => {
+      if (autoReadIdxRef.current >= parsed.instructions.length) return;
+      autoReadRetryRef.current++;
+      addLog({
+        timestamp: Date.now(),
+        direction: 'TX',
+        parsedInfo: `Timeout, retry #${autoReadRetryRef.current} for instruction #1`,
+        rawHex: '',
+      });
+      waitingResponseRef.current = true;
+      sendFrame(frame);
+    }, RESPONSE_TIMEOUT);
+  }, [sendFrame, addLog, stopAutoRead]);
 
   const loadProtocolDb = useCallback(async (version: string) => {
     setProtocolLoading(true);
@@ -180,6 +193,69 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const advanceAutoRead = useCallback(() => {
+    if (!waitingResponseRef.current) return;
+    waitingResponseRef.current = false;
+
+    if (autoReadTimerRef.current) {
+      clearTimeout(autoReadTimerRef.current);
+      autoReadTimerRef.current = null;
+    }
+
+    const parsed = parsedProtocolRef.current;
+    if (!parsed) return;
+
+    autoReadIdxRef.current++;
+    autoReadRetryRef.current = 0;
+
+    if (autoReadIdxRef.current >= parsed.instructions.length) {
+      addLog({
+        timestamp: Date.now(),
+        direction: 'RX',
+        parsedInfo: 'Auto-read complete',
+        rawHex: '',
+      });
+      return;
+    }
+
+    const inst = parsed.instructions[autoReadIdxRef.current]!;
+    const frame = appendCrc([
+      inst.slaveAddr,
+      inst.funcCode,
+      (inst.startAddr >> 8) & 0xFF,
+      inst.startAddr & 0xFF,
+      (inst.quantity >> 8) & 0xFF,
+      inst.quantity & 0xFF,
+    ]);
+    waitingResponseRef.current = true;
+    sendFrame(frame);
+
+    autoReadTimerRef.current = setTimeout(() => {
+      if (autoReadIdxRef.current >= parsed.instructions.length) return;
+      autoReadRetryRef.current++;
+      addLog({
+        timestamp: Date.now(),
+        direction: 'TX',
+        parsedInfo: `Timeout, retry #${autoReadRetryRef.current} for instruction #${autoReadIdxRef.current + 1}`,
+        rawHex: '',
+      });
+      const retryInst = parsed.instructions[autoReadIdxRef.current]!;
+      const retryFrame = appendCrc([
+        retryInst.slaveAddr,
+        retryInst.funcCode,
+        (retryInst.startAddr >> 8) & 0xFF,
+        retryInst.startAddr & 0xFF,
+        (retryInst.quantity >> 8) & 0xFF,
+        retryInst.quantity & 0xFF,
+      ]);
+      waitingResponseRef.current = true;
+      sendFrame(retryFrame);
+      autoReadTimerRef.current = setTimeout(() => {
+        advanceAutoRead();
+      }, RESPONSE_TIMEOUT);
+    }, RESPONSE_TIMEOUT);
+  }, [sendFrame, addLog]);
+
   const handleRawData = useCallback((payload: unknown) => {
     console.log('[BmsStore] handleRawData called:', payload);
     const p = payload as { data: number[] };
@@ -227,7 +303,9 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       }
       return newFields;
     });
-  }, [addLog, stopVersionRetry, loadProtocolDb]);
+
+    advanceAutoRead();
+  }, [addLog, stopVersionRetry, loadProtocolDb, advanceAutoRead]);
 
   const handleConnectionStatus = useCallback((payload: unknown) => {
     const p = payload as { status: ConnectionStatus };
