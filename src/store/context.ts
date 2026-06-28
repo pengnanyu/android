@@ -6,7 +6,7 @@ export interface LogEntry {
   id: string;
   timestamp: number;
   direction: 'TX' | 'RX';
-  configType?: 'data-memory' | 'info-register' | 'calendar';
+  configType?: string;
   parsedInfo?: string;
   rawHex: string;
 }

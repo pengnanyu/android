@@ -18,32 +18,36 @@ import {
 } from '@/utils/data-map';
 import styles from './BatteryInfoPage.module.css';
 
-const CELL_VOLTAGE_PATTERN = /(?:电芯|单体|Cell)\s*电压\s*\d+/i;
-const TEMPERATURE_PATTERN = /(?:温度|Temperature|Temp)\s*\d+/i;
-const BALANCE_PATTERN = /(?:均衡|Balance)\s*\d+/i;
-const SOC_PATTERNS = ['SOC', 'soc'];
-const SOH_PATTERNS = ['SOH', 'soh'];
-const TOTAL_VOLTAGE_PATTERNS = ['总电压', 'TotalVoltage', 'totalvoltage', 'Total_Voltage'];
-const TOTAL_CURRENT_PATTERNS = ['总电流', 'TotalCurrent', 'totalcurrent', 'Total_Current'];
-const POWER_PATTERNS = ['功率', 'Power', 'power', 'TotalPower'];
-const MOS_TEMPERATURE_PATTERN = /(?:MOS管温度|MOS.*Temp|MosTemp)/i;
-const STATUS_PATTERN = /(?:状态|告警|报警|保护|安全|Status|Alarm|Protect|Safety)/i;
+const CELL_VOLTAGE_PATTERN = /(?:单体电压|Voltage)\s*(\d+)/i;
+const TEMPERATURE_PATTERN = /(?:温度|Temperature|Temp)\s*(\d+)/i;
+const BALANCE_PATTERN = /(?:均衡|Balance)\s*(\d+)/i;
+const SOC_PATTERNS = ['SOC'];
+const SOH_PATTERNS = ['SOH', '电池健康'];
+const TOTAL_VOLTAGE_PATTERNS = ['PACK Voltage', 'BatteryVoltage', '总电压', 'TotalVoltage'];
+const TOTAL_CURRENT_PATTERNS = ['Current', '电流', 'TotalCurrent'];
+const CHARGING_VOLTAGE_PATTERNS = ['ChargingVoltage', '充电电压'];
+const CHARGING_CURRENT_PATTERNS = ['ChargingCurrent', '充电电流'];
+const MOS_TEMPERATURE_PATTERN = /(?:MOS管温度|MOS.*Temp|MosTemp|MOS.*温度)/i;
+const STATUS_PATTERN = /Status|Alarm|Safety|Fail|状态|告警|报警|保护/i;
 
 function matchesAny(name: string, patterns: string[]): boolean {
-  return patterns.some(p => name.includes(p));
+  return patterns.some(p => name === p || name.includes(p));
 }
 
 function isInfoField(name: string): boolean {
-  if (CELL_VOLTAGE_PATTERN.test(name)) return false;
-  if (TEMPERATURE_PATTERN.test(name)) return false;
+  if (CELL_VOLTAGE_PATTERN.test(name) && /\d/.test(name)) return false;
+  if (TEMPERATURE_PATTERN.test(name) && /\d/.test(name)) return false;
   if (BALANCE_PATTERN.test(name)) return false;
   if (MOS_TEMPERATURE_PATTERN.test(name)) return false;
   if (matchesAny(name, SOC_PATTERNS)) return false;
   if (matchesAny(name, SOH_PATTERNS)) return false;
   if (matchesAny(name, TOTAL_VOLTAGE_PATTERNS)) return false;
   if (matchesAny(name, TOTAL_CURRENT_PATTERNS)) return false;
-  if (matchesAny(name, POWER_PATTERNS)) return false;
+  if (matchesAny(name, CHARGING_VOLTAGE_PATTERNS)) return false;
+  if (matchesAny(name, CHARGING_CURRENT_PATTERNS)) return false;
   if (STATUS_PATTERN.test(name)) return false;
+  if (/^Voltage\s+(Max|Min)$/i.test(name)) return false;
+  if (/^Temperature\s+(Max|Min)$/i.test(name)) return false;
   return true;
 }
 
@@ -51,28 +55,28 @@ export function BatteryInfoPage() {
   const { parsedValues, connectionStatus } = useBmsStore();
   const loading = connectionStatus !== 'connected' || parsedValues.length === 0;
 
-  const infoValues = useMemo(
-    () => parsedValues.filter(v => v.configType === 'info-register'),
+  const displayValues = useMemo(
+    () => parsedValues.filter(v => v.configType === 'Info' || v.configType === 'Register'),
     [parsedValues]
   );
 
-  const { soc, pack } = useMemo(() => mapSocPack(infoValues), [infoValues]);
-  const cellVoltages = useMemo(() => mapCellVoltages(infoValues), [infoValues]);
-  const { temperatures, mosTemperature } = useMemo(() => mapTemperatures(infoValues), [infoValues]);
-  const cellBalanceFlags = useMemo(() => mapBalanceFlags(infoValues), [infoValues]);
-  const statusGroups = useMemo(() => mapStatusGroups(infoValues), [infoValues]);
+  const { soc, pack } = useMemo(() => mapSocPack(displayValues), [displayValues]);
+  const cellVoltages = useMemo(() => mapCellVoltages(displayValues), [displayValues]);
+  const { temperatures, mosTemperature } = useMemo(() => mapTemperatures(displayValues), [displayValues]);
+  const cellBalanceFlags = useMemo(() => mapBalanceFlags(displayValues), [displayValues]);
+  const statusGroups = useMemo(() => mapStatusGroups(displayValues), [displayValues]);
 
   const excludedNames = useMemo(() => {
     const s = new Set<string>();
-    for (const v of infoValues) {
+    for (const v of displayValues) {
       if (!isInfoField(v.name)) s.add(v.name);
     }
     return s;
-  }, [infoValues]);
+  }, [displayValues]);
 
   const extraFields = useMemo(
-    () => mapExtraFields(infoValues, excludedNames),
-    [infoValues, excludedNames]
+    () => mapExtraFields(displayValues, excludedNames),
+    [displayValues, excludedNames]
   );
 
   const dataPointsRef = useRef<VoltageCurrentDataPoint[]>([]);

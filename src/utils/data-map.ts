@@ -1,18 +1,17 @@
 import type { FieldValue } from '@/utils/modbus';
 import type { SocData, PackData, CellVoltage, TempData, DeviceInfoField, StatusGroup, StatusFlag, VoltageCurrentDataPoint } from '@/types';
 
-const SOC_PATTERNS = ['SOC', 'soc'];
-const SOH_PATTERNS = ['SOH', 'soh'];
-const TOTAL_VOLTAGE_PATTERNS = ['总电压', 'TotalVoltage', 'totalvoltage', 'Total_Voltage'];
-const TOTAL_CURRENT_PATTERNS = ['总电流', 'TotalCurrent', 'totalcurrent', 'Total_Current'];
-const POWER_PATTERNS = ['功率', 'Power', 'power', 'TotalPower'];
-const CELL_VOLTAGE_PATTERN = /(?:电芯|单体|Cell)\s*电压\s*(\d+)/i;
+const SOC_PATTERNS = ['SOC'];
+const SOH_PATTERNS = ['SOH', '电池健康'];
+const TOTAL_VOLTAGE_PATTERNS = ['PACK Voltage', 'BatteryVoltage', '总电压', 'TotalVoltage'];
+const TOTAL_CURRENT_PATTERNS = ['Current', '电流', 'TotalCurrent'];
+const CELL_VOLTAGE_PATTERN = /(?:单体电压|Voltage)\s*(\d+)/i;
 const TEMPERATURE_PATTERN = /(?:温度|Temperature|Temp)\s*(\d+)/i;
-const MOS_TEMPERATURE_PATTERN = /(?:MOS管温度|MOS.*Temp|MosTemp)/i;
+const MOS_TEMPERATURE_PATTERN = /(?:MOS管温度|MOS.*Temp|MosTemp|MOS.*温度)/i;
 const BALANCE_PATTERN = /(?:均衡|Balance)\s*(\d+)/i;
 
 function matchesAny(name: string, patterns: string[]): boolean {
-  return patterns.some(p => name.includes(p));
+  return patterns.some(p => name === p || name.includes(p));
 }
 
 function extractIndex(name: string, pattern: RegExp): number | null {
@@ -25,14 +24,12 @@ export function mapSocPack(values: FieldValue[]): { soc: SocData | null; pack: P
   let soh: number | null = null;
   let totalVoltage: number | null = null;
   let totalCurrent: number | null = null;
-  let power: number | null = null;
 
   for (const v of values) {
-    if (matchesAny(v.name, SOC_PATTERNS)) soc = v.value;
+    if (matchesAny(v.name, SOC_PATTERNS) && v.name === 'SOC') soc = v.value;
     else if (matchesAny(v.name, SOH_PATTERNS)) soh = v.value;
     else if (matchesAny(v.name, TOTAL_VOLTAGE_PATTERNS)) totalVoltage = v.value;
-    else if (matchesAny(v.name, TOTAL_CURRENT_PATTERNS)) totalCurrent = v.value;
-    else if (matchesAny(v.name, POWER_PATTERNS)) power = v.value;
+    else if (matchesAny(v.name, TOTAL_CURRENT_PATTERNS) && !v.name.includes('Charging') && !v.name.includes('充电')) totalCurrent = v.value;
   }
 
   return {
@@ -40,7 +37,7 @@ export function mapSocPack(values: FieldValue[]): { soc: SocData | null; pack: P
     pack: totalVoltage !== null ? {
       totalVoltage,
       totalCurrent: totalCurrent ?? 0,
-      power: power ?? 0,
+      power: 0,
     } : null,
   };
 }
@@ -105,8 +102,8 @@ export function mapStatusGroups(values: FieldValue[]): StatusGroup[] {
   for (const v of values) {
     const name = v.name;
     let type: 'status' | 'alarm' | 'safety' = 'status';
-    if (/告警|报警|Alarm/i.test(name)) type = 'alarm';
-    else if (/保护|安全|Protect|Safety/i.test(name)) type = 'safety';
+    if (/Alarm|告警|报警/i.test(name)) type = 'alarm';
+    else if (/Safety|Protect|保护|安全|Fail/i.test(name)) type = 'safety';
 
     const existing = groups.find(g => g.type === type);
     const flag: StatusFlag = { label: name, active: v.value !== 0 };

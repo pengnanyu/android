@@ -10,11 +10,11 @@ export function LogItem({ entry }: LogItemProps) {
   const timeStr = `${time.getHours().toString().padStart(2, '0')}:${time.getMinutes().toString().padStart(2, '0')}:${time.getSeconds().toString().padStart(2, '0')}`;
 
   const configTypeClass = entry.configType
-    ? styles[entry.configType === 'data-memory' ? 'dm' : entry.configType === 'info-register' ? 'ir' : 'cl']
+    ? styles[entry.configType === 'Data Memery' ? 'dm' : entry.configType === 'Info' ? 'ir' : entry.configType === 'Calendar' ? 'cl' : 'rg']
     : undefined;
 
   const configTypeLabel = entry.configType
-    ? entry.configType === 'data-memory' ? 'DM' : entry.configType === 'info-register' ? 'IR' : 'CL'
+    ? entry.configType === 'Data Memery' ? 'DM' : entry.configType === 'Info' ? 'IR' : entry.configType === 'Calendar' ? 'CL' : 'RG'
     : undefined;
 
   return (

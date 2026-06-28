@@ -6,23 +6,37 @@ import { ParamToolbar } from './components/ParamToolbar';
 import styles from './ParamConfigPage.module.css';
 
 export function ParamConfigPage() {
-  const { parsedValues, protocolDb, connectionStatus } = useBmsStore();
+  const { parsedValues, protocolDb, parsedProtocol, connectionStatus } = useBmsStore();
 
   const params = useMemo<ParamItem[]>(() => {
     const configValues = parsedValues.filter(
-      v => v.configType !== 'info-register' && v.configType !== 'Calendar' && v.configType !== ''
+      v => v.configType === 'Register' || v.configType === 'Data Memery'
     );
     const rows = protocolDb?.rows;
+    const instructions = parsedProtocol?.instructions;
+
+    const instrGroupMap = new Map<number, string>();
+    if (instructions) {
+      for (let i = 0; i < instructions.length; i++) {
+        const inst = instructions[i]!;
+        const raw = rows?.[inst.rowIndex] as Record<string, unknown> | undefined;
+        const groupName = String(raw?.['ConfigName_English'] ?? raw?.['ConfigName_Chinase'] ?? inst.configType);
+        instrGroupMap.set(i, groupName);
+      }
+    }
 
     return configValues.map(v => {
       const raw = rows?.[v.rowIndex] as Record<string, unknown> | undefined;
+      const group = instrGroupMap.get(
+        parsedProtocol?.dataFields.find(f => f.rowIndex === v.rowIndex)?.parentInstructionIndex ?? -1
+      ) ?? v.configType;
       return {
         key: `${v.rowIndex}`,
         label: v.name,
         value: v.value,
         displayValue: v.displayValue,
         unit: v.unit || undefined,
-        group: v.configType,
+        group,
         min: raw ? (raw['Min'] as number | undefined) : undefined,
         max: raw ? (raw['Max'] as number | undefined) : undefined,
         step: raw ? (raw['Step'] as number | undefined) : undefined,
@@ -31,7 +45,7 @@ export function ParamConfigPage() {
         dataType: v.dataType,
       };
     });
-  }, [parsedValues, protocolDb]);
+  }, [parsedValues, protocolDb, parsedProtocol]);
 
   const grouped = useMemo(() => {
     const map = new Map<string, ParamItem[]>();

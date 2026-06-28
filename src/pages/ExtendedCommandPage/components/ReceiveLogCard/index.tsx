@@ -4,7 +4,7 @@ import { LogItem } from './LogItem';
 import type { LogEntry } from '@/store/context';
 import styles from './ReceiveLogCard.module.css';
 
-export type LogFilter = 'all' | 'data-memory';
+export type LogFilter = 'all' | 'Data Memery';
 
 export type { LogEntry };
 
@@ -19,7 +19,7 @@ export function ReceiveLogCard({ logs, filter, onFilterChange }: ReceiveLogCardP
 
   const filtered = filter === 'all'
     ? logs
-    : logs.filter((l) => l.configType === 'data-memory');
+    : logs.filter((l) => l.configType === 'Data Memery');
 
   return (
     <CardShell title={t('command.receiveLog')}>
@@ -31,8 +31,8 @@ export function ReceiveLogCard({ logs, filter, onFilterChange }: ReceiveLogCardP
           {t('command.filterAll')}
         </button>
         <button
-          className={`${styles.filterBtn} ${filter === 'data-memory' ? styles.filterBtnActive : ''}`}
-          onClick={() => onFilterChange('data-memory')}
+          className={`${styles.filterBtn} ${filter === 'Data Memery' ? styles.filterBtnActive : ''}`}
+          onClick={() => onFilterChange('Data Memery')}
         >
           {t('command.filterDataMemory')}
         </button>

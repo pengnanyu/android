@@ -6,7 +6,7 @@ import { EmptyState } from '@/components/shared/EmptyState';
 import { useTranslation } from 'react-i18next';
 import styles from './FaultRecordPage.module.css';
 
-const FAULT_PATTERNS = /故障|Fault|Error|报警|告警|保护|Protect|Alarm/i;
+const FAULT_PATTERNS = /故障|Fault|Fail|Error|报警|告警|保护|Safety|Protect|Alarm/i;
 
 export function FaultRecordPage() {
   const { t } = useTranslation();
@@ -18,7 +18,7 @@ export function FaultRecordPage() {
     return faultValues.map((v) => {
       const isActive = v.value !== 0;
       let level: 'warning' | 'error' | 'critical' = 'warning';
-      if (/保护|Protect|Safety|critical/i.test(v.name)) level = 'critical';
+      if (/保护|Safety|Protect|Fail/i.test(v.name)) level = 'critical';
       else if (/告警|报警|Alarm|Error/i.test(v.name)) level = 'error';
 
       return {

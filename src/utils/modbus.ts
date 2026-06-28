@@ -156,7 +156,7 @@ export function parseProtocolRows(rows: Record<string, unknown>[]): ParsedProtoc
       const dataType = String(row['DataType'] ?? '');
       const operation = String(row['Operation'] ?? '');
       const ratio = parseNum(row['Ratio'], 10);
-      const name = String(row['Name'] ?? row['ParameterName'] ?? '');
+      const name = String(row['Name_English'] ?? row['Name_Chinase'] ?? row['Name'] ?? row['ParameterName'] ?? '');
       const unit = String(row['Unit'] ?? '');
 
       dataFields.push({
@@ -376,8 +376,20 @@ export function parseDataFields(
         displayValue = Number.isInteger(value) ? value.toString() : value.toFixed(2);
         break;
       }
+      case 'uchar':
+      case 'unsigned char': {
+        const reg = fieldRegs[0] ?? 0;
+        const byteVal = field.byteOffset === 0
+          ? (reg >> 8) & 0xFF
+          : reg & 0xFF;
+        rawValue = byteVal;
+        value = applyOperation(byteVal, field.operation, field.ratio);
+        displayValue = Number.isInteger(value) ? value.toString() : value.toFixed(2);
+        break;
+      }
       case 'ushort':
-      case 'uint16': {
+      case 'uint16':
+      case 'unsigned short': {
         const val = leRegToValue(fieldRegs[0] ?? 0);
         rawValue = val;
         value = applyOperation(val, field.operation, field.ratio);
@@ -385,7 +397,8 @@ export function parseDataFields(
         break;
       }
       case 'short':
-      case 'int16': {
+      case 'int16':
+      case 'signed short': {
         const val = leRegToValue(fieldRegs[0] ?? 0);
         const signed = toSigned16(val);
         rawValue = val;
@@ -395,7 +408,9 @@ export function parseDataFields(
       }
       case 'uint':
       case 'uint32':
-      case 'ulong': {
+      case 'ulong':
+      case 'unsigned long':
+      case 'unsigned int': {
         const val = leRegsToValue32(fieldRegs);
         rawValue = val;
         value = applyOperation(val, field.operation, field.ratio);
@@ -404,7 +419,9 @@ export function parseDataFields(
       }
       case 'int':
       case 'int32':
-      case 'long': {
+      case 'long':
+      case 'signed long':
+      case 'signed int': {
         const val = leRegsToValue32(fieldRegs);
         const signed = toSigned32(val);
         rawValue = val;

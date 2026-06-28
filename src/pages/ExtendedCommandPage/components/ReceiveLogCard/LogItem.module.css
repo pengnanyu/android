@@ -48,6 +48,11 @@
   color: oklch(0.15 0 0);
 }
 
+.rg {
+  background: oklch(0.6 0.12 30);
+  color: oklch(0.98 0 0);
+}
+
 .parsed {
   color: var(--color-muted-foreground);
   overflow: hidden;
