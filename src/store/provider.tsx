@@ -11,6 +11,7 @@ import i18n from '@/i18n';
 const PROTOCOL_API_URL = 'https://sql.hzxhhc.com/api/data/';
 const VERSION_QUERY_INTERVAL = 1000;
 const RESPONSE_TIMEOUT = 2000;
+const POLL_INTERVAL = 1000;
 
 function toHex(data: number[]): string {
   return data.map(b => b.toString(16).toUpperCase().padStart(2, '0')).join(' ');
@@ -19,7 +20,6 @@ function toHex(data: number[]): string {
 function registerToVersionHex(register: number): string {
   return bigEndianHex(register);
 }
-
 
 export interface RegisterKey {
   slaveAddr: number;
@@ -54,6 +54,13 @@ export function BmsProvider({ children }: { children: ReactNode }) {
   const versionRef = useRef<string | null>(null);
   const retryTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const logIdRef = useRef(0);
+  const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollIdxRef = useRef(0);
+  const waitingResponseRef = useRef(false);
+  const responseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const parsedProtocolRef = useRef<ParsedProtocol | null>(null);
+  const registerInstructionsRef = useRef<number[]>([]);
+  const initPhaseRef = useRef<'idle' | 'version' | 'protocol' | 'polling'>('idle');
 
   const addLog = useCallback((entry: Omit<LogEntry, 'id'>) => {
     logIdRef.current += 1;
@@ -62,19 +69,10 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     setLogs(prev => [...prev.slice(-200), { ...entry, id }]);
   }, []);
 
-  const autoReadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const autoReadIdxRef = useRef(0);
-  const autoReadRetryRef = useRef(0);
-  const waitingResponseRef = useRef(false);
-
   const sendFrame = useCallback((frame: number[]) => {
     const hex = toHex(frame);
     console.log('[BmsStore] TX:', hex);
-    addLog({
-      timestamp: Date.now(),
-      direction: 'TX',
-      rawHex: hex,
-    });
+    addLog({ timestamp: Date.now(), direction: 'TX', rawHex: hex });
     if (sendMessageRef.current) {
       sendMessageRef.current({ type: 'bms:frame-send', payload: { frame } });
     } else {
@@ -82,95 +80,12 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     }
   }, [addLog]);
 
-  const parsedProtocolRef = useRef<ParsedProtocol | null>(null);
-
-  const stopAutoRead = useCallback(() => {
-    if (autoReadTimerRef.current) {
-      clearTimeout(autoReadTimerRef.current);
-      autoReadTimerRef.current = null;
-    }
+  const stopTimers = useCallback(() => {
+    if (retryTimerRef.current) { clearInterval(retryTimerRef.current); retryTimerRef.current = null; }
+    if (pollTimerRef.current) { clearInterval(pollTimerRef.current); pollTimerRef.current = null; }
+    if (responseTimerRef.current) { clearTimeout(responseTimerRef.current); responseTimerRef.current = null; }
     waitingResponseRef.current = false;
   }, []);
-
-  const autoReadInstructions = useCallback((db: ProtocolDatabase) => {
-    const parsed = parseProtocolRows(db.rows);
-    parsedProtocolRef.current = parsed;
-
-    if (parsed.instructions.length === 0) {
-      console.log('[BmsStore] No instruction rows found for auto-read');
-      return;
-    }
-
-    stopAutoRead();
-    autoReadIdxRef.current = 0;
-    autoReadRetryRef.current = 0;
-
-    console.log('[BmsStore] Auto-reading', parsed.instructions.length, 'instructions,', parsed.dataFields.length, 'data fields');
-    addLog({
-      timestamp: Date.now(),
-      direction: 'TX',
-      parsedInfo: `Auto-read: ${parsed.instructions.length} instructions, ${parsed.dataFields.length} fields`,
-      rawHex: '',
-    });
-
-    const inst = parsed.instructions[0]!;
-    const frame = appendCrc([
-      inst.slaveAddr,
-      inst.funcCode,
-      (inst.startAddr >> 8) & 0xFF,
-      inst.startAddr & 0xFF,
-      (inst.quantity >> 8) & 0xFF,
-      inst.quantity & 0xFF,
-    ]);
-    waitingResponseRef.current = true;
-    sendFrame(frame);
-
-    autoReadTimerRef.current = setTimeout(() => {
-      if (autoReadIdxRef.current >= parsed.instructions.length) return;
-      autoReadRetryRef.current++;
-      addLog({
-        timestamp: Date.now(),
-        direction: 'TX',
-        parsedInfo: `Timeout, retry #${autoReadRetryRef.current} for instruction #1`,
-        rawHex: '',
-      });
-      waitingResponseRef.current = true;
-      sendFrame(frame);
-    }, RESPONSE_TIMEOUT);
-  }, [sendFrame, addLog, stopAutoRead]);
-
-  const loadProtocolDb = useCallback(async (version: string) => {
-    setProtocolLoading(true);
-    try {
-      const res = await fetch(`${PROTOCOL_API_URL}?search=${encodeURIComponent(version)}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      if (data && data.columns && data.rows) {
-        setProtocolDb({
-          version,
-          table: data.table || '',
-          columns: data.columns,
-          rows: data.rows,
-          loadedAt: Date.now(),
-        });
-        addLog({
-          timestamp: Date.now(),
-          direction: 'RX',
-          parsedInfo: `Protocol DB loaded: v${version} (${data.rows.length} rows)`,
-          rawHex: '',
-        });
-      }
-    } catch (_e) {
-      addLog({
-        timestamp: Date.now(),
-        direction: 'RX',
-        parsedInfo: `Failed to load protocol DB: ${_e}`,
-        rawHex: '',
-      });
-    } finally {
-      setProtocolLoading(false);
-    }
-  }, [addLog]);
 
   const sendVersionQuery = useCallback(() => {
     const frame = appendCrc([0x00, 0x03, 0x00, 0x00, 0x00, 0x01]);
@@ -179,6 +94,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
 
   const startVersionRetry = useCallback(() => {
     if (retryTimerRef.current) return;
+    initPhaseRef.current = 'version';
     sendVersionQuery();
     retryTimerRef.current = setInterval(() => {
       if (!versionRef.current) {
@@ -194,32 +110,34 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const advanceAutoRead = useCallback(() => {
-    if (!waitingResponseRef.current) return;
-    waitingResponseRef.current = false;
-
-    if (autoReadTimerRef.current) {
-      clearTimeout(autoReadTimerRef.current);
-      autoReadTimerRef.current = null;
+  const loadProtocolDb = useCallback(async (version: string) => {
+    setProtocolLoading(true);
+    initPhaseRef.current = 'protocol';
+    try {
+      const res = await fetch(`${PROTOCOL_API_URL}?search=${encodeURIComponent(version)}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (data && data.columns && data.rows) {
+        setProtocolDb({
+          version,
+          table: data.table || '',
+          columns: data.columns,
+          rows: data.rows,
+          loadedAt: Date.now(),
+        });
+        addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `Protocol DB loaded: v${version} (${data.rows.length} rows)`, rawHex: '' });
+      }
+    } catch (_e) {
+      addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `Failed to load protocol DB: ${_e}`, rawHex: '' });
+    } finally {
+      setProtocolLoading(false);
     }
+  }, [addLog]);
 
-    const parsed = parsedProtocolRef.current;
-    if (!parsed) return;
-
-    autoReadIdxRef.current++;
-    autoReadRetryRef.current = 0;
-
-    if (autoReadIdxRef.current >= parsed.instructions.length) {
-      addLog({
-        timestamp: Date.now(),
-        direction: 'RX',
-        parsedInfo: 'Auto-read complete',
-        rawHex: '',
-      });
-      return;
-    }
-
-    const inst = parsed.instructions[autoReadIdxRef.current]!;
+  const sendInstructionFrame = useCallback((instIdx: number) => {
+    const protocol = parsedProtocolRef.current;
+    if (!protocol || instIdx >= protocol.instructions.length) return;
+    const inst = protocol.instructions[instIdx]!;
     const frame = appendCrc([
       inst.slaveAddr,
       inst.funcCode,
@@ -230,55 +148,87 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     ]);
     waitingResponseRef.current = true;
     sendFrame(frame);
-
-    autoReadTimerRef.current = setTimeout(() => {
-      if (autoReadIdxRef.current >= parsed.instructions.length) return;
-      autoReadRetryRef.current++;
-      addLog({
-        timestamp: Date.now(),
-        direction: 'TX',
-        parsedInfo: `Timeout, retry #${autoReadRetryRef.current} for instruction #${autoReadIdxRef.current + 1}`,
-        rawHex: '',
-      });
-      const retryInst = parsed.instructions[autoReadIdxRef.current]!;
-      const retryFrame = appendCrc([
-        retryInst.slaveAddr,
-        retryInst.funcCode,
-        (retryInst.startAddr >> 8) & 0xFF,
-        retryInst.startAddr & 0xFF,
-        (retryInst.quantity >> 8) & 0xFF,
-        retryInst.quantity & 0xFF,
-      ]);
-      waitingResponseRef.current = true;
-      sendFrame(retryFrame);
-      autoReadTimerRef.current = setTimeout(() => {
-        advanceAutoRead();
-      }, RESPONSE_TIMEOUT);
+    responseTimerRef.current = setTimeout(() => {
+      if (!waitingResponseRef.current) return;
+      addLog({ timestamp: Date.now(), direction: 'TX', parsedInfo: `Timeout, retry instruction #${instIdx + 1}`, rawHex: '' });
+      sendInstructionFrame(instIdx);
     }, RESPONSE_TIMEOUT);
   }, [sendFrame, addLog]);
 
+  const startInitialPoll = useCallback(() => {
+    const db = protocolDb;
+    if (!db) return;
+    const parsed = parseProtocolRows(db.rows);
+    parsedProtocolRef.current = parsed;
+
+    const regIndices: number[] = [];
+    for (let i = 0; i < parsed.instructions.length; i++) {
+      const inst = parsed.instructions[i]!;
+      if (inst.configType !== 'Calendar') {
+        regIndices.push(i);
+      }
+    }
+    registerInstructionsRef.current = regIndices;
+
+    if (regIndices.length === 0) {
+      addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: 'No Register instructions to poll', rawHex: '' });
+      return;
+    }
+
+    initPhaseRef.current = 'polling';
+    pollIdxRef.current = 0;
+    addLog({ timestamp: Date.now(), direction: 'TX', parsedInfo: `Initial poll: ${regIndices.length} register instructions`, rawHex: '' });
+    sendInstructionFrame(regIndices[0]!);
+  }, [protocolDb, sendFrame, addLog]);
+
+  const startPeriodicPoll = useCallback(() => {
+    if (pollTimerRef.current) return;
+    const regIndices = registerInstructionsRef.current;
+    if (regIndices.length === 0) return;
+
+    addLog({ timestamp: Date.now(), direction: 'TX', parsedInfo: `Periodic poll started: ${regIndices.length} instructions / ${POLL_INTERVAL}ms`, rawHex: '' });
+    pollIdxRef.current = 0;
+
+    pollTimerRef.current = setInterval(() => {
+      if (waitingResponseRef.current) return;
+      const idx = pollIdxRef.current % regIndices.length;
+      sendInstructionFrame(regIndices[idx]!);
+      pollIdxRef.current++;
+    }, POLL_INTERVAL);
+  }, [sendFrame, addLog]);
+
+  const advancePoll = useCallback(() => {
+    if (responseTimerRef.current) {
+      clearTimeout(responseTimerRef.current);
+      responseTimerRef.current = null;
+    }
+    waitingResponseRef.current = false;
+
+    if (initPhaseRef.current === 'polling') {
+      const regIndices = registerInstructionsRef.current;
+      pollIdxRef.current++;
+      if (pollIdxRef.current < regIndices.length) {
+        sendInstructionFrame(regIndices[pollIdxRef.current]!);
+      } else {
+        addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: 'Initial poll complete', rawHex: '' });
+        initPhaseRef.current = 'idle';
+        startPeriodicPoll();
+      }
+    }
+  }, [sendInstructionFrame, addLog, startPeriodicPoll]);
+
   const handleRawData = useCallback((payload: unknown) => {
-    console.log('[BmsStore] handleRawData called:', payload);
     const p = payload as { data: number[] };
     const hex = (p.data && p.data.length > 0) ? toHex(p.data) : '(empty)';
 
-    addLog({
-      timestamp: Date.now(),
-      direction: 'RX',
-      rawHex: hex,
-    });
+    addLog({ timestamp: Date.now(), direction: 'RX', rawHex: hex });
 
     if (!p.data || p.data.length === 0) return;
 
     const parsed = parseModbusResponse(p.data);
 
     if (parsed) {
-      addLog({
-        timestamp: Date.now(),
-        direction: 'RX',
-        parsedInfo: `FC:${parsed.funcCode.toString(16).toUpperCase()} BC:${parsed.byteCount} Regs:${parsed.registers.length}`,
-        rawHex: hex,
-      });
+      addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `FC:${parsed.funcCode.toString(16).toUpperCase()} BC:${parsed.byteCount} Regs:${parsed.registers.length}`, rawHex: hex });
     }
 
     if (!parsed) return;
@@ -288,13 +238,9 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       versionRef.current = verHex;
       setDeviceVersion(verHex);
       stopVersionRetry();
-      addLog({
-        timestamp: Date.now(),
-        direction: 'RX',
-        parsedInfo: `Version: ${verHex}`,
-        rawHex: '',
-      });
+      addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `Version: ${verHex}`, rawHex: '' });
       loadProtocolDb(verHex);
+      return;
     }
 
     setParsedFields(prev => {
@@ -307,8 +253,10 @@ export function BmsProvider({ children }: { children: ReactNode }) {
 
     const protocol = parsedProtocolRef.current;
     if (protocol && protocol.dataFields.length > 0) {
-      const instrIdx = autoReadIdxRef.current;
-      if (instrIdx < protocol.instructions.length) {
+      const regIndices = registerInstructionsRef.current;
+      const currentInstrArrayIdx = pollIdxRef.current % regIndices.length;
+      const instrIdx = regIndices[currentInstrArrayIdx] ?? -1;
+      if (instrIdx >= 0 && instrIdx < protocol.instructions.length) {
         const inst = protocol.instructions[instrIdx]!;
         if (inst.funcCode === parsed.funcCode) {
           const fieldValues = parseDataFields(parsed.registers, protocol.dataFields, instrIdx);
@@ -317,42 +265,29 @@ export function BmsProvider({ children }: { children: ReactNode }) {
               const updated = prev.filter(v => !fieldValues.some(fv => fv.rowIndex === v.rowIndex));
               return [...updated, ...fieldValues];
             });
-            addLog({
-              timestamp: Date.now(),
-              direction: 'RX',
-              parsedInfo: `Parsed ${fieldValues.length} fields from instruction #${instrIdx + 1}`,
-              rawHex: '',
-            });
           }
         }
       }
     }
 
-    advanceAutoRead();
-  }, [addLog, stopVersionRetry, loadProtocolDb, advanceAutoRead]);
+    advancePoll();
+  }, [addLog, stopVersionRetry, loadProtocolDb, advancePoll]);
 
   const handleConnectionStatus = useCallback((payload: unknown) => {
     const p = payload as { status: ConnectionStatus };
     console.log('[BmsStore] connection-status:', p.status);
-    addLog({
-      timestamp: Date.now(),
-      direction: 'RX',
-      parsedInfo: `Connection: ${p.status}`,
-      rawHex: '',
-    });
+    addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `Connection: ${p.status}`, rawHex: '' });
     setConnectionStatus(p.status);
   }, [addLog]);
 
   const handleThemeChange = useCallback((payload: unknown) => {
     const p = payload as { theme: 'light' | 'dark' };
-    console.log('[BmsStore] theme-change:', p.theme);
     document.documentElement.setAttribute('data-theme', p.theme);
     try { localStorage.setItem('bms-theme', p.theme); } catch (_e) { /* noop */ }
   }, []);
 
   const handleLocaleChange = useCallback((payload: unknown) => {
     const p = payload as { locale: 'zh' | 'en' };
-    console.log('[BmsStore] locale-change:', p.locale);
     i18n.changeLanguage(p.locale);
     try { localStorage.setItem('bms-locale', p.locale); } catch (_e) { /* noop */ }
   }, []);
@@ -369,47 +304,41 @@ export function BmsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (isEmbedded()) {
-      console.log('[BmsStore] Embedded mode, requesting status');
       sendMessage({ type: 'bms:request-status', payload: {} });
     }
   }, [sendMessage]);
 
   useEffect(() => {
     if (connectionStatus === 'connected') {
-      console.log('[BmsStore] Connected, starting version query');
       startVersionRetry();
     } else {
+      stopTimers();
       stopVersionRetry();
-      stopAutoRead();
       versionRef.current = null;
+      initPhaseRef.current = 'idle';
       setDeviceVersion(null);
       setProtocolDb(null);
       setParsedFields(new Map());
       setParsedValues([]);
     }
     return () => {
+      stopTimers();
       stopVersionRetry();
-      stopAutoRead();
     };
-  }, [connectionStatus, startVersionRetry, stopVersionRetry, stopAutoRead]);
+  }, [connectionStatus, startVersionRetry, stopVersionRetry, stopTimers]);
 
   useEffect(() => {
     if (protocolDb && connectionStatus === 'connected') {
-      console.log('[BmsStore] Protocol DB loaded, auto-read disabled for debugging');
-      addLog({
-        timestamp: Date.now(),
-        direction: 'RX',
-        parsedInfo: `Protocol DB ready: ${protocolDb.rows.length} rows. Click "Auto Read" to send commands.`,
-        rawHex: '',
-      });
+      startInitialPoll();
     }
-  }, [protocolDb, connectionStatus, addLog]);
+  }, [protocolDb, connectionStatus, startInitialPoll]);
 
   const autoRead = useCallback(() => {
     if (protocolDb && connectionStatus === 'connected') {
-      autoReadInstructions(protocolDb);
+      stopTimers();
+      startInitialPoll();
     }
-  }, [protocolDb, connectionStatus, autoReadInstructions]);
+  }, [protocolDb, connectionStatus, stopTimers, startInitialPoll]);
 
   const clearLogs = useCallback(() => {
     setLogs([]);

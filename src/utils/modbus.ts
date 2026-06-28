@@ -91,6 +91,7 @@ export interface ParsedInstruction {
   funcCode: number;
   startAddr: number;
   quantity: number;
+  configType: string;
   rowIndex: number;
 }
 
@@ -130,6 +131,7 @@ export function parseProtocolRows(rows: Record<string, unknown>[]): ParsedProtoc
       const registerAddress = parseNum(row['RegisterAddress'], 16);
       const length = parseNum(row['Length'], 10);
       const startAddr = buildRegisterAddr(registerCode, registerAddress);
+      const configType = String(row['ConfigType'] ?? '');
 
       currentInstrIdx = instructions.length;
       currentStartAddr = startAddr;
@@ -140,6 +142,7 @@ export function parseProtocolRows(rows: Record<string, unknown>[]): ParsedProtoc
         funcCode,
         startAddr,
         quantity: length,
+        configType,
         rowIndex: i,
       });
     } else {
