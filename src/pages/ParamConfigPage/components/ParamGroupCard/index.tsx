@@ -7,14 +7,19 @@ interface ParamGroupCardProps {
   params: ParamItem[];
   onValueChange: (key: string, newValue: string | number) => void;
   onBlur: (key: string) => void;
-  defaultExpanded?: boolean;
+  onBack?: () => void;
 }
 
-export function ParamGroupCard({ groupName, params, onValueChange, onBlur }: ParamGroupCardProps) {
+export function ParamGroupCard({ groupName, params, onValueChange, onBlur, onBack }: ParamGroupCardProps) {
   return (
     <div className={styles.group}>
       <div className={styles.groupHeader}>
-        <span>{groupName}</span>
+        {onBack && (
+          <button className={styles.backBtn} onClick={onBack} aria-label="返回">
+            ‹
+          </button>
+        )}
+        <span className={styles.groupTitle}>{groupName}</span>
       </div>
       <div className={styles.groupContent}>
         <div className={styles.rowHeader}>

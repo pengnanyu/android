@@ -1,16 +1,32 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useBmsStore } from '@/store/context';
 import { ParamToolbar } from './components/ParamToolbar';
 import { ParamGroupCard } from './components/ParamGroupCard';
 import styles from './ParamConfigPage.module.css';
 
+const NARROW_BREAKPOINT = 640;
+
+function useIsNarrow(breakpoint: number): boolean {
+  const [narrow, setNarrow] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth < breakpoint : false
+  );
+  useEffect(() => {
+    const onResize = () => setNarrow(window.innerWidth < breakpoint);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [breakpoint]);
+  return narrow;
+}
+
 export function ParamConfigPage() {
   const { dataMemeryGroups } = useBmsStore();
   const { i18n } = useTranslation();
   const isZh = i18n.language === 'zh';
+  const isNarrow = useIsNarrow(NARROW_BREAKPOINT);
 
   const [activeGroupIdx, setActiveGroupIdx] = useState(0);
+  const [mobileView, setMobileView] = useState<'nav' | 'detail'>('nav');
 
   const paramGroups = useMemo(() => {
     return dataMemeryGroups.map(group => {
@@ -34,8 +50,52 @@ export function ParamConfigPage() {
 
   const currentGroup = paramGroups[activeGroupIdx] ?? null;
 
+  const handleNavClick = useCallback((idx: number) => {
+    setActiveGroupIdx(idx);
+    setMobileView('detail');
+  }, []);
+
+  const handleBack = useCallback(() => {
+    setMobileView('nav');
+  }, []);
+
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    if (touch) {
+      touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+    }
+  }, []);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    const start = touchStartRef.current;
+    if (!start) return;
+    const touch = e.changedTouches[0];
+    if (!touch) return;
+    const dx = touch.clientX - start.x;
+    const dy = touch.clientY - start.y;
+    touchStartRef.current = null;
+
+    if (Math.abs(dx) < 50 || Math.abs(dy) > Math.abs(dx)) return;
+
+    if (dx > 0 && mobileView === 'detail') {
+      setMobileView('nav');
+    } else if (dx < 0 && mobileView === 'nav' && paramGroups.length > 0) {
+      setMobileView('detail');
+    }
+  }, [mobileView, paramGroups.length]);
+
+
+  const showNav = !isNarrow || mobileView === 'nav';
+  const showContent = !isNarrow || mobileView === 'detail';
+
   return (
-    <div className={styles.container}>
+    <div
+      className={styles.container}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       <ParamToolbar
         onReadParams={() => { }}
         onBatchWrite={() => { }}
@@ -44,30 +104,34 @@ export function ParamConfigPage() {
         onPreset={(_id: string) => { }}
       />
       <div className={styles.body}>
-        <nav className={styles.nav}>
-          {paramGroups.map((group, idx) => (
-            <button
-              key={group.groupName}
-              className={`${styles.navItem} ${idx === activeGroupIdx ? styles.navItemActive : ''}`}
-              onClick={() => setActiveGroupIdx(idx)}
-            >
-              {group.groupName}
-            </button>
-          ))}
-        </nav>
-        <div className={styles.content}>
-          {currentGroup ? (
-            <ParamGroupCard
-              groupName={currentGroup.groupName}
-              params={currentGroup.params}
-              onValueChange={handleValueChange}
-              onBlur={handleBlur}
-              defaultExpanded
-            />
-          ) : (
-            <div className={styles.empty}>暂无参数数据</div>
-          )}
-        </div>
+        {showNav && (
+          <nav className={styles.nav}>
+            {paramGroups.map((group, idx) => (
+              <button
+                key={group.groupName}
+                className={`${styles.navItem} ${idx === activeGroupIdx ? styles.navItemActive : ''}`}
+                onClick={() => handleNavClick(idx)}
+              >
+                {group.groupName}
+              </button>
+            ))}
+          </nav>
+        )}
+        {showContent && (
+          <div className={styles.content}>
+            {currentGroup ? (
+              <ParamGroupCard
+                groupName={currentGroup.groupName}
+                params={currentGroup.params}
+                onValueChange={handleValueChange}
+                onBlur={handleBlur}
+                onBack={isNarrow ? handleBack : undefined}
+              />
+            ) : (
+              <div className={styles.empty}>暂无参数数据</div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

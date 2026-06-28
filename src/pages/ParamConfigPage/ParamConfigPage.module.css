@@ -8,6 +8,8 @@
   display: flex;
   gap: 16px;
   min-height: 0;
+  position: relative;
+  overflow: hidden;
 }
 
 .nav {
@@ -67,4 +69,22 @@
   background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: 8px;
+}
+
+@media (max-width: 639px) {
+  .body {
+    flex-direction: column;
+  }
+
+  .nav {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    flex-shrink: 1;
+  }
+
+  .content {
+    width: 100%;
+    flex: none;
+  }
 }
