@@ -204,29 +204,13 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     sendInstructionFrame(allIndices[0]!);
   }, [protocolDb, sendFrame, addLog]);
 
-  const sendNextPeriodic = useCallback(() => {
-    if (waitingResponseRef.current) return;
-    const regIndices = registerInstrIndicesRef.current;
-    if (regIndices.length === 0) return;
-    const idx = pollIdxRef.current % regIndices.length;
-    sendInstructionFrame(regIndices[idx]!);
-    pollIdxRef.current++;
-  }, [sendInstructionFrame]);
-
   const startPeriodicPoll = useCallback(() => {
-    if (pollTimerRef.current) return;
-    const regIndices = registerInstrIndicesRef.current;
-    if (regIndices.length === 0) return;
-
     initPhaseRef.current = 'periodic';
     pollIdxRef.current = 0;
-    addLog({ timestamp: Date.now(), direction: 'TX', parsedInfo: `Periodic poll: ${regIndices.length} Register instructions / ${POLL_INTERVAL}ms`, rawHex: '' });
-
-    sendNextPeriodic();
-    pollTimerRef.current = setTimeout(function tick() {
-      sendNextPeriodic();
-      pollTimerRef.current = setTimeout(tick, POLL_INTERVAL);
-    }, POLL_INTERVAL);
+    const regIndices = registerInstrIndicesRef.current;
+    if (regIndices.length === 0) return;
+    addLog({ timestamp: Date.now(), direction: 'TX', parsedInfo: `Periodic poll: ${regIndices.length} Register instructions / ${POLL_INTERVAL}ms cycle`, rawHex: '' });
+    sendInstructionFrame(regIndices[0]!);
   }, [sendInstructionFrame, addLog]);
 
   const advancePoll = useCallback(() => {
@@ -244,6 +228,18 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       } else {
         addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: 'Initial poll complete', rawHex: '' });
         startPeriodicPoll();
+      }
+    } else if (initPhaseRef.current === 'periodic') {
+      const regIndices = registerInstrIndicesRef.current;
+      pollIdxRef.current++;
+      if (pollIdxRef.current < regIndices.length) {
+        sendInstructionFrame(regIndices[pollIdxRef.current]!);
+      } else {
+        pollTimerRef.current = setTimeout(() => {
+          pollTimerRef.current = null;
+          pollIdxRef.current = 0;
+          sendInstructionFrame(regIndices[0]!);
+        }, POLL_INTERVAL);
       }
     }
   }, [sendInstructionFrame, addLog, startPeriodicPoll]);
@@ -269,8 +265,8 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     }
 
     if (parsed.funcCode & 0x80) {
-      addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `Modbus exception: FC=0x${parsed.funcCode.toString(16).toUpperCase()}`, rawHex: hex });
-      advancePoll();
+      addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `Modbus exception: FC=0x${parsed.funcCode.toString(16).toUpperCase()}, device may have changed`, rawHex: hex });
+      resetToVersionQuery();
       return;
     }
 
