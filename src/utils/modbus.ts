@@ -229,38 +229,32 @@ function applyOperation(rawValue: number, operation: string, ratio: number): num
 }
 
 function parseBcdTime(registers: number[]): string {
-  const raw = new Uint8Array(registers.length * 2);
-  for (let i = 0; i < registers.length; i++) {
-    const leReg = registers[i]!;
-    raw[i * 2] = leReg & 0xFF;
-    raw[i * 2 + 1] = (leReg >> 8) & 0xFF;
-  }
+  if (registers.length < 4) return '';
+  const le0 = registers[0]! & 0xFFFF;
+  const le1 = registers[1]! & 0xFFFF;
+  const le2 = registers[2]! & 0xFFFF;
+  const le3 = registers[3]! & 0xFFFF;
 
-  const byte0 = raw[0] ?? 0;
-  const byte1 = raw[1] ?? 0;
-  const byte2 = raw[2] ?? 0;
-  const byte3 = raw[3] ?? 0;
-  const byte4 = raw[4] ?? 0;
-  const byte5 = raw[5] ?? 0;
+  const all = BigInt(le0) | (BigInt(le1) << BigInt(16)) | (BigInt(le2) << BigInt(32)) | (BigInt(le3) << BigInt(48));
 
-  const byte7 = raw[7] ?? 0;
-
-  const second = byte0 & 0x7F;
-  const minute = byte1 & 0x7F;
-  const hour = byte2 & 0x3F;
-  const day = byte3 & 0x3F;
-  const month = byte4 & 0x1F;
-  const weekDay = byte5 & 0x07;
-  const year = byte7;
+  const sec = Number((all >> BigInt(0)) & BigInt(0x7F));
+  const min = Number((all >> BigInt(8)) & BigInt(0x7F));
+  const hour = Number((all >> BigInt(16)) & BigInt(0x3F));
+  const pm = Number((all >> BigInt(22)) & BigInt(0x1));
+  const day = Number((all >> BigInt(32)) & BigInt(0x3F));
+  const mon = Number((all >> BigInt(40)) & BigInt(0x1F));
+  const week = Number((all >> BigInt(45)) & BigInt(0x07));
+  const year = Number((all >> BigInt(48)) & BigInt(0xFF));
 
   const yy = (2000 + bcdToDec(year)).toString().padStart(4, '0');
-  const mm = bcdToDec(month).toString().padStart(2, '0');
+  const mm = bcdToDec(mon).toString().padStart(2, '0');
   const dd = bcdToDec(day).toString().padStart(2, '0');
   const hh = bcdToDec(hour).toString().padStart(2, '0');
-  const mi = bcdToDec(minute).toString().padStart(2, '0');
-  const ss = bcdToDec(second).toString().padStart(2, '0');
+  const mi = bcdToDec(min).toString().padStart(2, '0');
+  const ss = bcdToDec(sec).toString().padStart(2, '0');
+  const ampm = pm ? 'PM' : 'AM';
 
-  return `${yy}-${mm}-${dd} ${hh}:${mi}:${ss} W${bcdToDec(weekDay)}`;
+  return `${yy}-${mm}-${dd} ${hh}:${mi}:${ss} ${ampm} W${bcdToDec(week)}`;
 }
 
 function bcdToDec(bcd: number): number {
