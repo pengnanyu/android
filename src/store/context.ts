@@ -1,5 +1,6 @@
 import { createContext, useContext } from 'react';
 import type { ConnectionStatus, ProtocolDatabase } from '@/types';
+import type { FieldValue } from '@/utils/modbus';
 
 export interface LogEntry {
   id: string;
@@ -16,6 +17,7 @@ export interface BmsState {
   protocolLoading: boolean;
   deviceVersion: string | null;
   parsedFields: Map<string, number>;
+  parsedValues: FieldValue[];
   logs: LogEntry[];
 }
 

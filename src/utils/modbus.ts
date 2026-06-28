@@ -101,6 +101,11 @@ export interface ParsedDataField {
   byteOffset: number;
   regLen: number;
   byteLen: number;
+  dataType: string;
+  operation: string;
+  ratio: number;
+  name: string;
+  unit: string;
 }
 
 export interface ParsedProtocol {
@@ -141,6 +146,11 @@ export function parseProtocolRows(rows: Record<string, unknown>[]): ParsedProtoc
       const offsetAddr = Math.floor(accumulatedBytes / 2);
       const byteOffset = accumulatedBytes % 2;
       const regLen = Math.ceil(byteLen / 2);
+      const dataType = String(row['DataType'] ?? '');
+      const operation = String(row['Operation'] ?? '');
+      const ratio = parseNum(row['Ratio'], 10);
+      const name = String(row['Name'] ?? row['ParameterName'] ?? '');
+      const unit = String(row['Unit'] ?? '');
 
       dataFields.push({
         rowIndex: i,
@@ -149,6 +159,11 @@ export function parseProtocolRows(rows: Record<string, unknown>[]): ParsedProtoc
         byteOffset,
         regLen,
         byteLen,
+        dataType,
+        operation,
+        ratio,
+        name,
+        unit,
       });
 
       accumulatedBytes += byteLen;
@@ -190,4 +205,179 @@ export function parseModbusResponse(data: number[]): {
   }
 
   return { slaveAddr, funcCode, byteCount, registers };
+}
+
+export interface FieldValue {
+  name: string;
+  rawValue: number;
+  value: number;
+  displayValue: string;
+  unit: string;
+  dataType: string;
+  rowIndex: number;
+}
+
+function applyOperation(rawValue: number, operation: string, ratio: number): number {
+  if (!operation || ratio === 0) return rawValue;
+  switch (operation) {
+    case '+': return rawValue + ratio;
+    case '-': return rawValue - ratio;
+    case '*': return rawValue * ratio;
+    case '/': return ratio !== 0 ? rawValue / ratio : rawValue;
+    default: return rawValue;
+  }
+}
+
+function parseBcdTime(registers: number[]): string {
+  const raw = new Uint8Array(registers.length * 2);
+  for (let i = 0; i < registers.length; i++) {
+    const reg = registers[i]!;
+    raw[i * 2] = (reg >> 8) & 0xFF;
+    raw[i * 2 + 1] = reg & 0xFF;
+  }
+
+  const byte0 = raw[0] ?? 0;
+  const byte1 = raw[1] ?? 0;
+  const byte2 = raw[2] ?? 0;
+  const byte3 = raw[3] ?? 0;
+  const byte4 = raw[4] ?? 0;
+  const byte5 = raw[5] ?? 0;
+  const byte6 = raw[6] ?? 0;
+  const byte7 = raw[7] ?? 0;
+
+  const second = byte0 & 0x7F;
+  const minute = byte1 & 0x7F;
+  const hour = byte2 & 0x3F;
+  const day = byte3 & 0x3F;
+  const month = byte4 & 0x1F;
+  const year = byte7;
+
+  const yy = (2000 + bcdToDec(year)).toString().padStart(4, '0');
+  const mm = bcdToDec(month).toString().padStart(2, '0');
+  const dd = bcdToDec(day).toString().padStart(2, '0');
+  const hh = bcdToDec(hour).toString().padStart(2, '0');
+  const mi = bcdToDec(minute).toString().padStart(2, '0');
+  const ss = bcdToDec(second).toString().padStart(2, '0');
+
+  return `${yy}-${mm}-${dd} ${hh}:${mi}:${ss}`;
+}
+
+function bcdToDec(bcd: number): number {
+  return ((bcd >> 4) & 0x0F) * 10 + (bcd & 0x0F);
+}
+
+export function parseDataFields(
+  registers: number[],
+  fields: ParsedDataField[],
+  instrIdx: number
+): FieldValue[] {
+  const results: FieldValue[] = [];
+  const matched = fields.filter(f => f.parentInstructionIndex === instrIdx);
+
+  for (const field of matched) {
+    const startReg = field.offsetAddr;
+    const endReg = startReg + field.regLen;
+
+    if (startReg >= registers.length) continue;
+
+    const fieldRegs = registers.slice(startReg, Math.min(endReg, registers.length));
+    if (fieldRegs.length === 0) continue;
+
+    let rawValue: number;
+    let value: number;
+    let displayValue: string;
+
+    switch (field.dataType) {
+      case 'Time': {
+        displayValue = parseBcdTime(fieldRegs);
+        rawValue = 0;
+        value = 0;
+        break;
+      }
+      case '2HEX': {
+        const reg = fieldRegs[0] ?? 0;
+        displayValue = reg.toString(16).toUpperCase().padStart(4, '0');
+        rawValue = reg;
+        value = reg;
+        break;
+      }
+      case 'HEX': {
+        const reg = fieldRegs[0] ?? 0;
+        if (field.byteLen === 1) {
+          const byteVal = field.byteOffset === 0
+            ? (reg >> 8) & 0xFF
+            : reg & 0xFF;
+          displayValue = byteVal.toString(16).toUpperCase().padStart(2, '0');
+          rawValue = byteVal;
+          value = byteVal;
+        } else {
+          displayValue = reg.toString(16).toUpperCase().padStart(4, '0');
+          rawValue = reg;
+          value = reg;
+        }
+        break;
+      }
+      case 'ID': {
+        const hexParts: string[] = [];
+        for (const r of fieldRegs) {
+          hexParts.push(r.toString(16).toUpperCase().padStart(4, '0'));
+        }
+        displayValue = hexParts.join(' ');
+        rawValue = 0;
+        value = 0;
+        break;
+      }
+      case 'ushort Temper':
+      case 'ushort': {
+        const reg = fieldRegs[0] ?? 0;
+        let tempVal = reg;
+        if (field.dataType === 'ushort Temper') {
+          tempVal = tempVal / 10;
+        }
+        rawValue = reg;
+        value = applyOperation(tempVal, field.operation, field.ratio);
+        displayValue = Number.isInteger(value) ? value.toString() : value.toFixed(2);
+        break;
+      }
+      case 'short': {
+        const reg = fieldRegs[0] ?? 0;
+        const signed = reg > 0x7FFF ? reg - 0x10000 : reg;
+        rawValue = reg;
+        value = applyOperation(signed, field.operation, field.ratio);
+        displayValue = Number.isInteger(value) ? value.toString() : value.toFixed(2);
+        break;
+      }
+      default: {
+        if (field.byteLen === 1) {
+          const reg = fieldRegs[0] ?? 0;
+          const byteVal = field.byteOffset === 0
+            ? (reg >> 8) & 0xFF
+            : reg & 0xFF;
+          rawValue = byteVal;
+          value = applyOperation(byteVal, field.operation, field.ratio);
+        } else if (field.byteLen === 2 || fieldRegs.length === 1) {
+          const reg = fieldRegs[0] ?? 0;
+          rawValue = reg;
+          value = applyOperation(reg, field.operation, field.ratio);
+        } else {
+          rawValue = 0;
+          value = 0;
+        }
+        displayValue = Number.isInteger(value) ? value.toString() : value.toFixed(2);
+        break;
+      }
+    }
+
+    results.push({
+      name: field.name,
+      rawValue,
+      value,
+      displayValue,
+      unit: field.unit,
+      dataType: field.dataType,
+      rowIndex: field.rowIndex,
+    });
+  }
+
+  return results;
 }

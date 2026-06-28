@@ -4,8 +4,8 @@ import type { BmsStore, LogEntry } from './context';
 import { BmsContext } from './context';
 import { useBridgeMessage } from '@/hooks/useBridgeMessage';
 import { isEmbedded } from '@/utils/platform';
-import { parseModbusResponse, appendCrc, bigEndianHex, parseProtocolRows } from '@/utils/modbus';
-import type { ParsedProtocol } from '@/utils/modbus';
+import { parseModbusResponse, appendCrc, bigEndianHex, parseProtocolRows, parseDataFields } from '@/utils/modbus';
+import type { ParsedProtocol, FieldValue } from '@/utils/modbus';
 import i18n from '@/i18n';
 
 const PROTOCOL_API_URL = 'https://sql.hzxhhc.com/api/data/';
@@ -47,6 +47,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
   const [protocolLoading, setProtocolLoading] = useState(false);
   const [deviceVersion, setDeviceVersion] = useState<string | null>(null);
   const [parsedFields, setParsedFields] = useState<Map<string, number>>(new Map());
+  const [parsedValues, setParsedValues] = useState<FieldValue[]>([]);
   const [logs, setLogs] = useState<LogEntry[]>([]);
 
   const sendMessageRef = useRef<((msg: BridgeMessage) => void) | null>(null);
@@ -304,6 +305,29 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       return newFields;
     });
 
+    const protocol = parsedProtocolRef.current;
+    if (protocol && protocol.dataFields.length > 0) {
+      const instrIdx = autoReadIdxRef.current;
+      if (instrIdx < protocol.instructions.length) {
+        const inst = protocol.instructions[instrIdx]!;
+        if (inst.funcCode === parsed.funcCode) {
+          const fieldValues = parseDataFields(parsed.registers, protocol.dataFields, instrIdx);
+          if (fieldValues.length > 0) {
+            setParsedValues(prev => {
+              const updated = prev.filter(v => !fieldValues.some(fv => fv.rowIndex === v.rowIndex));
+              return [...updated, ...fieldValues];
+            });
+            addLog({
+              timestamp: Date.now(),
+              direction: 'RX',
+              parsedInfo: `Parsed ${fieldValues.length} fields from instruction #${instrIdx + 1}`,
+              rawHex: '',
+            });
+          }
+        }
+      }
+    }
+
     advanceAutoRead();
   }, [addLog, stopVersionRetry, loadProtocolDb, advanceAutoRead]);
 
@@ -361,6 +385,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       setDeviceVersion(null);
       setProtocolDb(null);
       setParsedFields(new Map());
+      setParsedValues([]);
     }
     return () => {
       stopVersionRetry();
@@ -396,11 +421,12 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     protocolLoading,
     deviceVersion,
     parsedFields,
+    parsedValues,
     logs,
     sendFrame,
     clearLogs,
     autoRead,
-  }), [connectionStatus, protocolDb, protocolLoading, deviceVersion, parsedFields, logs, sendFrame, clearLogs, autoRead]);
+  }), [connectionStatus, protocolDb, protocolLoading, deviceVersion, parsedFields, parsedValues, logs, sendFrame, clearLogs, autoRead]);
 
   return (
     <BmsContext.Provider value={store}>
