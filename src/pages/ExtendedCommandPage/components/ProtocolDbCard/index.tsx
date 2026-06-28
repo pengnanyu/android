@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ProtocolDatabase } from '@/types';
+import type { FieldValue } from '@/utils/modbus';
 import { CardShell } from '@/components/shared/CardShell';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { DynamicTable } from './DynamicTable';
@@ -8,6 +9,7 @@ import styles from './ProtocolDbCard.module.css';
 
 interface ProtocolDbCardProps {
   database: ProtocolDatabase | null;
+  parsedValues: FieldValue[];
   onInitProtocol: () => void;
   onLoadDatabase: (version: string) => void;
   onAutoRead: () => void;
@@ -17,6 +19,7 @@ interface ProtocolDbCardProps {
 
 export function ProtocolDbCard({
   database,
+  parsedValues,
   onInitProtocol,
   onLoadDatabase,
   onAutoRead,
@@ -47,7 +50,7 @@ export function ProtocolDbCard({
           {t('command.autoRead')}
         </button>
       </div>
-      {database && <DynamicTable database={database} onFillCommand={onFillCommand} />}
+      {database && <DynamicTable database={database} parsedValues={parsedValues} onFillCommand={onFillCommand} />}
     </CardShell>
   );
 }

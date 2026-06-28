@@ -1,17 +1,27 @@
 import { useMemo } from 'react';
 import type { ProtocolDatabase } from '@/types';
+import type { FieldValue } from '@/utils/modbus';
 import { parseProtocolRows, isInstructionRow } from '@/utils/modbus';
 import styles from './DynamicTable.module.css';
 
 interface DynamicTableProps {
   database: ProtocolDatabase;
+  parsedValues: FieldValue[];
   onFillCommand: (hex: string) => void;
 }
 
-export function DynamicTable({ database, onFillCommand }: DynamicTableProps) {
+export function DynamicTable({ database, parsedValues, onFillCommand }: DynamicTableProps) {
   const { columns, rows } = database;
 
   const parsed = useMemo(() => parseProtocolRows(rows), [rows]);
+
+  const valueMap = useMemo(() => {
+    const map = new Map<number, FieldValue>();
+    for (const fv of parsedValues) {
+      map.set(fv.rowIndex, fv);
+    }
+    return map;
+  }, [parsedValues]);
 
   const dataFieldMap = useMemo(() => {
     const map = new Map<number, { offsetAddr: number; regLen: number }>();
@@ -67,7 +77,11 @@ export function DynamicTable({ database, onFillCommand }: DynamicTableProps) {
                     {col === 'Type' && (isCmd ? 'CMD' : 'DAT')}
                     {col === 'Addr' && `0x${addr.toString(16).toUpperCase().padStart(4, '0')}`}
                     {col === 'RegLen' && String(regLen)}
-                    {col === 'Value' && (row['Value'] !== undefined ? String(row['Value']) : '')}
+                    {col === 'Value' && (() => {
+                      const fv = valueMap.get(i);
+                      if (fv) return `${fv.displayValue}${fv.unit ? ' ' + fv.unit : ''}`;
+                      return '';
+                    })()}
                     {col === 'Fill' && isCmd && instInfo && (
                       <button className={styles.fillBtn} onClick={() => {
                         const hex = [
