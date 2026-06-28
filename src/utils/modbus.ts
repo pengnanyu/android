@@ -253,6 +253,14 @@ function applyOperation(rawValue: number, operation: string, ratio: number): num
   }
 }
 
+function formatValue(val: number): string {
+  if (!Number.isFinite(val)) return '0';
+  const rounded = Math.round(val * 10000) / 10000;
+  if (Number.isInteger(rounded)) return rounded.toString();
+  const s = rounded.toPrecision(6);
+  return parseFloat(s).toString();
+}
+
 function parseBcdTime(registers: number[]): string {
   if (registers.length < 4) return '';
   const be0 = leRegToValue(registers[0]!) & 0xFFFF;
@@ -389,7 +397,7 @@ export function parseDataFields(
         const tempVal = val / 10;
         rawValue = val;
         value = applyOperation(tempVal, field.operation, field.ratio);
-        displayValue = Number.isInteger(value) ? value.toString() : value.toFixed(2);
+        displayValue = formatValue(value);
         break;
       }
       case 'uchar':
@@ -400,7 +408,7 @@ export function parseDataFields(
           : reg & 0xFF;
         rawValue = byteVal;
         value = applyOperation(byteVal, field.operation, field.ratio);
-        displayValue = Number.isInteger(value) ? value.toString() : value.toFixed(2);
+        displayValue = formatValue(value);
         break;
       }
       case 'ushort':
@@ -409,7 +417,7 @@ export function parseDataFields(
         const val = leRegToValue(fieldRegs[0] ?? 0);
         rawValue = val;
         value = applyOperation(val, field.operation, field.ratio);
-        displayValue = Number.isInteger(value) ? value.toString() : value.toFixed(2);
+        displayValue = formatValue(value);
         break;
       }
       case 'short':
@@ -419,7 +427,7 @@ export function parseDataFields(
         const signed = toSigned16(val);
         rawValue = val;
         value = applyOperation(signed, field.operation, field.ratio);
-        displayValue = Number.isInteger(value) ? value.toString() : value.toFixed(2);
+        displayValue = formatValue(value);
         break;
       }
       case 'uint':
@@ -430,7 +438,7 @@ export function parseDataFields(
         const val = leRegsToValue32(fieldRegs);
         rawValue = val;
         value = applyOperation(val, field.operation, field.ratio);
-        displayValue = Number.isInteger(value) ? value.toString() : value.toFixed(2);
+        displayValue = formatValue(value);
         break;
       }
       case 'int':
@@ -442,7 +450,7 @@ export function parseDataFields(
         const signed = toSigned32(val);
         rawValue = val;
         value = applyOperation(signed, field.operation, field.ratio);
-        displayValue = Number.isInteger(value) ? value.toString() : value.toFixed(2);
+        displayValue = formatValue(value);
         break;
       }
       case 'float':
@@ -450,7 +458,7 @@ export function parseDataFields(
         const fVal = ieee754toFloat(fieldRegs);
         rawValue = 0;
         value = applyOperation(fVal, field.operation, field.ratio);
-        displayValue = value.toFixed(2);
+        displayValue = formatValue(value);
         break;
       }
       default: {
@@ -473,7 +481,7 @@ export function parseDataFields(
           rawValue = 0;
           value = 0;
         }
-        displayValue = Number.isInteger(value) ? value.toString() : value.toFixed(2);
+        displayValue = formatValue(value);
         break;
       }
     }

@@ -8,16 +8,17 @@
   color: var(--color-foreground);
   outline: none;
   transition: border-color 0.15s;
+  -moz-appearance: textfield;
+}
+
+.input::-webkit-inner-spin-button,
+.input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .input:focus {
   border-color: var(--color-ring);
-}
-
-.readonly {
-  color: var(--color-muted-foreground);
-  background: var(--color-muted);
-  cursor: default;
 }
 
 .select {
