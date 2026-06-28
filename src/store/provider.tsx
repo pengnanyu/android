@@ -48,19 +48,21 @@ export function BmsProvider({ children }: { children: ReactNode }) {
   const [deviceVersion, setDeviceVersion] = useState<string | null>(null);
   const [parsedFields, setParsedFields] = useState<Map<string, number>>(new Map());
   const [parsedValues, setParsedValues] = useState<FieldValue[]>([]);
+  const [parsedProtocol, setParsedProtocol] = useState<ParsedProtocol | null>(null);
   const [logs, setLogs] = useState<LogEntry[]>([]);
 
   const sendMessageRef = useRef<((msg: BridgeMessage) => void) | null>(null);
   const versionRef = useRef<string | null>(null);
-  const retryTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const versionRetryRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const logIdRef = useRef(0);
   const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pollIdxRef = useRef(0);
   const waitingResponseRef = useRef(false);
   const responseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const parsedProtocolRef = useRef<ParsedProtocol | null>(null);
-  const registerInstructionsRef = useRef<number[]>([]);
-  const initPhaseRef = useRef<'idle' | 'version' | 'protocol' | 'polling'>('idle');
+  const registerInstrIndicesRef = useRef<number[]>([]);
+  const currentSentInstrIdxRef = useRef(-1);
+  const initPhaseRef = useRef<'idle' | 'version' | 'protocol' | 'initial-poll' | 'periodic'>('idle');
 
   const addLog = useCallback((entry: Omit<LogEntry, 'id'>) => {
     logIdRef.current += 1;
@@ -71,21 +73,37 @@ export function BmsProvider({ children }: { children: ReactNode }) {
 
   const sendFrame = useCallback((frame: number[]) => {
     const hex = toHex(frame);
-    console.log('[BmsStore] TX:', hex);
     addLog({ timestamp: Date.now(), direction: 'TX', rawHex: hex });
     if (sendMessageRef.current) {
       sendMessageRef.current({ type: 'bms:frame-send', payload: { frame } });
-    } else {
-      console.warn('[BmsStore] sendMessage not available, frame not sent');
     }
   }, [addLog]);
 
-  const stopTimers = useCallback(() => {
-    if (retryTimerRef.current) { clearInterval(retryTimerRef.current); retryTimerRef.current = null; }
+  const stopAllTimers = useCallback(() => {
+    if (versionRetryRef.current) { clearInterval(versionRetryRef.current); versionRetryRef.current = null; }
     if (pollTimerRef.current) { clearInterval(pollTimerRef.current); pollTimerRef.current = null; }
     if (responseTimerRef.current) { clearTimeout(responseTimerRef.current); responseTimerRef.current = null; }
     waitingResponseRef.current = false;
+    currentSentInstrIdxRef.current = -1;
   }, []);
+
+  const resetToVersionQuery = useCallback(() => {
+    stopAllTimers();
+    versionRef.current = null;
+    initPhaseRef.current = 'version';
+    setDeviceVersion(null);
+    setProtocolDb(null);
+    setParsedFields(new Map());
+    setParsedValues([]);
+    setParsedProtocol(null);
+    addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: 'Communication error, restarting version query', rawHex: '' });
+    sendFrame(appendCrc([0x00, 0x03, 0x00, 0x00, 0x00, 0x01]));
+    versionRetryRef.current = setInterval(() => {
+      if (!versionRef.current) {
+        sendFrame(appendCrc([0x00, 0x03, 0x00, 0x00, 0x00, 0x01]));
+      }
+    }, VERSION_QUERY_INTERVAL);
+  }, [stopAllTimers, sendFrame, addLog]);
 
   const sendVersionQuery = useCallback(() => {
     const frame = appendCrc([0x00, 0x03, 0x00, 0x00, 0x00, 0x01]);
@@ -93,10 +111,10 @@ export function BmsProvider({ children }: { children: ReactNode }) {
   }, [sendFrame]);
 
   const startVersionRetry = useCallback(() => {
-    if (retryTimerRef.current) return;
+    if (versionRetryRef.current) return;
     initPhaseRef.current = 'version';
     sendVersionQuery();
-    retryTimerRef.current = setInterval(() => {
+    versionRetryRef.current = setInterval(() => {
       if (!versionRef.current) {
         sendVersionQuery();
       }
@@ -104,9 +122,9 @@ export function BmsProvider({ children }: { children: ReactNode }) {
   }, [sendVersionQuery]);
 
   const stopVersionRetry = useCallback(() => {
-    if (retryTimerRef.current) {
-      clearInterval(retryTimerRef.current);
-      retryTimerRef.current = null;
+    if (versionRetryRef.current) {
+      clearInterval(versionRetryRef.current);
+      versionRetryRef.current = null;
     }
   }, []);
 
@@ -134,10 +152,10 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     }
   }, [addLog]);
 
-  const sendInstructionFrame = useCallback((instIdx: number) => {
+  const sendInstructionFrame = useCallback((instrIdx: number) => {
     const protocol = parsedProtocolRef.current;
-    if (!protocol || instIdx >= protocol.instructions.length) return;
-    const inst = protocol.instructions[instIdx]!;
+    if (!protocol || instrIdx >= protocol.instructions.length) return;
+    const inst = protocol.instructions[instrIdx]!;
     const frame = appendCrc([
       inst.slaveAddr,
       inst.funcCode,
@@ -146,48 +164,47 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       (inst.quantity >> 8) & 0xFF,
       inst.quantity & 0xFF,
     ]);
+    currentSentInstrIdxRef.current = instrIdx;
     waitingResponseRef.current = true;
     sendFrame(frame);
     responseTimerRef.current = setTimeout(() => {
       if (!waitingResponseRef.current) return;
-      addLog({ timestamp: Date.now(), direction: 'TX', parsedInfo: `Timeout, retry instruction #${instIdx + 1}`, rawHex: '' });
-      sendInstructionFrame(instIdx);
+      addLog({ timestamp: Date.now(), direction: 'TX', parsedInfo: `Timeout on instruction #${instrIdx + 1}`, rawHex: '' });
+      resetToVersionQuery();
     }, RESPONSE_TIMEOUT);
-  }, [sendFrame, addLog]);
+  }, [sendFrame, addLog, resetToVersionQuery]);
 
   const startInitialPoll = useCallback(() => {
     const db = protocolDb;
     if (!db) return;
     const parsed = parseProtocolRows(db.rows);
     parsedProtocolRef.current = parsed;
+    setParsedProtocol(parsed);
 
     const regIndices: number[] = [];
     for (let i = 0; i < parsed.instructions.length; i++) {
-      const inst = parsed.instructions[i]!;
-      if (inst.configType !== 'Calendar') {
+      if (parsed.instructions[i]!.configType !== 'Calendar') {
         regIndices.push(i);
       }
     }
-    registerInstructionsRef.current = regIndices;
+    registerInstrIndicesRef.current = regIndices;
 
-    if (regIndices.length === 0) {
-      addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: 'No Register instructions to poll', rawHex: '' });
-      return;
-    }
+    if (regIndices.length === 0) return;
 
-    initPhaseRef.current = 'polling';
+    initPhaseRef.current = 'initial-poll';
     pollIdxRef.current = 0;
-    addLog({ timestamp: Date.now(), direction: 'TX', parsedInfo: `Initial poll: ${regIndices.length} register instructions`, rawHex: '' });
+    addLog({ timestamp: Date.now(), direction: 'TX', parsedInfo: `Initial poll: ${regIndices.length} instructions`, rawHex: '' });
     sendInstructionFrame(regIndices[0]!);
   }, [protocolDb, sendFrame, addLog]);
 
   const startPeriodicPoll = useCallback(() => {
     if (pollTimerRef.current) return;
-    const regIndices = registerInstructionsRef.current;
+    const regIndices = registerInstrIndicesRef.current;
     if (regIndices.length === 0) return;
 
-    addLog({ timestamp: Date.now(), direction: 'TX', parsedInfo: `Periodic poll started: ${regIndices.length} instructions / ${POLL_INTERVAL}ms`, rawHex: '' });
+    initPhaseRef.current = 'periodic';
     pollIdxRef.current = 0;
+    addLog({ timestamp: Date.now(), direction: 'TX', parsedInfo: `Periodic poll: ${regIndices.length} instructions / ${POLL_INTERVAL}ms`, rawHex: '' });
 
     pollTimerRef.current = setInterval(() => {
       if (waitingResponseRef.current) return;
@@ -204,14 +221,13 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     }
     waitingResponseRef.current = false;
 
-    if (initPhaseRef.current === 'polling') {
-      const regIndices = registerInstructionsRef.current;
+    if (initPhaseRef.current === 'initial-poll') {
+      const regIndices = registerInstrIndicesRef.current;
       pollIdxRef.current++;
       if (pollIdxRef.current < regIndices.length) {
         sendInstructionFrame(regIndices[pollIdxRef.current]!);
       } else {
         addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: 'Initial poll complete', rawHex: '' });
-        initPhaseRef.current = 'idle';
         startPeriodicPoll();
       }
     }
@@ -231,7 +247,11 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `FC:${parsed.funcCode.toString(16).toUpperCase()} BC:${parsed.byteCount} Regs:${parsed.registers.length}`, rawHex: hex });
     }
 
-    if (!parsed) return;
+    if (!parsed) {
+      addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: 'Invalid response, resetting', rawHex: '' });
+      resetToVersionQuery();
+      return;
+    }
 
     if (!versionRef.current && parsed.registers.length > 0) {
       const verHex = registerToVersionHex(parsed.registers[0]!);
@@ -251,31 +271,26 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       return newFields;
     });
 
+    const instrIdx = currentSentInstrIdxRef.current;
     const protocol = parsedProtocolRef.current;
-    if (protocol && protocol.dataFields.length > 0) {
-      const regIndices = registerInstructionsRef.current;
-      const currentInstrArrayIdx = pollIdxRef.current % regIndices.length;
-      const instrIdx = regIndices[currentInstrArrayIdx] ?? -1;
-      if (instrIdx >= 0 && instrIdx < protocol.instructions.length) {
-        const inst = protocol.instructions[instrIdx]!;
-        if (inst.funcCode === parsed.funcCode) {
-          const fieldValues = parseDataFields(parsed.registers, protocol.dataFields, instrIdx);
-          if (fieldValues.length > 0) {
-            setParsedValues(prev => {
-              const updated = prev.filter(v => !fieldValues.some(fv => fv.rowIndex === v.rowIndex));
-              return [...updated, ...fieldValues];
-            });
-          }
+    if (protocol && instrIdx >= 0 && instrIdx < protocol.instructions.length) {
+      const inst = protocol.instructions[instrIdx]!;
+      if (inst.funcCode === parsed.funcCode) {
+        const fieldValues = parseDataFields(parsed.registers, protocol.dataFields, instrIdx, protocol.instructions);
+        if (fieldValues.length > 0) {
+          setParsedValues(prev => {
+            const updated = prev.filter(v => !fieldValues.some(fv => fv.rowIndex === v.rowIndex));
+            return [...updated, ...fieldValues];
+          });
         }
       }
     }
 
     advancePoll();
-  }, [addLog, stopVersionRetry, loadProtocolDb, advancePoll]);
+  }, [addLog, stopVersionRetry, loadProtocolDb, advancePoll, resetToVersionQuery]);
 
   const handleConnectionStatus = useCallback((payload: unknown) => {
     const p = payload as { status: ConnectionStatus };
-    console.log('[BmsStore] connection-status:', p.status);
     addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `Connection: ${p.status}`, rawHex: '' });
     setConnectionStatus(p.status);
   }, [addLog]);
@@ -312,7 +327,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     if (connectionStatus === 'connected') {
       startVersionRetry();
     } else {
-      stopTimers();
+      stopAllTimers();
       stopVersionRetry();
       versionRef.current = null;
       initPhaseRef.current = 'idle';
@@ -320,12 +335,13 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       setProtocolDb(null);
       setParsedFields(new Map());
       setParsedValues([]);
+      setParsedProtocol(null);
     }
     return () => {
-      stopTimers();
+      stopAllTimers();
       stopVersionRetry();
     };
-  }, [connectionStatus, startVersionRetry, stopVersionRetry, stopTimers]);
+  }, [connectionStatus, startVersionRetry, stopVersionRetry, stopAllTimers]);
 
   useEffect(() => {
     if (protocolDb && connectionStatus === 'connected') {
@@ -335,10 +351,10 @@ export function BmsProvider({ children }: { children: ReactNode }) {
 
   const autoRead = useCallback(() => {
     if (protocolDb && connectionStatus === 'connected') {
-      stopTimers();
+      stopAllTimers();
       startInitialPoll();
     }
-  }, [protocolDb, connectionStatus, stopTimers, startInitialPoll]);
+  }, [protocolDb, connectionStatus, stopAllTimers, startInitialPoll]);
 
   const clearLogs = useCallback(() => {
     setLogs([]);
@@ -351,11 +367,12 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     deviceVersion,
     parsedFields,
     parsedValues,
+    parsedProtocol,
     logs,
     sendFrame,
     clearLogs,
     autoRead,
-  }), [connectionStatus, protocolDb, protocolLoading, deviceVersion, parsedFields, parsedValues, logs, sendFrame, clearLogs, autoRead]);
+  }), [connectionStatus, protocolDb, protocolLoading, deviceVersion, parsedFields, parsedValues, parsedProtocol, logs, sendFrame, clearLogs, autoRead]);
 
   return (
     <BmsContext.Provider value={store}>

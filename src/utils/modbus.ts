@@ -222,6 +222,7 @@ export interface FieldValue {
   displayValue: string;
   unit: string;
   dataType: string;
+  configType: string;
   rowIndex: number;
 }
 
@@ -302,10 +303,14 @@ function ieee754toFloat(regs: number[]): number {
 export function parseDataFields(
   registers: number[],
   fields: ParsedDataField[],
-  instrIdx: number
+  instrIdx: number,
+  instructions: ParsedInstruction[]
 ): FieldValue[] {
   const results: FieldValue[] = [];
   const matched = fields.filter(f => f.parentInstructionIndex === instrIdx);
+  const configType = (instrIdx >= 0 && instrIdx < instructions.length)
+    ? instructions[instrIdx]!.configType
+    : '';
 
   for (const field of matched) {
     const startReg = field.offsetAddr;
@@ -447,6 +452,7 @@ export function parseDataFields(
       displayValue,
       unit: field.unit,
       dataType: field.dataType,
+      configType,
       rowIndex: field.rowIndex,
     });
   }
