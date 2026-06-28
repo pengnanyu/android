@@ -4,7 +4,7 @@ import type { BmsStore, LogEntry } from './context';
 import { BmsContext } from './context';
 import { useBridgeMessage } from '@/hooks/useBridgeMessage';
 import { isEmbedded } from '@/utils/platform';
-import { parseModbusResponse, appendCrc, swap16, bigEndianHex } from '@/utils/modbus';
+import { parseModbusResponse, appendCrc, bigEndianHex } from '@/utils/modbus';
 import i18n from '@/i18n';
 
 const PROTOCOL_API_URL = 'https://sql.hzxhhc.com/api/data/';
