@@ -10,12 +10,12 @@ const FAULT_PATTERNS = /故障|Fault|Error|报警|告警|保护|Protect|Alarm/i;
 
 export function FaultRecordPage() {
   const { t } = useTranslation();
-  const { parsedValues, connectionStatus } = useBmsStore();
+  const { parsedValues } = useBmsStore();
 
   const records = useMemo<FaultRecord[]>(() => {
     const faultValues = parsedValues.filter(v => FAULT_PATTERNS.test(v.name));
 
-    return faultValues.map((v, i) => {
+    return faultValues.map((v) => {
       const isActive = v.value !== 0;
       let level: 'warning' | 'error' | 'critical' = 'warning';
       if (/保护|Protect|Safety|critical/i.test(v.name)) level = 'critical';
