@@ -38,6 +38,11 @@ export function ReceiveLogCard({ logs, filter, onFilterChange }: ReceiveLogCardP
         </button>
       </div>
       <div className={styles.logList}>
+        {filtered.length === 0 && (
+          <div style={{ padding: '12px', textAlign: 'center', color: 'var(--color-text-secondary)', fontSize: '0.8rem' }}>
+            {t('command.noLogs', 'No log entries yet. Connect a device to see data.')}
+          </div>
+        )}
         {filtered.map((entry) => (
           <LogItem key={entry.id} entry={entry} />
         ))}

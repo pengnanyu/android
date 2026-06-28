@@ -270,8 +270,14 @@ export function BmsProvider({ children }: { children: ReactNode }) {
   const handleConnectionStatus = useCallback((payload: unknown) => {
     const p = payload as { status: ConnectionStatus };
     console.log('[BmsStore] connection-status:', p.status);
+    addLog({
+      timestamp: Date.now(),
+      direction: 'RX',
+      parsedInfo: `Connection: ${p.status}`,
+      rawHex: '',
+    });
     setConnectionStatus(p.status);
-  }, []);
+  }, [addLog]);
 
   const handleThemeChange = useCallback((payload: unknown) => {
     const p = payload as { theme: 'light' | 'dark' };
