@@ -598,7 +598,6 @@ export function buildWriteFrame(
   bigEndianRegs: number[]
 ): number[] {
   const quantity = bigEndianRegs.length;
-  const byteCount = quantity * 2;
   const dataBytes: number[] = [];
   for (const reg of bigEndianRegs) {
     dataBytes.push((reg >> 8) & 0xFF);
@@ -611,7 +610,6 @@ export function buildWriteFrame(
     startAddr & 0xFF,
     (quantity >> 8) & 0xFF,
     quantity & 0xFF,
-    byteCount,
     ...dataBytes,
   ]);
 }
