@@ -183,6 +183,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     currentSentInstrIdxRef.current = instrIdx;
     waitingResponseRef.current = true;
     sendFrame(frame);
+    addLog({ timestamp: Date.now(), direction: 'TX', parsedInfo: `Read instr #${instrIdx + 1} (FC=0x${inst.funcCode.toString(16).toUpperCase()}, addr=0x${inst.startAddr.toString(16).toUpperCase()}, qty=${inst.quantity})`, rawHex: frame.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ') });
     responseTimerRef.current = setTimeout(() => {
       if (!waitingResponseRef.current) return;
       addLog({ timestamp: Date.now(), direction: 'TX', parsedInfo: `Timeout on instruction #${instrIdx + 1}`, rawHex: '' });
@@ -342,6 +343,14 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    if (p.data.length >= 5 && verifyCrc(p.data) && (p.data[1]! & 0x80)) {
+      const fc = p.data[1]!;
+      const errCode = p.data[2]!;
+      addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `Modbus exception: FC=0x${fc.toString(16).toUpperCase()}, err=0x${errCode.toString(16).toUpperCase()}`, rawHex });
+      advancePoll();
+      return;
+    }
+
     const parsed = parseModbusResponse(p.data);
 
     if (!parsed) {
@@ -352,7 +361,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
 
     if (parsed.funcCode & 0x80) {
       addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `Modbus exception: FC=0x${parsed.funcCode.toString(16).toUpperCase()}`, rawHex });
-      resetToVersionQuery();
+      advancePoll();
       return;
     }
 
