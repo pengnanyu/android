@@ -100,16 +100,7 @@ export function ParamConfigPage() {
   const showContent = !isNarrow || mobileView === 'detail';
 
   return (
-    <div
-      className={styles.container}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-    >
-      <ParamToolbar
-        onImport={() => { }}
-        onExport={() => { }}
-        onPreset={(_id: string) => { }}
-      />
+    <>
       {toasts.length > 0 && (
         <div className={styles.toastBar}>
           {toasts.map(t => (
@@ -119,36 +110,47 @@ export function ParamConfigPage() {
           ))}
         </div>
       )}
-      <div className={styles.body}>
-        {showNav && (
-          <nav className={styles.nav}>
-            {paramGroups.map((group, idx) => (
-              <button
-                key={group.groupName}
-                className={`${styles.navItem} ${idx === activeGroupIdx ? styles.navItemActive : ''}`}
-                onClick={() => handleNavClick(idx)}
-              >
-                {group.groupName}
-              </button>
-            ))}
-          </nav>
-        )}
-        {showContent && (
-          <div className={styles.content}>
-            {currentGroup ? (
-              <ParamGroupCard
-                groupName={currentGroup.groupName}
-                params={currentGroup.params}
-                onValueChange={handleValueChange}
-                onBlur={handleBlur}
-                onBack={isNarrow ? handleBack : undefined}
-              />
-            ) : (
-              <div className={styles.empty}>暂无参数数据</div>
-            )}
-          </div>
-        )}
+      <div
+        className={styles.container}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
+        <ParamToolbar
+          onImport={() => { }}
+          onExport={() => { }}
+          onPreset={(_id: string) => { }}
+        />
+        <div className={styles.body}>
+          {showNav && (
+            <nav className={styles.nav}>
+              {paramGroups.map((group, idx) => (
+                <button
+                  key={group.groupName}
+                  className={`${styles.navItem} ${idx === activeGroupIdx ? styles.navItemActive : ''}`}
+                  onClick={() => handleNavClick(idx)}
+                >
+                  {group.groupName}
+                </button>
+              ))}
+            </nav>
+          )}
+          {showContent && (
+            <div className={styles.content}>
+              {currentGroup ? (
+                <ParamGroupCard
+                  groupName={currentGroup.groupName}
+                  params={currentGroup.params}
+                  onValueChange={handleValueChange}
+                  onBlur={handleBlur}
+                  onBack={isNarrow ? handleBack : undefined}
+                />
+              ) : (
+                <div className={styles.empty}>暂无参数数据</div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
