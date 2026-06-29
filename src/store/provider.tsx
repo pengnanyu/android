@@ -69,6 +69,10 @@ export function BmsProvider({ children }: { children: ReactNode }) {
   const currentSentInstrIdxRef = useRef(-1);
   const initPhaseRef = useRef<'idle' | 'version' | 'protocol' | 'initial-poll' | 'periodic'>('idle');
 
+  const startVersionRetryRef = useRef<() => void>(() => { });
+  const stopVersionRetryRef = useRef<() => void>(() => { });
+  const stopAllTimersRef = useRef<() => void>(() => { });
+
   const addLog = useCallback((entry: Omit<LogEntry, 'id'>) => {
     logIdRef.current += 1;
     const id = `${entry.direction}_${logIdRef.current}`;
@@ -89,6 +93,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     waitingResponseRef.current = false;
     currentSentInstrIdxRef.current = -1;
   }, []);
+  stopAllTimersRef.current = stopAllTimers;
 
   const resetToVersionQuery = useCallback(() => {
     stopAllTimers();
@@ -126,6 +131,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       }
     }, VERSION_QUERY_INTERVAL);
   }, [sendVersionQuery]);
+  startVersionRetryRef.current = startVersionRetry;
 
   const stopVersionRetry = useCallback(() => {
     if (versionRetryRef.current) {
@@ -133,6 +139,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       versionRetryRef.current = null;
     }
   }, []);
+  stopVersionRetryRef.current = stopVersionRetry;
 
   const loadProtocolDb = useCallback(async (version: string) => {
     setProtocolLoading(true);
@@ -377,10 +384,10 @@ export function BmsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (connectionStatus === 'connected') {
-      startVersionRetry();
+      startVersionRetryRef.current();
     } else {
-      stopAllTimers();
-      stopVersionRetry();
+      stopAllTimersRef.current();
+      stopVersionRetryRef.current();
       versionRef.current = null;
       initPhaseRef.current = 'idle';
       setDeviceVersion(null);
@@ -390,13 +397,12 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       setParsedProtocol(null);
       setDataMemeryGroups([]);
       parsedValuesMapRef.current = new Map();
-
     }
     return () => {
-      stopAllTimers();
-      stopVersionRetry();
+      stopAllTimersRef.current();
+      stopVersionRetryRef.current();
     };
-  }, [connectionStatus, startVersionRetry, stopVersionRetry, stopAllTimers]);
+  }, [connectionStatus]);
 
   useEffect(() => {
     if (protocolDb && connectionStatus === 'connected') {
