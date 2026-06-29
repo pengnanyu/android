@@ -115,6 +115,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     isWritingRef.current = false;
     isVerifyReadRef.current = false;
     pendingWriteRef.current = null;
+    writeResponsePendingRef.current = false;
     rawBufRef.current = [];
     addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `communication-error, resetting to version query`, rawHex: '' });
     setDeviceVersion(null);
@@ -289,6 +290,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
 
     if (isVerifyReadRef.current) {
       isVerifyReadRef.current = false;
+      writeResponsePendingRef.current = false;
       flushUpdates();
       executePendingWriteOrPollRef.current();
       return;
@@ -328,6 +330,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
 
 
   const rawBufRef = useRef<number[]>([]);
+  const writeResponsePendingRef = useRef(false);
 
   const handleRawData = useCallback((payload: unknown) => {
     const p = payload as { data: number[] };
@@ -343,7 +346,9 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       const fc = buf[1]!;
 
       if (fc & 0x80) {
-        processFrame(buf.slice(0, 5));
+        if (!writeResponsePendingRef.current) {
+          processFrame(buf.slice(0, 5));
+        }
         rawBufRef.current = buf.slice(5);
         continue;
       }
@@ -352,13 +357,17 @@ export function BmsProvider({ children }: { children: ReactNode }) {
         const bc = buf[2] ?? 0;
         const frameLen = 3 + bc + 2;
         if (buf.length < frameLen) break;
-        processFrame(buf.slice(0, frameLen));
+        if (!writeResponsePendingRef.current) {
+          processFrame(buf.slice(0, frameLen));
+        }
         rawBufRef.current = buf.slice(frameLen);
         continue;
       }
 
       if (fc === 0x10) {
-        processFrame(buf.slice(0, 5));
+        if (!writeResponsePendingRef.current) {
+          processFrame(buf.slice(0, 5));
+        }
         rawBufRef.current = buf.slice(5);
         continue;
       }
@@ -374,12 +383,14 @@ export function BmsProvider({ children }: { children: ReactNode }) {
 
     if (isWritingRef.current) {
       isWritingRef.current = false;
+      writeResponsePendingRef.current = true;
       if (responseTimerRef.current) {
         clearTimeout(responseTimerRef.current);
         responseTimerRef.current = null;
       }
       if (data.length < 5 || !verifyCrc(data)) {
         addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `write-response CRC error`, rawHex });
+        writeResponsePendingRef.current = false;
         executePendingWriteOrPollRef.current();
         return;
       }
@@ -388,6 +399,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       const crcOk = verifyCrc(data) ? 'OK' : 'ERR';
       if (fc & 0x80) {
         addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `write-response addr=${addr} func=${fc.toString(16).padStart(2, '0')} FAILED crc=${crcOk}`, rawHex });
+        writeResponsePendingRef.current = false;
         executePendingWriteOrPollRef.current();
         return;
       }
@@ -403,6 +415,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
         }
         sendInstructionFrame(writeInstrIdx);
       } else {
+        writeResponsePendingRef.current = false;
         executePendingWriteOrPollRef.current();
       }
       return;
@@ -527,6 +540,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       isWritingRef.current = false;
       isVerifyReadRef.current = false;
       pendingWriteRef.current = null;
+      writeResponsePendingRef.current = false;
       rawBufRef.current = [];
       setDeviceVersion(null);
       setProtocolDb(null);
