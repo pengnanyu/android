@@ -319,9 +319,21 @@ export function BmsProvider({ children }: { children: ReactNode }) {
         sendInstructionFrame(regIndices[pollIdxRef.current]!);
       } else {
         flushUpdates();
+        if (pendingWriteRef.current) {
+          const pw: { fieldRowIndex: number; newValue: number } = pendingWriteRef.current;
+          pendingWriteRef.current = null;
+          writeFieldRef.current(pw.fieldRowIndex, pw.newValue);
+          return;
+        }
         pollTimerRef.current = setTimeout(() => {
           pollTimerRef.current = null;
           pollIdxRef.current = 0;
+          if (pendingWriteRef.current) {
+            const pw: { fieldRowIndex: number; newValue: number } = pendingWriteRef.current;
+            pendingWriteRef.current = null;
+            writeFieldRef.current(pw.fieldRowIndex, pw.newValue);
+            return;
+          }
           sendInstructionFrame(regIndices[0]!);
         }, POLL_INTERVAL);
       }
@@ -563,6 +575,11 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     if (!fv) return;
     const protocol = parsedProtocolRef.current;
     if (!protocol) return;
+
+    if (waitingResponseRef.current) {
+      pendingWriteRef.current = { fieldRowIndex, newValue };
+      return;
+    }
 
     stopAllTimers();
     waitingResponseRef.current = false;
