@@ -183,7 +183,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     currentSentInstrIdxRef.current = instrIdx;
     waitingResponseRef.current = true;
     sendFrame(frame);
-    addLog({ timestamp: Date.now(), direction: 'TX', parsedInfo: `Read instr #${instrIdx + 1} (FC=0x${inst.funcCode.toString(16).toUpperCase()}, addr=0x${inst.startAddr.toString(16).toUpperCase()}, qty=${inst.quantity})`, rawHex: frame.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ') });
+
     responseTimerRef.current = setTimeout(() => {
       if (!waitingResponseRef.current) return;
       addLog({ timestamp: Date.now(), direction: 'TX', parsedInfo: `Timeout on instruction #${instrIdx + 1}`, rawHex: '' });
@@ -216,7 +216,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
 
     initPhaseRef.current = 'initial-poll';
     pollIdxRef.current = 0;
-    addLog({ timestamp: Date.now(), direction: 'TX', parsedInfo: `Initial poll: ${allIndices.length} instructions (all non-Calendar)`, rawHex: '' });
+
     sendInstructionFrame(allIndices[0]!);
   }, [protocolDb, sendFrame, addLog]);
 
@@ -225,7 +225,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     pollIdxRef.current = 0;
     const regIndices = registerInstrIndicesRef.current;
     if (regIndices.length === 0) return;
-    addLog({ timestamp: Date.now(), direction: 'TX', parsedInfo: `Periodic poll: ${regIndices.length} Register instructions / ${POLL_INTERVAL}ms cycle`, rawHex: '' });
+
     sendInstructionFrame(regIndices[0]!);
   }, [sendInstructionFrame, addLog]);
 
@@ -278,7 +278,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
         sendInstructionFrame(allIndices[pollIdxRef.current]!);
       } else {
         flushUpdates();
-        addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: 'Initial poll complete', rawHex: '' });
+
         startPeriodicPoll();
       }
     } else if (initPhaseRef.current === 'periodic') {
