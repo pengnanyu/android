@@ -112,6 +112,9 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     stopAllTimers();
     versionRef.current = null;
     initPhaseRef.current = 'version';
+    isWritingRef.current = false;
+    isVerifyReadRef.current = false;
+    pendingWriteRef.current = null;
     setDeviceVersion(null);
     setProtocolDb(null);
     setParsedFields(new Map());
@@ -483,6 +486,9 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       stopVersionRetryRef.current();
       versionRef.current = null;
       initPhaseRef.current = 'idle';
+      isWritingRef.current = false;
+      isVerifyReadRef.current = false;
+      pendingWriteRef.current = null;
       setDeviceVersion(null);
       setProtocolDb(null);
       setParsedFields(new Map());
@@ -531,6 +537,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
         clearTimeout(responseTimerRef.current);
         responseTimerRef.current = null;
       }
+      waitingResponseRef.current = false;
       isWritingRef.current = true;
       writeInstrIdxRef.current = fv.parentInstructionIndex;
       writeVerifyAddrRef.current = fv.absAddr;

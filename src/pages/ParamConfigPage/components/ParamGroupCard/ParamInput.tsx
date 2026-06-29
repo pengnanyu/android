@@ -60,14 +60,7 @@ function sanitize(raw: string, dt: string): string {
   if (isTimeType(dt)) {
     return raw.replace(/[^0-9\-: /AMPW]/g, '');
   }
-  if (isIntegerType(dt)) {
-    let s = raw.replace(/[^0-9\-]/g, '');
-    if (s.length > 1 && s.startsWith('--')) {
-      s = '-' + s.slice(2);
-    }
-    return s;
-  }
-  if (isFloatType(dt)) {
+  if (isIntegerType(dt) || isFloatType(dt)) {
     let s = raw.replace(/[^0-9.\-]/g, '');
     const firstDot = s.indexOf('.');
     if (firstDot >= 0) {
@@ -75,12 +68,6 @@ function sanitize(raw: string, dt: string): string {
     }
     if (s.length > 1 && s.startsWith('--')) {
       s = '-' + s.slice(2);
-    }
-    if (dt === 'ushort Temper') {
-      const dotIdx = s.indexOf('.');
-      if (dotIdx >= 0 && s.length - dotIdx - 1 > 2) {
-        s = s.slice(0, dotIdx + 3);
-      }
     }
     return s;
   }
@@ -141,11 +128,9 @@ export function ParamInput({ param, onValueChange, onBlur }: ParamInputProps) {
     );
   }
 
-  const inputMode = isIntegerType(dt)
-    ? 'numeric' as const
-    : isFloatType(dt)
-      ? 'decimal' as const
-      : undefined;
+  const inputMode = (isIntegerType(dt) || isFloatType(dt))
+    ? 'decimal' as const
+    : undefined;
 
   return (
     <input
