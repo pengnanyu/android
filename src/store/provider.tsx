@@ -196,19 +196,11 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     waitingResponseRef.current = true;
     sendFrame(frame);
 
-    if (inst.configType === 'Data Memery') {
-      const addr = inst.slaveAddr.toString(16).padStart(2, '0');
-      const fc = inst.funcCode.toString(16).padStart(2, '0');
-      const start = '0x' + inst.startAddr.toString(16).padStart(4, '0');
-      addLog({ timestamp: Date.now(), direction: 'TX', parsedInfo: `read-request addr=${addr} func=${fc} start=${start} regs=${inst.quantity}`, rawHex: fmtHex(frame) });
-    }
-
     responseTimerRef.current = setTimeout(() => {
       if (!waitingResponseRef.current) return;
-
       resetToVersionQuery();
     }, RESPONSE_TIMEOUT);
-  }, [sendFrame, addLog, resetToVersionQuery]);
+  }, [sendFrame, resetToVersionQuery]);
 
   const startInitialPoll = useCallback(() => {
     const db = protocolDb;
@@ -357,18 +349,15 @@ export function BmsProvider({ children }: { children: ReactNode }) {
         return;
       }
       const fc = data[1]!;
-      const addr = (data[0] ?? 0).toString(16).padStart(2, '0');
-      const crcOk = verifyCrc(data) ? 'OK' : 'ERR';
       if (fc & 0x80) {
+        const addr = (data[0] ?? 0).toString(16).padStart(2, '0');
         addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `write-response addr=${addr} func=${fc.toString(16).padStart(2, '0')} FAILED`, rawHex });
         executePendingWriteOrPollRef.current();
         return;
       }
-      addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `write-response addr=${addr} func=10 crc=${crcOk}`, rawHex });
       const writeInstrIdx = writeInstrIdxRef.current;
       if (writeInstrIdx >= 0) {
         isVerifyReadRef.current = true;
-        addLog({ timestamp: Date.now(), direction: 'TX', parsedInfo: `verify-read after write`, rawHex: '' });
         sendInstructionFrame(writeInstrIdx);
       } else {
         executePendingWriteOrPollRef.current();
@@ -412,20 +401,6 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     const instrIdx = currentSentInstrIdxRef.current;
     const protocol = parsedProtocolRef.current;
     if (protocol && instrIdx >= 0 && instrIdx < protocol.instructions.length) {
-      const inst = protocol.instructions[instrIdx]!;
-      const isDm = inst.configType === 'Data Memery';
-
-      if (isDm) {
-        const addr = parsed.slaveAddr.toString(16).padStart(2, '0');
-        const fc = parsed.funcCode.toString(16).padStart(2, '0');
-        const dataHex = parsed.registers.map(r => {
-          const hi = (r >> 8) & 0xFF;
-          const lo = r & 0xFF;
-          return hi.toString(16).padStart(2, '0') + ' ' + lo.toString(16).padStart(2, '0');
-        }).join(' ');
-        const crcOk = verifyCrc(data) ? 'OK' : 'ERR';
-        addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `read-response addr=${addr} func=${fc} data=[${dataHex}] crc=${crcOk}`, rawHex });
-      }
 
       const fieldValues = parseDataFields(parsed.registers, protocol.dataFields, instrIdx, protocol.instructions);
       if (fieldValues.length > 0) {
