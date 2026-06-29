@@ -1,11 +1,14 @@
 .logItem {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
   padding: 4px 0;
   font-size: 12px;
   font-family: monospace;
   border-bottom: 1px solid var(--color-border);
+}
+
+.logHeader {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
 }
 
 .time {
@@ -65,4 +68,5 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  padding-left: 72px;
 }

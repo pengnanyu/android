@@ -4,7 +4,7 @@ import type { BmsStore, LogEntry, DataMemeryGroup } from './context';
 import { BmsContext } from './context';
 import { useBridgeMessage } from '@/hooks/useBridgeMessage';
 import { isEmbedded } from '@/utils/platform';
-import { parseModbusResponse, appendCrc, bigEndianHex, parseProtocolRows, parseDataFields, buildFieldWriteFrame, verifyCrc } from '@/utils/modbus';
+import { parseModbusResponse, appendCrc, bigEndianHex, parseProtocolRows, parseDataFields, buildFieldWriteFrame, verifyCrc, splitModbusFrames } from '@/utils/modbus';
 import type { ParsedProtocol, FieldValue } from '@/utils/modbus';
 import i18n from '@/i18n';
 
@@ -13,6 +13,9 @@ const VERSION_QUERY_INTERVAL = 1000;
 const RESPONSE_TIMEOUT = 2000;
 const POLL_INTERVAL = 1000;
 
+function fmtHex(bytes: number[]): string {
+  return '[' + bytes.map(b => b.toString(16).padStart(2, '0')).join(' ') + ']';
+}
 
 function registerToVersionHex(register: number): string {
   return bigEndianHex(register);
@@ -117,7 +120,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     setDataMemeryGroups([]);
     parsedValuesMapRef.current = new Map();
 
-    addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: 'Communication error, restarting version query', rawHex: '' });
+    addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: 'communication-error, restarting version query', rawHex: '' });
     sendFrame(appendCrc([0x00, 0x03, 0x00, 0x00, 0x00, 0x01]));
     versionRetryRef.current = setInterval(() => {
       if (!versionRef.current) {
@@ -129,7 +132,8 @@ export function BmsProvider({ children }: { children: ReactNode }) {
   const sendVersionQuery = useCallback(() => {
     const frame = appendCrc([0x00, 0x03, 0x00, 0x00, 0x00, 0x01]);
     sendFrame(frame);
-  }, [sendFrame]);
+    addLog({ timestamp: Date.now(), direction: 'TX', parsedInfo: 'read-request addr=00 func=03 start=0x0000 regs=1 (version-query)', rawHex: fmtHex(frame) });
+  }, [sendFrame, addLog]);
 
   const startVersionRetry = useCallback(() => {
     if (versionRetryRef.current) return;
@@ -166,10 +170,10 @@ export function BmsProvider({ children }: { children: ReactNode }) {
           rows: data.rows,
           loadedAt: Date.now(),
         });
-        addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `Protocol DB loaded: v${version} (${data.rows.length} rows)`, rawHex: '' });
+        addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `protocol-db loaded: v${version} (${data.rows.length} rows)`, rawHex: '' });
       }
     } catch (_e) {
-      addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `Failed to load protocol DB: ${_e}`, rawHex: '' });
+      addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `protocol-db failed: ${_e}`, rawHex: '' });
     } finally {
       setProtocolLoading(false);
     }
@@ -190,6 +194,11 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     currentSentInstrIdxRef.current = instrIdx;
     waitingResponseRef.current = true;
     sendFrame(frame);
+
+    const addr = inst.slaveAddr.toString(16).padStart(2, '0');
+    const fc = inst.funcCode.toString(16).padStart(2, '0');
+    const start = '0x' + inst.startAddr.toString(16).padStart(4, '0');
+    addLog({ timestamp: Date.now(), direction: 'TX', parsedInfo: `read-request addr=${addr} func=${fc} start=${start} regs=${inst.quantity}`, rawHex: fmtHex(frame) });
 
     responseTimerRef.current = setTimeout(() => {
       if (!waitingResponseRef.current) return;
@@ -322,7 +331,16 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     const p = payload as { data: number[] };
     if (!p.data || p.data.length === 0) return;
 
-    const rawHex = p.data.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ');
+    const frames = splitModbusFrames(p.data);
+    for (const frame of frames) {
+      processFrame(frame);
+    }
+  }, [parsedFields, addLog, stopVersionRetry, loadProtocolDb, advancePoll, resetToVersionQuery, sendFrame]);
+
+  const processFrame = useCallback((data: number[]) => {
+    if (data.length === 0) return;
+
+    const rawHex = fmtHex(data);
 
     if (isWritingRef.current) {
       isWritingRef.current = false;
@@ -330,22 +348,24 @@ export function BmsProvider({ children }: { children: ReactNode }) {
         clearTimeout(responseTimerRef.current);
         responseTimerRef.current = null;
       }
-      if (p.data.length < 5 || !verifyCrc(p.data)) {
-        addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `Write response CRC error`, rawHex });
+      if (data.length < 5 || !verifyCrc(data)) {
+        addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `write-response CRC error`, rawHex });
         executePendingWriteOrPollRef.current();
         return;
       }
-      const fc = p.data[1]!;
+      const fc = data[1]!;
+      const addr = (data[0] ?? 0).toString(16).padStart(2, '0');
+      const crcOk = verifyCrc(data) ? 'OK' : 'ERR';
       if (fc & 0x80) {
-        addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `Write failed: FC=0x${fc.toString(16).toUpperCase()}`, rawHex });
+        addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `write-response addr=${addr} func=${fc.toString(16).padStart(2, '0')} FAILED`, rawHex });
         executePendingWriteOrPollRef.current();
         return;
       }
-      addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `Write OK`, rawHex });
+      addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `write-response addr=${addr} func=10 crc=${crcOk}`, rawHex });
       const writeInstrIdx = writeInstrIdxRef.current;
       if (writeInstrIdx >= 0) {
         isVerifyReadRef.current = true;
-        addLog({ timestamp: Date.now(), direction: 'TX', parsedInfo: `Verify read after write`, rawHex: '' });
+        addLog({ timestamp: Date.now(), direction: 'TX', parsedInfo: `verify-read after write`, rawHex: '' });
         sendInstructionFrame(writeInstrIdx);
       } else {
         executePendingWriteOrPollRef.current();
@@ -353,24 +373,26 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    if (p.data.length >= 5 && verifyCrc(p.data) && (p.data[1]! & 0x80)) {
-      const fc = p.data[1]!;
-      const errCode = p.data[2]!;
-      addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `Modbus exception: FC=0x${fc.toString(16).toUpperCase()}, err=0x${errCode.toString(16).toUpperCase()}`, rawHex });
+    if (data.length >= 5 && verifyCrc(data) && (data[1]! & 0x80)) {
+      const fc = data[1]!;
+      const errCode = data[2]!;
+      const addr = (data[0] ?? 0).toString(16).padStart(2, '0');
+      addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `exception addr=${addr} func=${fc.toString(16).padStart(2, '0')} err=0x${errCode.toString(16).padStart(2, '0')}`, rawHex });
       advancePoll();
       return;
     }
 
-    const parsed = parseModbusResponse(p.data);
+    const parsed = parseModbusResponse(data);
 
     if (!parsed) {
-      addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `Invalid response, resetting`, rawHex });
+      addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `invalid-response, resetting`, rawHex });
       resetToVersionQuery();
       return;
     }
 
     if (parsed.funcCode & 0x80) {
-      addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `Modbus exception: FC=0x${parsed.funcCode.toString(16).toUpperCase()}`, rawHex });
+      const addr = parsed.slaveAddr.toString(16).padStart(2, '0');
+      addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `exception addr=${addr} func=${parsed.funcCode.toString(16).padStart(2, '0')}`, rawHex });
       advancePoll();
       return;
     }
@@ -380,9 +402,29 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       versionRef.current = verHex;
       setDeviceVersion(verHex);
       stopVersionRetry();
-      addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `Version: ${verHex}`, rawHex: '' });
+      const addr = parsed.slaveAddr.toString(16).padStart(2, '0');
+      const fc = parsed.funcCode.toString(16).padStart(2, '0');
+      const dataHex = parsed.registers.map(r => {
+        const hi = (r >> 8) & 0xFF;
+        const lo = r & 0xFF;
+        return hi.toString(16).padStart(2, '0') + ' ' + lo.toString(16).padStart(2, '0');
+      }).join(' ');
+      const crcOk = verifyCrc(data) ? 'OK' : 'ERR';
+      addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `read-response addr=${addr} func=${fc} data=[${dataHex}] crc=${crcOk} version=${verHex}`, rawHex });
       loadProtocolDb(verHex);
       return;
+    }
+
+    {
+      const addr = parsed.slaveAddr.toString(16).padStart(2, '0');
+      const fc = parsed.funcCode.toString(16).padStart(2, '0');
+      const dataHex = parsed.registers.map(r => {
+        const hi = (r >> 8) & 0xFF;
+        const lo = r & 0xFF;
+        return hi.toString(16).padStart(2, '0') + ' ' + lo.toString(16).padStart(2, '0');
+      }).join(' ');
+      const crcOk = verifyCrc(data) ? 'OK' : 'ERR';
+      addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `read-response addr=${addr} func=${fc} data=[${dataHex}] crc=${crcOk}`, rawHex });
     }
 
     if (!pendingFieldsUpdateRef.current) {
@@ -409,12 +451,12 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     }
 
     advancePoll();
-  }, [parsedFields, addLog, stopVersionRetry, loadProtocolDb, advancePoll, resetToVersionQuery]);
+  }, [parsedFields, addLog, stopVersionRetry, loadProtocolDb, advancePoll, resetToVersionQuery, sendFrame]);
 
 
   const handleConnectionStatus = useCallback((payload: unknown) => {
     const p = payload as { status: ConnectionStatus };
-    addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `Connection: ${p.status}`, rawHex: '' });
+    addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `connection: ${p.status}`, rawHex: '' });
     setConnectionStatus(p.status);
   }, [addLog]);
 
@@ -486,8 +528,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     if (!fv) return;
     const protocol = parsedProtocolRef.current;
     if (!protocol) return;
-    const allFields = parsedValuesMapRef.current;
-    const siblingFields = Array.from(allFields.values());
+    const siblingFields = Array.from(parsedValuesMapRef.current.values());
     const getLeRegisterValue = (absAddr: number): number => {
       const instrIdx = fv.parentInstructionIndex;
       const p = parsedProtocolRef.current;
@@ -508,11 +549,12 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       writeVerifyAddrRef.current = fv.absAddr;
       writeVerifyQtyRef.current = fv.regLen;
       sendFrame(frame);
-      addLog({ timestamp: Date.now(), direction: 'TX', parsedInfo: `Write field "${fv.name}": ${newValue}`, rawHex: frame.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ') });
+      const start = '0x' + fv.absAddr.toString(16).padStart(4, '0');
+      addLog({ timestamp: Date.now(), direction: 'TX', parsedInfo: `write-request addr=00 func=10 start=${start} regs=${fv.regLen} field="${fv.name}"=${newValue}`, rawHex: fmtHex(frame) });
       responseTimerRef.current = setTimeout(() => {
         if (!isWritingRef.current) return;
         isWritingRef.current = false;
-        addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: 'Write timeout', rawHex: '' });
+        addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: 'write-response timeout', rawHex: '' });
         executePendingWriteOrPollRef.current();
       }, RESPONSE_TIMEOUT);
     }

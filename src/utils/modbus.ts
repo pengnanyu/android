@@ -374,9 +374,7 @@ export function parseDataFields(
       case 'HEX': {
         const reg = fieldRegs[0] ?? 0;
         if (field.byteLen === 1) {
-          const byteVal = field.byteOffset === 0
-            ? reg & 0xFF
-            : (reg >> 8) & 0xFF;
+          const byteVal = reg & 0xFF;
           displayValue = byteVal.toString(16).toUpperCase().padStart(2, '0');
           rawValue = byteVal;
           value = byteVal;
@@ -410,9 +408,7 @@ export function parseDataFields(
       case 'uchar':
       case 'unsigned char': {
         const reg = fieldRegs[0] ?? 0;
-        const byteVal = field.byteOffset === 0
-          ? reg & 0xFF
-          : (reg >> 8) & 0xFF;
+        const byteVal = reg & 0xFF;
         rawValue = byteVal;
         value = applyOperation(byteVal, field.operation, field.ratio);
         displayValue = formatValue(value);
@@ -471,9 +467,7 @@ export function parseDataFields(
       default: {
         if (field.byteLen === 1) {
           const reg = fieldRegs[0] ?? 0;
-          const byteVal = field.byteOffset === 0
-            ? reg & 0xFF
-            : (reg >> 8) & 0xFF;
+          const byteVal = reg & 0xFF;
           rawValue = byteVal;
           value = applyOperation(byteVal, field.operation, field.ratio);
         } else if (field.byteLen === 2 || fieldRegs.length === 1) {
@@ -532,6 +526,8 @@ function reverseOperation(value: number, operation: string, ratio: number): numb
 
 function valueToLittleEndianRegs(value: number, dataType: string, byteLen: number): number[] {
   const regs: number[] = [];
+  const lo16 = value & 0xFFFF;
+  const hi16 = (value >> 16) & 0xFFFF;
 
   switch (dataType) {
     case 'uchar':
@@ -542,12 +538,12 @@ function valueToLittleEndianRegs(value: number, dataType: string, byteLen: numbe
     case 'short':
     case 'int16':
     case 'signed short': {
-      regs.push(value & 0xFFFF);
+      regs.push(swap16(lo16));
       break;
     }
     case 'ushort Temper': {
       const rawVal = Math.round(value * 10);
-      regs.push(rawVal & 0xFFFF);
+      regs.push(swap16(rawVal & 0xFFFF));
       break;
     }
     case 'uint':
@@ -560,8 +556,8 @@ function valueToLittleEndianRegs(value: number, dataType: string, byteLen: numbe
     case 'long':
     case 'signed long':
     case 'signed int': {
-      regs.push(value & 0xFFFF);
-      regs.push((value >> 16) & 0xFFFF);
+      regs.push(swap16(lo16));
+      regs.push(swap16(hi16));
       break;
     }
     case 'float':
@@ -569,18 +565,18 @@ function valueToLittleEndianRegs(value: number, dataType: string, byteLen: numbe
       const buf = new ArrayBuffer(4);
       const view = new DataView(buf);
       view.setFloat32(0, value, false);
-      const hi = view.getUint16(0, false);
-      const lo = view.getUint16(2, false);
-      regs.push(lo);
-      regs.push(hi);
+      const beHi = view.getUint16(0, false);
+      const beLo = view.getUint16(2, false);
+      regs.push(swap16(beLo));
+      regs.push(swap16(beHi));
       break;
     }
     default: {
       if (byteLen <= 2) {
-        regs.push(value & 0xFFFF);
+        regs.push(swap16(lo16));
       } else {
-        regs.push(value & 0xFFFF);
-        regs.push((value >> 16) & 0xFFFF);
+        regs.push(swap16(lo16));
+        regs.push(swap16(hi16));
       }
       break;
     }
@@ -616,6 +612,66 @@ export function buildWriteFrame(
   ]);
 }
 
+export function splitModbusFrames(data: number[]): number[][] {
+  const frames: number[][] = [];
+  let pos = 0;
+
+  while (pos < data.length) {
+    const remaining = data.length - pos;
+    if (remaining < 5) {
+      frames.push(data.slice(pos));
+      break;
+    }
+
+    const fc = data[pos + 1]!;
+
+    if (fc & 0x80) {
+      frames.push(data.slice(pos, pos + 5));
+      pos += 5;
+      continue;
+    }
+
+    if (fc === 0x03 || fc === 0x04 || fc === 0x11) {
+      const bc = data[pos + 2]!;
+      if (bc === undefined) {
+        frames.push(data.slice(pos));
+        break;
+      }
+      const len = 3 + bc + 2;
+      if (remaining >= len) {
+        frames.push(data.slice(pos, pos + len));
+        pos += len;
+      } else {
+        frames.push(data.slice(pos));
+        break;
+      }
+      continue;
+    }
+
+    if (fc === 0x10) {
+      if (remaining < 6) {
+        frames.push(data.slice(pos));
+        break;
+      }
+      const qty = ((data[pos + 4]! << 8) | data[pos + 5]!) >>> 0;
+      const len = 6 + qty * 2 + 2;
+      if (remaining >= len) {
+        frames.push(data.slice(pos, pos + len));
+        pos += len;
+      } else {
+        frames.push(data.slice(pos));
+        break;
+      }
+      continue;
+    }
+
+    frames.push(data.slice(pos, pos + 2));
+    pos += 2;
+  }
+
+  return frames;
+}
+
 export function buildFieldWriteFrame(
   field: FieldValue,
   newValue: number,
@@ -631,23 +687,24 @@ export function buildFieldWriteFrame(
     const sibling = siblingFields.find(
       f => f.absAddr === field.absAddr && f.rowIndex !== field.rowIndex && f.byteLen === 1
     );
-    let leRegVal: number;
+    let combined: number;
     if (sibling) {
-      const sibRaw = sibling.rawValue & 0xFF;
+      const sibByte = sibling.rawValue & 0xFF;
       if (field.byteOffset === 0) {
-        leRegVal = (sibRaw << 8) | byteVal;
+        combined = (byteVal << 8) | sibByte;
       } else {
-        leRegVal = (byteVal << 8) | sibRaw;
+        combined = (sibByte << 8) | byteVal;
       }
     } else {
       const curLeReg = getLeRegisterValue(field.absAddr);
+      const otherByte = (curLeReg >> 8) & 0xFF;
       if (field.byteOffset === 0) {
-        leRegVal = (curLeReg & 0xFF00) | byteVal;
+        combined = (byteVal << 8) | otherByte;
       } else {
-        leRegVal = (byteVal << 8) | (curLeReg & 0xFF);
+        combined = (otherByte << 8) | byteVal;
       }
     }
-    return buildWriteFrame(0x00, field.absAddr, [leRegVal]);
+    return buildWriteFrame(0x00, field.absAddr, [swap16(combined)]);
   }
 
   const leRegs = valueToLittleEndianRegs(rawValue, field.dataType, field.byteLen);

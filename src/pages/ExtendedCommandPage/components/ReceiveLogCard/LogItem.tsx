@@ -19,15 +19,17 @@ export function LogItem({ entry }: LogItemProps) {
 
   return (
     <div className={styles.logItem}>
-      <span className={styles.time}>{timeStr}</span>
-      <span className={`${styles.direction} ${entry.direction === 'TX' ? styles.tx : styles.rx}`}>
-        {entry.direction}
-      </span>
-      {configTypeLabel && configTypeClass && (
-        <span className={`${styles.configType} ${configTypeClass}`}>{configTypeLabel}</span>
-      )}
-      {entry.parsedInfo && <span className={styles.parsed}>{entry.parsedInfo}</span>}
-      <span className={styles.rawHex}>{entry.rawHex}</span>
+      <div className={styles.logHeader}>
+        <span className={styles.time}>{timeStr}</span>
+        <span className={`${styles.direction} ${entry.direction === 'TX' ? styles.tx : styles.rx}`}>
+          {entry.direction}
+        </span>
+        {configTypeLabel && configTypeClass && (
+          <span className={`${styles.configType} ${configTypeClass}`}>{configTypeLabel}</span>
+        )}
+        {entry.parsedInfo && <span className={styles.parsed}>{entry.parsedInfo}</span>}
+      </div>
+      {entry.rawHex && <div className={styles.rawHex}>{entry.rawHex}</div>}
     </div>
   );
 }
