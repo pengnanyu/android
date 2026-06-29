@@ -374,9 +374,10 @@ export function parseDataFields(
       case 'HEX': {
         const reg = fieldRegs[0] ?? 0;
         if (field.byteLen === 1) {
+          const beVal = leRegToValue(reg);
           const byteVal = field.byteOffset === 0
-            ? reg & 0xFF
-            : (reg >> 8) & 0xFF;
+            ? beVal & 0xFF
+            : (beVal >> 8) & 0xFF;
           displayValue = byteVal.toString(16).toUpperCase().padStart(2, '0');
           rawValue = byteVal;
           value = byteVal;
@@ -410,9 +411,10 @@ export function parseDataFields(
       case 'uchar':
       case 'unsigned char': {
         const reg = fieldRegs[0] ?? 0;
+        const beVal = leRegToValue(reg);
         const byteVal = field.byteOffset === 0
-          ? reg & 0xFF
-          : (reg >> 8) & 0xFF;
+          ? beVal & 0xFF
+          : (beVal >> 8) & 0xFF;
         rawValue = byteVal;
         value = applyOperation(byteVal, field.operation, field.ratio);
         displayValue = formatValue(value);
@@ -471,9 +473,10 @@ export function parseDataFields(
       default: {
         if (field.byteLen === 1) {
           const reg = fieldRegs[0] ?? 0;
+          const beVal = leRegToValue(reg);
           const byteVal = field.byteOffset === 0
-            ? reg & 0xFF
-            : (reg >> 8) & 0xFF;
+            ? beVal & 0xFF
+            : (beVal >> 8) & 0xFF;
           rawValue = byteVal;
           value = applyOperation(byteVal, field.operation, field.ratio);
         } else if (field.byteLen === 2 || fieldRegs.length === 1) {
@@ -693,24 +696,24 @@ export function buildFieldWriteFrame(
     const sibling = siblingFields.find(
       f => f.absAddr === field.absAddr && f.rowIndex !== field.rowIndex && f.byteLen === 1
     );
-    let combined: number;
+    let beCombined: number;
     if (sibling) {
       const sibByte = sibling.rawValue & 0xFF;
       if (field.byteOffset === 0) {
-        combined = (byteVal << 8) | sibByte;
+        beCombined = (sibByte << 8) | byteVal;
       } else {
-        combined = (sibByte << 8) | byteVal;
+        beCombined = (byteVal << 8) | sibByte;
       }
     } else {
       const curLeReg = getLeRegisterValue(field.absAddr);
-      const otherByte = (curLeReg >> 8) & 0xFF;
+      const curBeVal = leRegToValue(curLeReg);
       if (field.byteOffset === 0) {
-        combined = (byteVal << 8) | otherByte;
+        beCombined = (curBeVal & 0xFF00) | byteVal;
       } else {
-        combined = (otherByte << 8) | byteVal;
+        beCombined = (byteVal << 8) | (curBeVal & 0xFF);
       }
     }
-    return buildWriteFrame(0x00, field.absAddr, [swap16(combined)]);
+    return buildWriteFrame(0x00, field.absAddr, [swap16(beCombined)]);
   }
 
   const leRegs = valueToLittleEndianRegs(rawValue, field.dataType, field.byteLen);
