@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { ParamItem } from '@/types';
 import { ParamRow } from './ParamRow';
 import styles from './ParamGroupCard.module.css';
@@ -11,6 +12,8 @@ interface ParamGroupCardProps {
 }
 
 export function ParamGroupCard({ groupName, params, onValueChange, onBlur, onBack }: ParamGroupCardProps) {
+  const { t } = useTranslation();
+
   return (
     <div className={styles.group}>
       <div className={styles.groupHeader}>
@@ -23,14 +26,16 @@ export function ParamGroupCard({ groupName, params, onValueChange, onBlur, onBac
       </div>
       <div className={styles.groupContent}>
         <div className={styles.rowHeader}>
-          <span>名称</span>
-          <span>当前值</span>
-          <span>设定值</span>
-          <span>单位</span>
+          <span>{t('param.name')}</span>
+          <span>{t('param.currentValue')}</span>
+          <span>{t('param.setValue')}</span>
+          <span>{t('param.unit')}</span>
         </div>
-        {params.map((param) => (
-          <ParamRow key={param.key} param={param} onValueChange={onValueChange} onBlur={onBlur} />
-        ))}
+        <div className={styles.rowList}>
+          {params.map((param) => (
+            <ParamRow key={param.key} param={param} onValueChange={onValueChange} onBlur={onBlur} />
+          ))}
+        </div>
       </div>
     </div>
   );

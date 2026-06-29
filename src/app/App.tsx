@@ -3,12 +3,10 @@ import { useLocation, useNavigate } from 'react-router';
 import { AppRouter, AppRoutes } from './routes';
 import { Providers } from './providers';
 import { Nav } from '@/components/shared/Nav';
-import { useBmsStore } from '@/store/context';
 
 function AppContent() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { connectionStatus } = useBmsStore();
 
   const handleNavigate = useCallback((path: string) => {
     navigate(path);
@@ -22,7 +20,6 @@ function AppContent() {
       <Nav
         activeRoute={location.pathname}
         onNavigate={handleNavigate}
-        connectionStatus={connectionStatus}
       />
     </>
   );

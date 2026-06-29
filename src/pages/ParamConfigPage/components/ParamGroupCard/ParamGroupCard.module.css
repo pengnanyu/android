@@ -3,6 +3,9 @@
   border: 1px solid var(--color-border);
   border-radius: 8px;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .groupHeader {
@@ -16,6 +19,7 @@
   color: var(--color-foreground);
   -webkit-user-select: none;
   user-select: none;
+  flex-shrink: 0;
 }
 
 .backBtn {
@@ -49,16 +53,32 @@
 }
 
 .groupContent {
-  padding: 8px 16px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
 }
 
 .rowHeader {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr 60px;
   gap: 8px;
-  padding: 4px 0 6px;
+  padding: 4px 16px 6px;
   font-size: 11px;
   color: var(--color-muted-foreground);
   border-bottom: 1px solid var(--color-border);
   font-weight: 500;
+  flex-shrink: 0;
+  background: var(--color-card);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.rowList {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 16px;
 }

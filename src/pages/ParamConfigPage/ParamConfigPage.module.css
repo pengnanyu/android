@@ -1,15 +1,14 @@
 .container {
   display: flex;
   flex-direction: column;
-  gap: 12px;
   height: calc(100vh - 72px - 32px);
   overflow: hidden;
-  padding: 16px;
+  padding: 0;
 }
 
 .body {
   display: flex;
-  gap: 16px;
+  gap: 0;
   min-height: 0;
   flex: 1;
   overflow: hidden;
@@ -20,8 +19,7 @@
   min-width: 160px;
   max-width: 260px;
   background: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
+  border-right: 1px solid var(--color-border);
   overflow-y: auto;
   flex-shrink: 0;
   overscroll-behavior: contain;
@@ -61,8 +59,9 @@
 .content {
   flex: 1;
   min-width: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .empty {
@@ -91,11 +90,12 @@
     max-width: none;
     min-width: 0;
     flex-shrink: 1;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
   }
 
   .content {
     width: 100%;
-    flex: none;
     flex: 1;
   }
 }

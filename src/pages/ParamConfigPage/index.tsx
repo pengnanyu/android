@@ -97,8 +97,7 @@ export function ParamConfigPage() {
       onTouchEnd={handleTouchEnd}
     >
       <ParamToolbar
-        onReadParams={() => { }}
-        onBatchWrite={() => { }}
+
         onImport={() => { }}
         onExport={() => { }}
         onPreset={(_id: string) => { }}
