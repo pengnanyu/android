@@ -101,7 +101,12 @@ export function ParamInput({ param, onValueChange, onBlur }: ParamInputProps) {
   const handleBlurInner = useCallback(() => {
     const cleaned = sanitize(localValue, dt);
     let finalValue: string | number;
-    if (isIntegerType(dt) || isFloatType(dt)) {
+    if (isHexType(dt)) {
+      const num = parseInt(cleaned, 16);
+      finalValue = isNaN(num) ? 0 : num;
+      setLocalValue(cleaned.toUpperCase());
+      onValueChange(paramKeyRef.current, finalValue);
+    } else if (isIntegerType(dt) || isFloatType(dt)) {
       const num = Number(cleaned);
       finalValue = isNaN(num) ? 0 : num;
       setLocalValue(String(finalValue));
