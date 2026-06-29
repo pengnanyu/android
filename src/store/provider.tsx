@@ -325,13 +325,46 @@ export function BmsProvider({ children }: { children: ReactNode }) {
   }, [sendInstructionFrame, startPeriodicPoll, flushUpdates]);
 
 
+  const rawBufRef = useRef<number[]>([]);
+
   const handleRawData = useCallback((payload: unknown) => {
     const p = payload as { data: number[] };
     if (!p.data || p.data.length === 0) return;
 
-    const frames = splitModbusFrames(p.data);
+    for (const b of p.data) rawBufRef.current.push(b);
+
+    const frames = splitModbusFrames(rawBufRef.current);
+    if (frames.length === 0) return;
+
+    const lastFrame = frames[frames.length - 1]!;
+    const lastIsComplete = (() => {
+      if (lastFrame.length < 5) return false;
+      const fc = lastFrame[1]!;
+      if (fc & 0x80) return lastFrame.length >= 5;
+      if (fc === 0x03 || fc === 0x04 || fc === 0x11) {
+        const bc = lastFrame[2] ?? 0;
+        return lastFrame.length >= 3 + bc + 2;
+      }
+      if (fc === 0x10) {
+        if (lastFrame.length < 6) return false;
+        const qty = ((lastFrame[4]! << 8) | lastFrame[5]!) >>> 0;
+        return lastFrame.length >= 6 + qty * 2 + 2;
+      }
+      return true;
+    })();
+
+    if (lastIsComplete) {
+      rawBufRef.current = [];
+    } else {
+      const consumed = rawBufRef.current.length - lastFrame.length;
+      rawBufRef.current = rawBufRef.current.slice(consumed > 0 ? consumed : 0);
+      frames.pop();
+    }
+
     for (const frame of frames) {
-      processFrame(frame);
+      if (frame.length >= 5) {
+        processFrame(frame);
+      }
     }
   }, [parsedFields, addLog, stopVersionRetry, loadProtocolDb, advancePoll, resetToVersionQuery, sendFrame]);
 
@@ -388,9 +421,8 @@ export function BmsProvider({ children }: { children: ReactNode }) {
 
     if (!parsed) {
       if (isVerifyReadRef.current) {
-        addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `verify-read invalid response`, rawHex });
+        addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `verify-read invalid response (skipped)`, rawHex });
       }
-      resetToVersionQuery();
       return;
     }
 
