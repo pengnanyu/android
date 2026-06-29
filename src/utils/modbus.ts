@@ -522,7 +522,7 @@ export function parseDataFields(
   return results;
 }
 
-function reverseOperation(value: number, operation: string, ratio: number): number {
+export function reverseOperation(value: number, operation: string, ratio: number): number {
   if (!operation || ratio === 0) return value;
   switch (operation) {
     case '+': return value - ratio;

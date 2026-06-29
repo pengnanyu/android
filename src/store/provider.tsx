@@ -4,7 +4,7 @@ import type { BmsStore, LogEntry, DataMemeryGroup } from './context';
 import { BmsContext } from './context';
 import { useBridgeMessage } from '@/hooks/useBridgeMessage';
 import { isEmbedded } from '@/utils/platform';
-import { parseModbusResponse, appendCrc, bigEndianHex, parseProtocolRows, parseDataFields, buildFieldWriteFrame, verifyCrc, splitModbusFrames } from '@/utils/modbus';
+import { parseModbusResponse, appendCrc, bigEndianHex, parseProtocolRows, parseDataFields, buildFieldWriteFrame, verifyCrc, splitModbusFrames, reverseOperation } from '@/utils/modbus';
 import type { ParsedProtocol, FieldValue } from '@/utils/modbus';
 import i18n from '@/i18n';
 
@@ -433,16 +433,6 @@ export function BmsProvider({ children }: { children: ReactNode }) {
           }
           map.set(fv.rowIndex, fv);
 
-          if (isDm && fv.byteLen === 1) {
-            const reg = parsed.registers[fv.absAddr - inst.startAddr] ?? 0;
-            const lo = (reg >> 8) & 0xFF;
-            const hi = reg & 0xFF;
-            addLog({
-              timestamp: Date.now(), direction: 'RX', parsedInfo:
-                `1B parse: ${fv.name} byteOff=${fv.byteOffset} reg=0x${reg.toString(16).padStart(4, '0')} lo=0x${lo.toString(16).padStart(2, '0')} hi=0x${hi.toString(16).padStart(2, '0')} rawVal=${fv.rawValue} val=${fv.value} op=${fv.operation} ratio=${fv.ratio}`,
-              rawHex: ''
-            });
-          }
         }
         pendingValuesUpdateRef.current = true;
       }
@@ -547,7 +537,23 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       writeVerifyQtyRef.current = fv.regLen;
       sendFrame(frame);
       const start = '0x' + fv.absAddr.toString(16).padStart(4, '0');
-      addLog({ timestamp: Date.now(), direction: 'TX', parsedInfo: `write-request addr=00 func=10 start=${start} regs=${fv.regLen} field="${fv.name}"=${newValue}`, rawHex: fmtHex(frame) });
+      if (fv.byteLen === 1) {
+        const rawVal = reverseOperation(newValue, fv.operation, fv.ratio);
+        const byteVal = Math.round(rawVal) & 0xFF;
+        const sibling = siblingFields.find(
+          (f: FieldValue) => f.absAddr === fv.absAddr && f.rowIndex !== fv.rowIndex && f.byteLen === 1
+        );
+        const sibInfo = sibling ? `sib=${sibling.name}=${sibling.rawValue}` : 'no-sib';
+        const curLeReg = getLeRegisterValue(fv.absAddr);
+        const curBeVal = ((curLeReg & 0xFF) << 8) | ((curLeReg >> 8) & 0xFF);
+        addLog({
+          timestamp: Date.now(), direction: 'TX',
+          parsedInfo: `1B write: "${fv.name}" newVal=${newValue} op=${fv.operation} ratio=${fv.ratio} rawVal=${rawVal} byteVal=0x${byteVal.toString(16).padStart(2, '0')} byteOff=${fv.byteOffset} ${sibInfo} curLeReg=0x${curLeReg.toString(16).padStart(4, '0')} curBeVal=0x${curBeVal.toString(16).padStart(4, '0')}`,
+          rawHex: fmtHex(frame)
+        });
+      } else {
+        addLog({ timestamp: Date.now(), direction: 'TX', parsedInfo: `write-request addr=00 func=10 start=${start} regs=${fv.regLen} field="${fv.name}"=${newValue}`, rawHex: fmtHex(frame) });
+      }
       responseTimerRef.current = setTimeout(() => {
         if (!isWritingRef.current) return;
         isWritingRef.current = false;
