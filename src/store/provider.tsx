@@ -4,7 +4,7 @@ import type { BmsStore, LogEntry, DataMemeryGroup } from './context';
 import { BmsContext } from './context';
 import { useBridgeMessage } from '@/hooks/useBridgeMessage';
 import { isEmbedded } from '@/utils/platform';
-import { parseModbusResponse, appendCrc, bigEndianHex, parseProtocolRows, parseDataFields, buildFieldWriteFrame } from '@/utils/modbus';
+import { parseModbusResponse, appendCrc, bigEndianHex, parseProtocolRows, parseDataFields, buildFieldWriteFrame, verifyCrc } from '@/utils/modbus';
 import type { ParsedProtocol, FieldValue } from '@/utils/modbus';
 import i18n from '@/i18n';
 
@@ -70,6 +70,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
   const currentSentInstrIdxRef = useRef(-1);
   const initPhaseRef = useRef<'idle' | 'version' | 'protocol' | 'initial-poll' | 'periodic'>('idle');
   const isWritingRef = useRef(false);
+  const writeInstrIdxRef = useRef(-1);
 
   const startVersionRetryRef = useRef<() => void>(() => { });
   const stopVersionRetryRef = useRef<() => void>(() => { });
@@ -308,11 +309,35 @@ export function BmsProvider({ children }: { children: ReactNode }) {
         clearTimeout(responseTimerRef.current);
         responseTimerRef.current = null;
       }
-      addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `Write response`, rawHex });
-      const regIndices = registerInstrIndicesRef.current;
-      if (regIndices.length > 0) {
-        pollIdxRef.current = 0;
-        sendInstructionFrame(regIndices[0]!);
+      if (p.data.length < 5 || !verifyCrc(p.data)) {
+        addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `Write response CRC error`, rawHex });
+        const regIndices = registerInstrIndicesRef.current;
+        if (regIndices.length > 0) {
+          pollIdxRef.current = 0;
+          sendInstructionFrame(regIndices[0]!);
+        }
+        return;
+      }
+      const fc = p.data[1]!;
+      if (fc & 0x80) {
+        addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `Write failed: FC=0x${fc.toString(16).toUpperCase()}`, rawHex });
+        const regIndices = registerInstrIndicesRef.current;
+        if (regIndices.length > 0) {
+          pollIdxRef.current = 0;
+          sendInstructionFrame(regIndices[0]!);
+        }
+        return;
+      }
+      addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `Write OK`, rawHex });
+      const writeInstrIdx = writeInstrIdxRef.current;
+      if (writeInstrIdx >= 0) {
+        sendInstructionFrame(writeInstrIdx);
+      } else {
+        const regIndices = registerInstrIndicesRef.current;
+        if (regIndices.length > 0) {
+          pollIdxRef.current = 0;
+          sendInstructionFrame(regIndices[0]!);
+        }
       }
       return;
     }
@@ -448,6 +473,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       }
       waitingResponseRef.current = false;
       isWritingRef.current = true;
+      writeInstrIdxRef.current = fv.parentInstructionIndex;
       sendFrame(frame);
       addLog({ timestamp: Date.now(), direction: 'TX', parsedInfo: `Write field "${fv.name}": ${newValue}`, rawHex: frame.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ') });
       responseTimerRef.current = setTimeout(() => {
