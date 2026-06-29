@@ -73,6 +73,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
   const writeInstrIdxRef = useRef(-1);
   const writeVerifyAddrRef = useRef(-1);
   const writeVerifyQtyRef = useRef(0);
+  const pendingWriteRef = useRef<{ fieldRowIndex: number; newValue: number } | null>(null);
 
   const startVersionRetryRef = useRef<() => void>(() => { });
   const stopVersionRetryRef = useRef<() => void>(() => { });
@@ -90,6 +91,9 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       sendMessageRef.current({ type: 'bms:frame-send', payload: { frame } });
     }
   }, []);
+
+  const executePendingWriteOrPollRef = useRef<() => void>(() => { });
+  const writeFieldRef = useRef<(fieldRowIndex: number, newValue: number) => void>(() => { });
 
   const stopAllTimers = useCallback(() => {
     if (versionRetryRef.current) { clearInterval(versionRetryRef.current); versionRetryRef.current = null; }
@@ -273,6 +277,13 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     }
     waitingResponseRef.current = false;
 
+    if (pendingWriteRef.current) {
+      const pw = pendingWriteRef.current;
+      pendingWriteRef.current = null;
+      writeFieldRef.current(pw.fieldRowIndex, pw.newValue);
+      return;
+    }
+
     if (initPhaseRef.current === 'initial-poll') {
       const allIndices = allInstrIndicesRef.current;
       pollIdxRef.current++;
@@ -280,7 +291,6 @@ export function BmsProvider({ children }: { children: ReactNode }) {
         sendInstructionFrame(allIndices[pollIdxRef.current]!);
       } else {
         flushUpdates();
-
         startPeriodicPoll();
       }
     } else if (initPhaseRef.current === 'periodic') {
@@ -297,7 +307,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
         }, POLL_INTERVAL);
       }
     }
-  }, [sendInstructionFrame, addLog, startPeriodicPoll, flushUpdates]);
+  }, [sendInstructionFrame, startPeriodicPoll, flushUpdates]);
 
 
   const handleRawData = useCallback((payload: unknown) => {
@@ -314,21 +324,13 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       }
       if (p.data.length < 5 || !verifyCrc(p.data)) {
         addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `Write response CRC error`, rawHex });
-        const regIndices = registerInstrIndicesRef.current;
-        if (regIndices.length > 0) {
-          pollIdxRef.current = 0;
-          sendInstructionFrame(regIndices[0]!);
-        }
+        executePendingWriteOrPollRef.current();
         return;
       }
       const fc = p.data[1]!;
       if (fc & 0x80) {
         addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `Write failed: FC=0x${fc.toString(16).toUpperCase()}`, rawHex });
-        const regIndices = registerInstrIndicesRef.current;
-        if (regIndices.length > 0) {
-          pollIdxRef.current = 0;
-          sendInstructionFrame(regIndices[0]!);
-        }
+        executePendingWriteOrPollRef.current();
         return;
       }
       addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `Write OK`, rawHex });
@@ -351,18 +353,10 @@ export function BmsProvider({ children }: { children: ReactNode }) {
           if (!waitingResponseRef.current) return;
           waitingResponseRef.current = false;
           addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: 'Verify read timeout', rawHex: '' });
-          const regIndices = registerInstrIndicesRef.current;
-          if (regIndices.length > 0) {
-            pollIdxRef.current = 0;
-            sendInstructionFrame(regIndices[0]!);
-          }
+          executePendingWriteOrPollRef.current();
         }, RESPONSE_TIMEOUT);
       } else {
-        const regIndices = registerInstrIndicesRef.current;
-        if (regIndices.length > 0) {
-          pollIdxRef.current = 0;
-          sendInstructionFrame(regIndices[0]!);
-        }
+        executePendingWriteOrPollRef.current();
       }
       return;
     }
@@ -492,6 +486,10 @@ export function BmsProvider({ children }: { children: ReactNode }) {
 
 
   const writeField = useCallback((fieldRowIndex: number, newValue: number) => {
+    if (waitingResponseRef.current || isWritingRef.current) {
+      pendingWriteRef.current = { fieldRowIndex, newValue };
+      return;
+    }
     const fv = parsedValuesMapRef.current.get(fieldRowIndex);
     if (!fv) return;
     const protocol = parsedProtocolRef.current;
@@ -504,7 +502,6 @@ export function BmsProvider({ children }: { children: ReactNode }) {
         clearTimeout(responseTimerRef.current);
         responseTimerRef.current = null;
       }
-      waitingResponseRef.current = false;
       isWritingRef.current = true;
       writeInstrIdxRef.current = fv.parentInstructionIndex;
       writeVerifyAddrRef.current = fv.absAddr;
@@ -515,14 +512,12 @@ export function BmsProvider({ children }: { children: ReactNode }) {
         if (!isWritingRef.current) return;
         isWritingRef.current = false;
         addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: 'Write timeout', rawHex: '' });
-        const regIndices = registerInstrIndicesRef.current;
-        if (regIndices.length > 0) {
-          pollIdxRef.current = 0;
-          sendInstructionFrame(regIndices[0]!);
-        }
+        executePendingWriteOrPollRef.current();
       }, RESPONSE_TIMEOUT);
     }
-  }, [sendFrame, addLog, sendInstructionFrame]);
+  }, [sendFrame, addLog]);
+
+  writeFieldRef.current = writeField;
 
   const autoRead = useCallback(() => {
     if (protocolDb && connectionStatus === 'connected') {
@@ -534,6 +529,20 @@ export function BmsProvider({ children }: { children: ReactNode }) {
   const clearLogs = useCallback(() => {
     setLogs([]);
   }, []);
+
+  executePendingWriteOrPollRef.current = () => {
+    if (pendingWriteRef.current) {
+      const pw = pendingWriteRef.current;
+      pendingWriteRef.current = null;
+      writeField(pw.fieldRowIndex, pw.newValue);
+      return;
+    }
+    const regIndices = registerInstrIndicesRef.current;
+    if (regIndices.length > 0) {
+      pollIdxRef.current = 0;
+      sendInstructionFrame(regIndices[0]!);
+    }
+  };
 
   const store = useMemo<BmsStore>(() => ({
     connectionStatus,
