@@ -375,25 +375,25 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     const rawHex = fmtHex(data);
 
     if (isWritingRef.current) {
+      if (data.length < 5 || !verifyCrc(data) || data[1] !== 0x10) {
+        if (isVerifyReadRef.current) {
+          addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `verify-read invalid response (skipped)`, rawHex });
+        }
+        return;
+      }
       isWritingRef.current = false;
       if (responseTimerRef.current) {
         clearTimeout(responseTimerRef.current);
         responseTimerRef.current = null;
       }
-      if (data.length < 5 || !verifyCrc(data)) {
-        addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `write-response CRC error`, rawHex });
-        executePendingWriteOrPollRef.current();
-        return;
-      }
       const fc = data[1]!;
       const addr = (data[0] ?? 0).toString(16).padStart(2, '0');
-      const crcOk = verifyCrc(data) ? 'OK' : 'ERR';
       if (fc & 0x80) {
-        addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `write-response addr=${addr} func=${fc.toString(16).padStart(2, '0')} FAILED crc=${crcOk}`, rawHex });
+        addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `write-response addr=${addr} func=${fc.toString(16).padStart(2, '0')} FAILED`, rawHex });
         executePendingWriteOrPollRef.current();
         return;
       }
-      addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `write-response addr=${addr} func=10 crc=${crcOk}`, rawHex });
+      addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `write-response addr=${addr} func=10 crc=OK`, rawHex });
       const writeInstrIdx = writeInstrIdxRef.current;
       if (writeInstrIdx >= 0) {
         isVerifyReadRef.current = true;
