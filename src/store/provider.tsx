@@ -54,6 +54,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
   const pendingValuesUpdateRef = useRef(false);
   const pendingDmUpdateRef = useRef(false);
 
+
   const sendMessageRef = useRef<((msg: BridgeMessage) => void) | null>(null);
   const versionRef = useRef<string | null>(null);
   const versionRetryRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -100,6 +101,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     setParsedProtocol(null);
     setDataMemeryGroups([]);
     parsedValuesMapRef.current = new Map();
+
     addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: 'Communication error, restarting version query', rawHex: '' });
     sendFrame(appendCrc([0x00, 0x03, 0x00, 0x00, 0x00, 0x01]));
     versionRetryRef.current = setInterval(() => {
@@ -287,7 +289,6 @@ export function BmsProvider({ children }: { children: ReactNode }) {
 
   const handleRawData = useCallback((payload: unknown) => {
     const p = payload as { data: number[] };
-
     if (!p.data || p.data.length === 0) return;
 
     const parsed = parseModbusResponse(p.data);
@@ -338,7 +339,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     }
 
     advancePoll();
-  }, [parsedFields, addLog, stopVersionRetry, loadProtocolDb, advancePoll, resetToVersionQuery, flushUpdates]);
+  }, [parsedFields, addLog, stopVersionRetry, loadProtocolDb, advancePoll, resetToVersionQuery]);
 
   const handleConnectionStatus = useCallback((payload: unknown) => {
     const p = payload as { status: ConnectionStatus };
@@ -389,6 +390,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       setParsedProtocol(null);
       setDataMemeryGroups([]);
       parsedValuesMapRef.current = new Map();
+
     }
     return () => {
       stopAllTimers();
