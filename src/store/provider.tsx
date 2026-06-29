@@ -116,6 +116,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     isVerifyReadRef.current = false;
     pendingWriteRef.current = null;
     rawBufRef.current = [];
+    addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `communication-error, resetting to version query`, rawHex: '' });
     setDeviceVersion(null);
     setProtocolDb(null);
     setParsedFields(new Map());
@@ -175,7 +176,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
 
       }
     } catch (_e) {
-      addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `protocol-db failed: ${_e}`, rawHex: '' });
+      addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `protocol-db failed: version=${version} ${_e}`, rawHex: '' });
     } finally {
       setProtocolLoading(false);
     }
