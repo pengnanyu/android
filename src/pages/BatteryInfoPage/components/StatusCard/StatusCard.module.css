@@ -62,7 +62,7 @@
 }
 
 .groupName {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--color-foreground);
   opacity: 0.7;
@@ -79,16 +79,16 @@
 .flag {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  min-width: 80px;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  min-width: 70px;
 }
 
 .dot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -117,10 +117,11 @@
 
 .flagStatusActive {
   color: oklch(0.4 0.15 145);
-  background: oklch(0.95 0.04 145);
+  background: oklch(0.92 0.06 145);
   font-weight: 600;
 }
 
 .flagStatusInactive {
   color: var(--color-muted-foreground);
+  background: oklch(0.97 0.02 145);
 }

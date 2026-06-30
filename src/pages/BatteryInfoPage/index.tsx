@@ -124,6 +124,18 @@ export function BatteryInfoPage() {
       .map(f => ({ label: isZh ? f.nameZh : f.name, value: f.displayValue, unit: f.unit }));
   }, [infoFields, voltageInstrIdx, temperInstrIdx, isZh]);
 
+  const balanceFlags = useMemo(() => {
+    const balFields = parsedValues.filter(f => /CELL.*BALAN/i.test(f.name));
+    if (balFields.length === 0) return [];
+    const flags: boolean[] = [];
+    for (const bf of balFields) {
+      for (let b = 0; b < 8; b++) {
+        flags.push(((bf.rawValue >> b) & 1) === 1);
+      }
+    }
+    return flags;
+  }, [parsedValues]);
+
   const bmsTime = useMemo(() => {
     const tf = findField(infoFields, 'BMS_Time');
     return tf?.displayValue;
@@ -135,7 +147,7 @@ export function BatteryInfoPage() {
       <DeviceInfoCard bmsId={deviceVersion ?? undefined} extraFields={extraFields} />
       <StatusCard protocolDb={protocolDb} parsedProtocol={parsedProtocol} parsedValues={parsedValues} />
       <VoltageCurrentChart dataPoints={chartDataPoints} voltageValue={graphVoltage?.value} currentValue={graphCurrent?.value} voltageUnit={graphVoltage?.unit} currentUnit={graphCurrent?.unit} />
-      <CellVoltageCard cellVoltages={cellVoltages} voltageMax={voltageMax} voltageMin={voltageMin} />
+      <CellVoltageCard cellVoltages={cellVoltages} voltageMax={voltageMax} voltageMin={voltageMin} balanceFlags={balanceFlags} />
       <TemperatureCard temperatures={temperatures} temperMax={temperMax} temperMin={temperMin} />
     </div>
   );

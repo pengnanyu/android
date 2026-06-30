@@ -115,6 +115,7 @@ export function StatusCard({ protocolDb, parsedProtocol, parsedValues }: StatusC
 
   const grouped = new Map<string, StatusItem[]>();
   for (const item of currentItems) {
+    if (isSafety && !item.active) continue;
     const list = grouped.get(item.name) ?? [];
     list.push(item);
     grouped.set(item.name, list);

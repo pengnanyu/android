@@ -8,6 +8,7 @@ interface CellVoltageCardProps {
   soc?: number;
   voltageMax?: number;
   voltageMin?: number;
+  balanceFlags?: boolean[];
 }
 
 export function CellVoltageCard({
@@ -15,6 +16,7 @@ export function CellVoltageCard({
   soc,
   voltageMax,
   voltageMin,
+  balanceFlags,
 }: CellVoltageCardProps) {
   const titleExtra = (voltageMax !== undefined || voltageMin !== undefined) ? (
     <div className={styles.headerInfo}>
@@ -42,6 +44,7 @@ export function CellVoltageCard({
             index={cell.index}
             voltage={cell.voltage}
             soc={soc}
+            isBalancing={balanceFlags?.[(cell.index - 1)] ?? false}
           />
         )) : (
           <div style={{ color: 'var(--color-muted-foreground)', fontSize: 14, textAlign: 'center', padding: '16px 0', gridColumn: '1 / -1' }}>--</div>
