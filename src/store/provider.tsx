@@ -120,6 +120,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
   const initPhaseRef = useRef<'idle' | 'version' | 'protocol' | 'initial-poll' | 'periodic'>('idle');
   const isWritingRef = useRef(false);
   const startPeriodicPollRef = useRef<() => void>(() => { });
+  const pendingCalendarReadRef = useRef(false);
   const writeInstrIdxRef = useRef(-1);
   const writeFieldNameRef = useRef('');
   const writeVerifyAddrRef = useRef(-1);
@@ -164,6 +165,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     isVerifyReadRef.current = false;
     pendingWriteRef.current = [];
     calendarPollingRef.current = false;
+    pendingCalendarReadRef.current = false;
 
     rawBufRef.current = [];
     addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `communication-error, resetting to version query`, rawHex: '' });
@@ -331,7 +333,12 @@ export function BmsProvider({ children }: { children: ReactNode }) {
   }, [sendCalendarRecordFrame, stopAllTimers]);
 
   const readCalendar = useCallback(() => {
-    startCalendarPoll();
+    if (calendarPollingRef.current) return;
+    if (initPhaseRef.current === 'periodic') {
+      pendingCalendarReadRef.current = true;
+    } else if (initPhaseRef.current === 'idle') {
+      startCalendarPoll();
+    }
   }, [startCalendarPoll]);
 
   const advanceCalendarPoll = useCallback((registers: number[]) => {
@@ -459,6 +466,11 @@ export function BmsProvider({ children }: { children: ReactNode }) {
         sendInstructionFrame(regIndices[pollIdxRef.current]!);
       } else {
         flushUpdates();
+        if (pendingCalendarReadRef.current) {
+          pendingCalendarReadRef.current = false;
+          startCalendarPoll();
+          return;
+        }
         if (pendingWriteRef.current.length > 0) {
           const pw = pendingWriteRef.current.shift()!;
           writeFieldRef.current(pw.fieldRowIndex, pw.newValue);
@@ -467,6 +479,11 @@ export function BmsProvider({ children }: { children: ReactNode }) {
         pollTimerRef.current = setTimeout(() => {
           pollTimerRef.current = null;
           pollIdxRef.current = 0;
+          if (pendingCalendarReadRef.current) {
+            pendingCalendarReadRef.current = false;
+            startCalendarPoll();
+            return;
+          }
           if (pendingWriteRef.current.length > 0) {
             const pw = pendingWriteRef.current.shift()!;
             writeFieldRef.current(pw.fieldRowIndex, pw.newValue);
@@ -807,6 +824,11 @@ export function BmsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   executePendingWriteOrPollRef.current = () => {
+    if (pendingCalendarReadRef.current) {
+      pendingCalendarReadRef.current = false;
+      startCalendarPoll();
+      return;
+    }
     if (pendingWriteRef.current.length > 0) {
       const pw = pendingWriteRef.current.shift()!;
       writeField(pw.fieldRowIndex, pw.newValue);
