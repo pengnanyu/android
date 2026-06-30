@@ -89,7 +89,9 @@ export function ParamConfigPage() {
     const a = document.createElement('a');
     a.href = url;
     a.download = `bms-config-${deviceVersion ?? 'unknown'}-${Date.now()}.json`;
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
   }, [dataMemeryGroups, deviceVersion]);
 
