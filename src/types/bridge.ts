@@ -9,7 +9,8 @@ export type AppToIframeMessageType =
 
 export type IframeToAppMessageType =
   | 'bms:frame-send'
-  | 'bms:request-status';
+  | 'bms:request-status'
+  | 'bms:download-file';
 
 export type BridgeMessageType = AppToIframeMessageType | IframeToAppMessageType;
 
@@ -46,3 +47,9 @@ export interface FrameSendAckPayload {
 }
 
 export interface RequestStatusPayload { }
+
+export interface DownloadFilePayload {
+  filename: string;
+  content: string;
+  mimeType: string;
+}

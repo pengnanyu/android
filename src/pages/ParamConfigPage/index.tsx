@@ -84,15 +84,24 @@ export function ParamConfigPage() {
         })),
       })),
     };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `bms-config-${deviceVersion ?? 'unknown'}-${Date.now()}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const json = JSON.stringify(data, null, 2);
+    const filename = `bms-config-${deviceVersion ?? 'unknown'}-${Date.now()}.json`;
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({
+        type: 'bms:download-file',
+        payload: { filename, content: json, mimeType: 'application/json' },
+      }, '*');
+    } else {
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
   }, [dataMemeryGroups, deviceVersion]);
 
   const handleImport = useCallback(() => {

@@ -39,6 +39,7 @@ export type {
   FrameSendPayload,
   FrameSendAckPayload,
   RequestStatusPayload,
+  DownloadFilePayload,
 } from './bridge';
 
 export type {
