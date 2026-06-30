@@ -299,7 +299,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     const groups = calendarGroupsRef.current;
     if (groupIdx >= groups.length) return;
     const group = groups[groupIdx]!;
-    const startAddr = group.startAddr + recordIdx * group.recordLen;
+    const startAddr = group.startAddr + recordIdx * group.recordOffset;
     const frame = appendCrc([
       0x00,
       group.funcCode,
@@ -600,6 +600,21 @@ export function BmsProvider({ children }: { children: ReactNode }) {
         clearTimeout(responseTimerRef.current);
         responseTimerRef.current = null;
       }
+      const gIdx = calendarPollGroupIdxRef.current;
+      const rIdx = calendarPollRecordIdxRef.current;
+      const groups = calendarGroupsRef.current;
+      const gName = gIdx < groups.length ? groups[gIdx]!.configNameEn : '?';
+      const dataHex = parsed.registers.map(r => {
+        const hi = (r >> 8) & 0xFF;
+        const lo = r & 0xFF;
+        return hi.toString(16).padStart(2, '0') + ' ' + lo.toString(16).padStart(2, '0');
+      }).join(' ');
+      addLog({
+        timestamp: Date.now(),
+        direction: 'RX',
+        parsedInfo: `calendar-response group="${gName}" record=${rIdx + 1} data=[${dataHex}]`,
+        rawHex,
+      });
       advanceCalendarPoll(parsed.registers);
       return;
     }
