@@ -75,7 +75,7 @@ export function ParamConfigPage() {
           value: f.value,
           displayValue: f.displayValue,
           unit: f.unit,
-          absAddr: f.absAddr,
+          absAddr: '0x' + f.absAddr.toString(16).toUpperCase(),
           byteLen: f.byteLen,
           byteOffset: f.byteOffset,
           operation: f.operation,
@@ -127,7 +127,8 @@ export function ParamConfigPage() {
           const pending = new Map<number, number>();
           for (const group of data.params) {
             for (const f of group.fields) {
-              const fv = parsedValues.find(v => v.name === f.name && v.absAddr === f.absAddr);
+              const importAddr = typeof f.absAddr === 'string' ? parseInt(f.absAddr, 16) : f.absAddr;
+              const fv = parsedValues.find(v => v.name === f.name && v.absAddr === importAddr);
               if (fv && fv.rwType !== 'R' && fv.rwType !== 'r' && fv.rwType !== 'RO') {
                 if (Math.abs(fv.value - f.value) >= 1e-9) {
                   pending.set(fv.rowIndex, f.value);
