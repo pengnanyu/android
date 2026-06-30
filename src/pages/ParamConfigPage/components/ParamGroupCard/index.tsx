@@ -16,9 +16,16 @@ export function ParamGroupCard({ groupName, params, onValueChange, onBlur, onBac
 
   return (
     <div className={styles.group}>
-      <div className={styles.groupHeader}>
+      <div
+        className={`${styles.groupHeader} ${onBack ? styles.groupHeaderClickable : ''}`}
+        onClick={onBack}
+      >
         {onBack && (
-          <button className={styles.backBtn} onClick={onBack} aria-label="返回">
+          <button
+            className={styles.backBtn}
+            onClick={(e) => { e.stopPropagation(); onBack(); }}
+            aria-label="返回"
+          >
             ‹
           </button>
         )}

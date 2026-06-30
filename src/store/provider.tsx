@@ -302,7 +302,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     if (isVerifyReadRef.current) {
       isVerifyReadRef.current = false;
       addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `write OK`, rawHex: '' });
-      showToast(`${writeFieldNameRef.current} write OK`, 'success');
+      showToast(i18n.language === 'zh' ? `${writeFieldNameRef.current} 写入成功` : `${writeFieldNameRef.current} write OK`, 'success');
       flushUpdates();
       executePendingWriteOrPollRef.current();
       return;
@@ -414,7 +414,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       const addr = (data[0] ?? 0).toString(16).padStart(2, '0');
       if (fc & 0x80) {
         addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `write-response addr=${addr} func=${fc.toString(16).padStart(2, '0')} FAILED`, rawHex });
-        showToast(`${writeFieldNameRef.current} write failed`, 'error');
+        showToast(i18n.language === 'zh' ? `${writeFieldNameRef.current} 写入失败` : `${writeFieldNameRef.current} write failed`, 'error');
         executePendingWriteOrPollRef.current();
         return;
       }
@@ -637,7 +637,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
         if (!isWritingRef.current) return;
         isWritingRef.current = false;
         addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: 'write-response timeout', rawHex: '' });
-        showToast(`${writeFieldNameRef.current} write timeout`, 'error');
+        showToast(i18n.language === 'zh' ? `${writeFieldNameRef.current} 写入超时` : `${writeFieldNameRef.current} write timeout`, 'error');
         executePendingWriteOrPollRef.current();
       }, RESPONSE_TIMEOUT);
     }

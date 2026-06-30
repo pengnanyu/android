@@ -8,6 +8,12 @@
   font-size: 13px;
 }
 
+.rowPending {
+  background: oklch(0.95 0.06 80 / 0.5);
+  border-left: 3px solid var(--color-primary);
+  padding-left: 5px;
+}
+
 .name {
   color: var(--color-foreground);
   overflow: hidden;

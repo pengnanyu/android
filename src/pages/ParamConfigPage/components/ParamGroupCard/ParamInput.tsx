@@ -6,6 +6,7 @@ interface ParamInputProps {
   param: ParamItem;
   onValueChange: (key: string, newValue: string | number) => void;
   onBlur: (key: string) => void;
+  hasPendingDiff?: boolean;
 }
 
 const INTEGER_TYPES = new Set([
@@ -74,18 +75,25 @@ function sanitize(raw: string, dt: string): string {
   return raw;
 }
 
-export function ParamInput({ param, onValueChange, onBlur }: ParamInputProps) {
+export function ParamInput({ param, onValueChange, onBlur, hasPendingDiff }: ParamInputProps) {
   const dt = param.dataType ?? '';
-  const [localValue, setLocalValue] = useState(() => param.displayValue ?? String(param.value));
+  const [localValue, setLocalValue] = useState(() => {
+    if (param.pendingImportValue !== undefined) return String(param.pendingImportValue);
+    return param.displayValue ?? String(param.value);
+  });
   const inputRef = useRef<HTMLInputElement>(null);
   const paramKeyRef = useRef(param.key);
   paramKeyRef.current = param.key;
 
   useEffect(() => {
     if (inputRef.current !== document.activeElement) {
-      setLocalValue(param.displayValue ?? String(param.value));
+      if (param.pendingImportValue !== undefined) {
+        setLocalValue(String(param.pendingImportValue));
+      } else {
+        setLocalValue(param.displayValue ?? String(param.value));
+      }
     }
-  }, [param.displayValue, param.value]);
+  }, [param.displayValue, param.value, param.pendingImportValue]);
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setLocalValue(sanitize(e.target.value, dt));
@@ -149,7 +157,7 @@ export function ParamInput({ param, onValueChange, onBlur }: ParamInputProps) {
       ref={inputRef}
       type="text"
       inputMode={inputMode}
-      className={styles.input}
+      className={`${styles.input} ${hasPendingDiff ? styles.inputPending : ''}`}
       value={localValue}
       onChange={handleChange}
       onBlur={handleBlurInner}

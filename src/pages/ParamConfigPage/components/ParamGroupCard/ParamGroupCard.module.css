@@ -23,6 +23,15 @@
   flex-shrink: 0;
 }
 
+.groupHeaderClickable {
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.groupHeaderClickable:active {
+  opacity: 0.7;
+}
+
 .backBtn {
   display: flex;
   align-items: center;

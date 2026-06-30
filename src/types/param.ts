@@ -17,4 +17,5 @@ export interface ParamItem {
   readonly?: boolean;
   description?: string;
   dataType?: string;
+  pendingImportValue?: number;
 }

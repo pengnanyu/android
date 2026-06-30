@@ -20,13 +20,16 @@ function useIsNarrow(breakpoint: number): boolean {
 }
 
 export function ParamConfigPage() {
-  const { dataMemeryGroups, parsedValues, toasts, writeField } = useBmsStore();
-  const { i18n } = useTranslation();
+  const { dataMemeryGroups, parsedValues, deviceVersion, toasts, writeField } = useBmsStore();
+  const { i18n, t } = useTranslation();
   const isZh = i18n.language === 'zh';
   const isNarrow = useIsNarrow(NARROW_BREAKPOINT);
 
   const [activeGroupIdx, setActiveGroupIdx] = useState(0);
   const [mobileView, setMobileView] = useState<'nav' | 'detail'>('nav');
+  const [pendingImport, setPendingImport] = useState<Map<number, number>>(new Map());
+
+  const hasPendingImport = pendingImport.size > 0;
 
   const paramGroups = useMemo(() => {
     return dataMemeryGroups.map(group => {
@@ -40,11 +43,11 @@ export function ParamConfigPage() {
         group: groupName,
         dataType: field.dataType,
         readonly: field.rwType === 'R' || field.rwType === 'r' || field.rwType === 'RO',
+        pendingImportValue: pendingImport.get(field.rowIndex),
       }));
       return { groupName, params };
     });
-  }, [dataMemeryGroups, isZh]);
-
+  }, [dataMemeryGroups, isZh, pendingImport]);
 
   const handleValueChange = useCallback((key: string, newValue: string | number) => {
     const rowIndex = parseInt(key, 10);
@@ -57,6 +60,92 @@ export function ParamConfigPage() {
   }, [writeField, parsedValues]);
 
   const handleBlur = useCallback((_key: string) => { }, []);
+
+  const handleExport = useCallback(() => {
+    const data = {
+      version: deviceVersion ?? '',
+      exportedAt: new Date().toISOString(),
+      params: dataMemeryGroups.map(g => ({
+        group: g.configNameEn,
+        groupZh: g.configNameZh,
+        fields: g.fields.map(f => ({
+          name: f.name,
+          nameZh: f.nameZh,
+          value: f.value,
+          displayValue: f.displayValue,
+          unit: f.unit,
+          absAddr: f.absAddr,
+          byteLen: f.byteLen,
+          byteOffset: f.byteOffset,
+          operation: f.operation,
+          ratio: f.ratio,
+          dataType: f.dataType,
+          rwType: f.rwType,
+        })),
+      })),
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `bms-config-${deviceVersion ?? 'unknown'}-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [dataMemeryGroups, deviceVersion]);
+
+  const handleImport = useCallback(() => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = () => {
+      const file = input.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(reader.result as string);
+          if (!data.version || !data.params) {
+            alert(isZh ? '无效的配置文件格式' : 'Invalid config file format');
+            return;
+          }
+          if (data.version !== deviceVersion) {
+            alert(isZh ? `版本不匹配: 文件=${data.version}, 当前=${deviceVersion}` : `Version mismatch: file=${data.version}, current=${deviceVersion}`);
+            return;
+          }
+          const pending = new Map<number, number>();
+          for (const group of data.params) {
+            for (const f of group.fields) {
+              const fv = parsedValues.find(v => v.name === f.name && v.absAddr === f.absAddr);
+              if (fv && fv.rwType !== 'R' && fv.rwType !== 'r' && fv.rwType !== 'RO') {
+                if (Math.abs(fv.value - f.value) >= 1e-9) {
+                  pending.set(fv.rowIndex, f.value);
+                }
+              }
+            }
+          }
+          setPendingImport(pending);
+          if (pending.size === 0) {
+            alert(isZh ? '没有需要写入的差异参数' : 'No differences to write');
+          }
+        } catch {
+          alert(isZh ? '解析文件失败' : 'Failed to parse file');
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  }, [deviceVersion, isZh, parsedValues]);
+
+  const handleConfirmImport = useCallback(() => {
+    pendingImport.forEach((value, rowIndex) => {
+      writeField(rowIndex, value);
+    });
+    setPendingImport(new Map());
+  }, [pendingImport, writeField]);
+
+  const handleCancelImport = useCallback(() => {
+    setPendingImport(new Map());
+  }, []);
 
   const currentGroup = paramGroups[activeGroupIdx] ?? null;
 
@@ -116,9 +205,12 @@ export function ParamConfigPage() {
         onTouchEnd={handleTouchEnd}
       >
         <ParamToolbar
-          onImport={() => { }}
-          onExport={() => { }}
+          onImport={handleImport}
+          onExport={handleExport}
           onPreset={(_id: string) => { }}
+          hasPendingImport={hasPendingImport}
+          onConfirmImport={handleConfirmImport}
+          onCancelImport={handleCancelImport}
         />
         <div className={styles.body}>
           {showNav && (

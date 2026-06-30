@@ -42,7 +42,10 @@
     "name": "名称",
     "confirmWrite": "确认批量写入？",
     "importFailed": "导入失败，文件格式不正确",
-    "writeVerifyFailed": "写入验证失败"
+    "writeVerifyFailed": "写入验证失败",
+    "pendingImportHint": "已导入配置，请确认差异后写入",
+    "confirmImport": "确认写入",
+    "cancelImport": "取消"
   },
   "fault": {
     "title": "异常记录",

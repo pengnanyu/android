@@ -1,24 +1,36 @@
-import { useCallback } from 'react';
-import { useLocation, useNavigate } from 'react-router';
-import { AppRouter, AppRoutes } from './routes';
-import { Providers } from './providers';
+import { useCallback, useState } from 'react';
 import { Nav } from '@/components/shared/Nav';
+import { BatteryInfoPage } from '@/pages/BatteryInfoPage';
+import { ParamConfigPage } from '@/pages/ParamConfigPage';
+import { FaultRecordPage } from '@/pages/FaultRecordPage';
+import { ExtendedCommandPage } from '@/pages/ExtendedCommandPage';
+import { Providers } from './providers';
+
+const pages = [
+  { path: '/battery', element: BatteryInfoPage },
+  { path: '/params', element: ParamConfigPage },
+  { path: '/faults', element: FaultRecordPage },
+  { path: '/commands', element: ExtendedCommandPage },
+];
 
 function AppContent() {
-  const location = useLocation();
-  const navigate = useNavigate();
+  const [activePath, setActivePath] = useState('/battery');
 
   const handleNavigate = useCallback((path: string) => {
-    navigate(path);
-  }, [navigate]);
+    setActivePath(path);
+  }, []);
 
   return (
     <>
       <main style={{ display: 'flex', flexDirection: 'column', height: '100vh', paddingBottom: '72px', overflow: 'hidden', minHeight: 0 }}>
-        <AppRoutes />
+        {pages.map(({ path, element: Page }) => (
+          <div key={path} style={{ display: path === activePath ? 'contents' : 'none', flex: 1, minHeight: 0 }}>
+            <Page />
+          </div>
+        ))}
       </main>
       <Nav
-        activeRoute={location.pathname}
+        activeRoute={activePath}
         onNavigate={handleNavigate}
       />
     </>
@@ -28,9 +40,7 @@ function AppContent() {
 export function App() {
   return (
     <Providers>
-      <AppRouter>
-        <AppContent />
-      </AppRouter>
+      <AppContent />
     </Providers>
   );
 }

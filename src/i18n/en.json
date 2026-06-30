@@ -42,7 +42,10 @@
     "name": "Name",
     "confirmWrite": "Confirm batch write?",
     "importFailed": "Import failed: invalid file format",
-    "writeVerifyFailed": "Write verification failed"
+    "writeVerifyFailed": "Write verification failed",
+    "pendingImportHint": "Config imported, review differences then confirm",
+    "confirmImport": "Confirm Write",
+    "cancelImport": "Cancel"
   },
   "fault": {
     "title": "Fault Records",
