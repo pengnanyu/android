@@ -45,7 +45,8 @@ export function ParamConfigPage() {
         readonly: field.rwType === 'R' || field.rwType === 'r' || field.rwType === 'RO',
         pendingImportValue: pendingImport.get(field.rowIndex),
       }));
-      return { groupName, params };
+      const hasPendingDiff = group.fields.some(f => pendingImport.has(f.rowIndex));
+      return { groupName, params, hasPendingDiff };
     });
   }, [dataMemeryGroups, isZh, pendingImport]);
 
@@ -229,10 +230,11 @@ export function ParamConfigPage() {
               {paramGroups.map((group, idx) => (
                 <button
                   key={group.groupName}
-                  className={`${styles.navItem} ${idx === activeGroupIdx ? styles.navItemActive : ''}`}
+                  className={`${styles.navItem} ${idx === activeGroupIdx ? styles.navItemActive : ''} ${group.hasPendingDiff ? styles.navItemPending : ''}`}
                   onClick={() => handleNavClick(idx)}
                 >
                   {group.groupName}
+                  {group.hasPendingDiff && <span className={styles.navBadge} />}
                 </button>
               ))}
             </nav>

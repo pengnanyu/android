@@ -75,7 +75,9 @@
 }
 
 .navItem {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   width: 100%;
   padding: 10px 16px;
   border: none;
@@ -88,6 +90,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  position: relative;
 }
 
 .navItem:hover {
@@ -103,6 +106,23 @@
 .navItemActive:hover {
   background: var(--color-primary);
   opacity: 0.9;
+}
+
+.navItemPending {
+  border-left: 3px solid var(--color-primary);
+  padding-left: 13px;
+}
+
+.navBadge {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.navItemActive .navBadge {
+  background: var(--color-primary-foreground);
 }
 
 .content {
