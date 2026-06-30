@@ -1,7 +1,7 @@
-import { useCallback } from 'react';
+import { useCallback, useRef, useLayoutEffect, useState } from 'react';
 import { useBmsStore } from '@/store/context';
 import { useTranslation } from 'react-i18next';
-import type { CalendarRecord } from '@/utils/modbus';
+import type { CalendarRecord, CalendarGroup } from '@/utils/modbus';
 import styles from './FaultRecordPage.module.css';
 
 export function FaultRecordPage() {
@@ -71,105 +71,120 @@ export function FaultRecordPage() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.toolbar}>
-        <button className={styles.btn} onClick={readCalendar}>
-          {t('fault.readRecords')}
-        </button>
-        <button
-          className={styles.btn}
-          onClick={handleExport}
-          disabled={nonEmptyRecords.length === 0}
-        >
-          {t('fault.exportRecords')}
-        </button>
-      </div>
-      {nonEmptyRecords.length === 0 ? (
-        <div className={styles.empty}>{t('fault.emptyState')}</div>
-      ) : (
-        calendarGroups.map((group, gIdx) => {
-          const groupRecords = nonEmptyRecords.filter(r => r.groupIdx === gIdx);
-          if (groupRecords.length === 0) return null;
-          const groupName = isZh ? group.configNameZh : group.configNameEn;
-          const freezeIdx = group.fields.findIndex(f => f.dataType === 'Time');
-          return (
-            <div key={gIdx} className={styles.group}>
-              <div className={styles.groupHeader}>{groupName}</div>
-              <div className={styles.tableWrap}>
-                <table className={styles.table}>
-                  <colgroup>
-                    {group.fields.map((f, fi) => (
-                      <col key={fi} style={f.dataType === 'Time' ? { width: '120px' } : undefined} />
-                    ))}
-                  </colgroup>
-                  <thead>
-                    <tr>
-                      {group.fields.map((f, fi) => {
-                        const isSticky = freezeIdx >= 0 && fi <= freezeIdx;
-                        const isLastSticky = freezeIdx >= 0 && fi === freezeIdx;
-                        let left = 0;
-                        if (isSticky && fi > 0) {
-                          for (let k = 0; k < fi; k++) {
-                            left += group.fields[k]!.dataType === 'Time' ? 120 : 80;
-                          }
-                        }
-                        return (
-                          <th
-                            key={fi}
-                            className={`${styles.th} ${isSticky ? styles.thSticky : ''} ${isLastSticky ? styles.thStickyLast : ''}`}
-                            style={isSticky ? { left } : undefined}
-                          >
-                            {isZh ? f.nameZh : f.name}{f.unit ? `(${f.unit})` : ''}
-                          </th>
-                        );
-                      })}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {groupRecords.map((rec) => (
-                      <FaultRow key={`${gIdx}-${rec.recordIdx}`} record={rec} freezeIdx={freezeIdx} fields={group.fields} />
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          );
-        })
-      )}
+      {calendarGroups.map((group, gIdx) => {
+        const groupRecords = nonEmptyRecords.filter(r => r.groupIdx === gIdx);
+        const groupName = isZh ? group.configNameZh : group.configNameEn;
+        return (
+          <FaultGroupCard
+            key={gIdx}
+            groupName={groupName}
+            group={group}
+            groupRecords={groupRecords}
+            isZh={isZh}
+            onRead={readCalendar}
+            onExport={handleExport}
+            canExport={nonEmptyRecords.length > 0}
+            hasData={nonEmptyRecords.length > 0}
+          />
+        );
+      })}
     </div>
   );
 }
 
-function FaultRow({ record, freezeIdx, fields }: { record: CalendarRecord; freezeIdx: number; fields: { dataType: string }[] }) {
+function FaultGroupCard({ groupName, group, groupRecords, isZh, onRead, onExport, canExport, hasData }: {
+  groupName: string;
+  group: CalendarGroup;
+  groupRecords: CalendarRecord[];
+  isZh: boolean;
+  onRead: () => void;
+  onExport: () => void;
+  canExport: boolean;
+  hasData: boolean;
+}) {
+  const { t } = useTranslation();
+  const tableRef = useRef<HTMLTableElement>(null);
+  const [colWidths, setColWidths] = useState<number[]>([]);
+  const freezeIdx = group.fields.findIndex(f => f.dataType === 'Time');
+
+  useLayoutEffect(() => {
+    if (!tableRef.current) return;
+    const ths = tableRef.current.querySelectorAll('thead th');
+    const widths: number[] = [];
+    ths.forEach(th => widths.push((th as HTMLElement).offsetWidth));
+    setColWidths(widths);
+  }, [group.fields, groupRecords]);
+
+  const getLeft = (fi: number): number => {
+    let left = 0;
+    for (let k = 0; k < fi; k++) {
+      left += colWidths[k] ?? 0;
+    }
+    return left;
+  };
+
   return (
-    <tr className={styles.tr}>
-      {record.values.map((v, vi) => {
-        const isSticky = freezeIdx >= 0 && vi <= freezeIdx;
-        const isLastSticky = freezeIdx >= 0 && vi === freezeIdx;
-        const isTime = v.dataType === 'Time';
-        let left = 0;
-        if (isSticky && vi > 0) {
-          for (let k = 0; k < vi; k++) {
-            left += fields[k]!.dataType === 'Time' ? 120 : 80;
-          }
-        }
-        return (
-          <td
-            key={vi}
-            className={`${styles.td} ${isSticky ? styles.tdSticky : ''} ${isLastSticky ? styles.tdStickyLast : ''} ${isTime ? styles.tdTime : ''}`}
-            style={isSticky ? { left } : undefined}
-          >
-            {v.bitTag && v.bitLabels ? (
-              <div className={styles.bitWrap}>
-                {v.bitLabels.map((bl) => (
-                  <span key={bl} className={styles.bitTag}>{bl}</span>
-                ))}
-              </div>
-            ) : (
-              <span>{v.displayValue}</span>
-            )}
-          </td>
-        );
-      })}
-    </tr>
+    <div className={styles.group}>
+      <div className={styles.groupHeader}>
+        <span>{groupName}</span>
+        <div className={styles.groupActions}>
+          <button className={styles.headerBtn} onClick={onRead}>{t('fault.readRecords')}</button>
+          <button className={styles.headerBtn} onClick={onExport} disabled={!canExport}>{t('fault.exportRecords')}</button>
+        </div>
+      </div>
+      {!hasData ? (
+        <div className={styles.empty}>{t('fault.emptyState')}</div>
+      ) : (
+        <div className={styles.tableWrap}>
+          <table className={styles.table} ref={tableRef}>
+            <thead>
+              <tr>
+                {group.fields.map((f, fi) => {
+                  const isSticky = freezeIdx >= 0 && fi <= freezeIdx;
+                  const isLastSticky = freezeIdx >= 0 && fi === freezeIdx;
+                  return (
+                    <th
+                      key={fi}
+                      className={`${styles.th} ${isSticky ? styles.thSticky : ''} ${isLastSticky ? styles.thStickyLast : ''}`}
+                      style={isSticky ? { left: getLeft(fi) } : undefined}
+                    >
+                      {isZh ? f.nameZh : f.name}{f.unit ? `(${f.unit})` : ''}
+                    </th>
+                  );
+                })}
+              </tr>
+            </thead>
+            <tbody>
+              {groupRecords.map((rec) => (
+                <tr key={rec.recordIdx} className={styles.tr}>
+                  {rec.values.map((v, vi) => {
+                    const isSticky = freezeIdx >= 0 && vi <= freezeIdx;
+                    const isLastSticky = freezeIdx >= 0 && vi === freezeIdx;
+                    const isTime = v.dataType === 'Time';
+                    return (
+                      <td
+                        key={vi}
+                        className={`${styles.td} ${isSticky ? styles.tdSticky : ''} ${isLastSticky ? styles.tdStickyLast : ''} ${isTime ? styles.tdTime : ''}`}
+                        style={isSticky ? { left: getLeft(vi) } : undefined}
+                      >
+                        {v.bitTag && v.bitLabels ? (
+                          <div className={styles.bitWrap}>
+                            {v.bitLabels.map((bl) => (
+                              <span key={bl} className={styles.bitTag}>{bl}</span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span>{v.displayValue}</span>
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
   );
 }
