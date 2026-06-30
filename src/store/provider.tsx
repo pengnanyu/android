@@ -119,6 +119,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
   const currentSentInstrIdxRef = useRef(-1);
   const initPhaseRef = useRef<'idle' | 'version' | 'protocol' | 'initial-poll' | 'periodic'>('idle');
   const isWritingRef = useRef(false);
+  const startPeriodicPollRef = useRef<() => void>(() => { });
   const writeInstrIdxRef = useRef(-1);
   const writeFieldNameRef = useRef('');
   const writeVerifyAddrRef = useRef(-1);
@@ -339,7 +340,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     const rIdx = calendarPollRecordIdxRef.current;
     if (gIdx >= groups.length) {
       calendarPollingRef.current = false;
-      startPeriodicPoll();
+      startPeriodicPollRef.current();
       return;
     }
 
@@ -356,7 +357,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
         sendCalendarRecordFrame(gIdx + 1, 0);
       } else {
         calendarPollingRef.current = false;
-        startPeriodicPoll();
+        startPeriodicPollRef.current();
       }
       return;
     }
@@ -370,9 +371,9 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       sendCalendarRecordFrame(gIdx + 1, 0);
     } else {
       calendarPollingRef.current = false;
-      startPeriodicPoll();
+      startPeriodicPollRef.current();
     }
-  }, [sendCalendarRecordFrame, startPeriodicPoll]);
+  }, [sendCalendarRecordFrame]);
 
   const startPeriodicPoll = useCallback(() => {
     initPhaseRef.current = 'periodic';
@@ -382,6 +383,8 @@ export function BmsProvider({ children }: { children: ReactNode }) {
 
     sendInstructionFrame(regIndices[0]!);
   }, [sendInstructionFrame, addLog]);
+
+  startPeriodicPollRef.current = startPeriodicPoll;
 
   const flushUpdates = useCallback(() => {
     if (pendingFieldsUpdateRef.current) {
