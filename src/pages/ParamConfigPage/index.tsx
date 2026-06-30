@@ -21,7 +21,7 @@ function useIsNarrow(breakpoint: number): boolean {
 
 export function ParamConfigPage() {
   const { dataMemeryGroups, parsedValues, deviceVersion, toasts, writeField } = useBmsStore();
-  const { i18n, t } = useTranslation();
+  const { i18n } = useTranslation();
   const isZh = i18n.language === 'zh';
   const isNarrow = useIsNarrow(NARROW_BREAKPOINT);
 
