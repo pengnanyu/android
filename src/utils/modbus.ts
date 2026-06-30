@@ -481,6 +481,19 @@ export interface FieldValue {
   operation: string;
   ratio: number;
   parentInstructionIndex: number;
+  bitTag: boolean;
+  bitDesc: string;
+  bitLabels?: string[];
+}
+
+function parseBitLabels(bitDesc: string, byteLen: number): string[] {
+  const parts = bitDesc.split('|');
+  const maxBits = byteLen === 1 ? 8 : 16;
+  const labels: string[] = [];
+  for (let b = 0; b < maxBits; b++) {
+    labels.push(parts[b]?.trim() || `B${b}`);
+  }
+  return labels;
 }
 
 function applyOperation(rawValue: number, operation: string, ratio: number): number {
@@ -750,6 +763,9 @@ export function parseDataFields(
       operation: field.operation,
       ratio: field.ratio,
       parentInstructionIndex: field.parentInstructionIndex,
+      bitTag: field.bitTag,
+      bitDesc: field.bitDesc,
+      bitLabels: field.bitTag ? parseBitLabels(field.bitDesc, field.byteLen) : undefined,
     });
   }
 

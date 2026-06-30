@@ -344,6 +344,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
         addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `calendar-read timeout, max retries`, rawHex: '' });
         calendarPollingRef.current = false;
         pendingCalendarReadRef.current = false;
+        showToast(i18n.language === 'zh' ? '读取失败' : 'Read failed', 'error');
         startPeriodicPollRef.current();
       }
     }, RESPONSE_TIMEOUT);
@@ -378,6 +379,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     const rIdx = calendarPollRecordIdxRef.current;
     if (gIdx >= groups.length) {
       calendarPollingRef.current = false;
+      showToast(i18n.language === 'zh' ? '读取完成' : 'Read complete', 'success');
       startPeriodicPollRef.current();
       return;
     }
@@ -395,6 +397,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
         sendCalendarRecordFrame(gIdx + 1, 0);
       } else {
         calendarPollingRef.current = false;
+        showToast(i18n.language === 'zh' ? '读取完成' : 'Read complete', 'success');
         startPeriodicPollRef.current();
       }
       return;
@@ -409,6 +412,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       sendCalendarRecordFrame(gIdx + 1, 0);
     } else {
       calendarPollingRef.current = false;
+      showToast(i18n.language === 'zh' ? '读取完成' : 'Read complete', 'success');
       startPeriodicPollRef.current();
     }
   }, [sendCalendarRecordFrame]);

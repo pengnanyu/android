@@ -28,3 +28,13 @@
   color: var(--color-muted-foreground);
   margin-left: 2px;
 }
+
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-muted-foreground);
+  font-size: 14px;
+  padding: 16px 0;
+  grid-column: 1 / -1;
+}

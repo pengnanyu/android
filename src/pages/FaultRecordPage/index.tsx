@@ -66,7 +66,20 @@ export function FaultRecordPage() {
   }, [calendarGroups, nonEmptyRecords, isZh]);
 
   if (calendarGroups.length === 0) {
-    return <div className={styles.empty}>{t('fault.emptyState')}</div>;
+    return (
+      <div className={styles.container}>
+        <div className={styles.group}>
+          <div className={styles.groupHeader}>
+            <span>{t('fault.title')}</span>
+            <div className={styles.groupActions}>
+              <button className={styles.headerBtn} onClick={readCalendar}>{t('fault.readRecords')}</button>
+              <button className={styles.headerBtn} disabled>{t('fault.exportRecords')}</button>
+            </div>
+          </div>
+          <div className={styles.empty}>{t('fault.noFaults')}</div>
+        </div>
+      </div>
+    );
   }
 
   return (

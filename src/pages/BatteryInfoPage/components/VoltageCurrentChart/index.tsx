@@ -2,16 +2,14 @@ import { useRef, useEffect } from 'react';
 import * as echarts from 'echarts';
 import type { VoltageCurrentDataPoint } from '@/types';
 import { CardShell } from '@/components/shared/CardShell';
-import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { useChartOption } from './useChartOption';
 import styles from './VoltageCurrentChart.module.css';
 
 interface VoltageCurrentChartProps {
   dataPoints: VoltageCurrentDataPoint[];
-  loading?: boolean;
 }
 
-export function VoltageCurrentChart({ dataPoints, loading }: VoltageCurrentChartProps) {
+export function VoltageCurrentChart({ dataPoints }: VoltageCurrentChartProps) {
   const chartRef = useRef<HTMLDivElement>(null);
   const instanceRef = useRef<echarts.ECharts | null>(null);
   const option = useChartOption(dataPoints);
@@ -33,8 +31,6 @@ export function VoltageCurrentChart({ dataPoints, loading }: VoltageCurrentChart
       instanceRef.current = null;
     };
   }, []);
-
-  if (loading) return <LoadingSkeleton variant="chart" />;
 
   return (
     <CardShell title="电压电流曲线">

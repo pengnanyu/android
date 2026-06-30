@@ -1,24 +1,20 @@
 import type { DeviceInfoField } from '@/types';
 import { CardShell } from '@/components/shared/CardShell';
-import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import styles from './DeviceInfoCard.module.css';
 
 interface DeviceInfoCardProps {
   bmsId?: string;
   extraFields: DeviceInfoField[];
-  loading?: boolean;
 }
 
-export function DeviceInfoCard({ bmsId, extraFields, loading }: DeviceInfoCardProps) {
-  if (loading) return <LoadingSkeleton variant="card" />;
-
+export function DeviceInfoCard({ bmsId, extraFields }: DeviceInfoCardProps) {
   return (
     <CardShell
       title="设备信息"
       titleExtra={bmsId ? <span>{bmsId}</span> : undefined}
     >
       <div className={styles.fieldList}>
-        {extraFields.map((field, i) => (
+        {extraFields.length > 0 ? extraFields.map((field, i) => (
           <div key={i} className={styles.field}>
             <span className={styles.fieldLabel}>{field.label}</span>
             <span>
@@ -26,7 +22,9 @@ export function DeviceInfoCard({ bmsId, extraFields, loading }: DeviceInfoCardPr
               {field.unit && <span className={styles.fieldUnit}>{field.unit}</span>}
             </span>
           </div>
-        ))}
+        )) : (
+          <div className={styles.empty}>--</div>
+        )}
       </div>
     </CardShell>
   );

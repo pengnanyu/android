@@ -1,6 +1,5 @@
-import type { CellVoltage, StatusFlag } from '@/types';
+import type { CellVoltage } from '@/types';
 import { CardShell } from '@/components/shared/CardShell';
-import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { CellIcon } from './CellIcon';
 import styles from './CellVoltageCard.module.css';
 
@@ -9,8 +8,6 @@ interface CellVoltageCardProps {
   soc?: number;
   voltageMax?: number;
   voltageMin?: number;
-  cellBalanceFlags: StatusFlag[];
-  loading?: boolean;
 }
 
 export function CellVoltageCard({
@@ -18,17 +15,7 @@ export function CellVoltageCard({
   soc,
   voltageMax,
   voltageMin,
-  cellBalanceFlags,
-  loading,
 }: CellVoltageCardProps) {
-  if (loading) return <LoadingSkeleton variant="card" />;
-
-  const balanceSet = new Set(
-    cellBalanceFlags
-      .filter((f) => f.active)
-      .map((f) => f.label)
-  );
-
   return (
     <CardShell title="单体电压">
       {(voltageMax !== undefined || voltageMin !== undefined) && (
@@ -48,15 +35,16 @@ export function CellVoltageCard({
         </div>
       )}
       <div className={styles.grid}>
-        {cellVoltages.map((cell) => (
+        {cellVoltages.length > 0 ? cellVoltages.map((cell) => (
           <CellIcon
             key={cell.index}
             index={cell.index}
             voltage={cell.voltage}
             soc={soc}
-            isBalancing={balanceSet.has(`C${cell.index}`)}
           />
-        ))}
+        )) : (
+          <div style={{ color: 'var(--color-muted-foreground)', fontSize: 14, textAlign: 'center', padding: '16px 0', gridColumn: '1 / -1' }}>--</div>
+        )}
       </div>
     </CardShell>
   );

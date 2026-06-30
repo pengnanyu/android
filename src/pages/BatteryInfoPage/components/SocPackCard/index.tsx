@@ -1,6 +1,5 @@
 import type { SocData, PackData } from '@/types';
 import { CardShell } from '@/components/shared/CardShell';
-import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { GaugeCanvas } from './GaugeCanvas';
 import styles from './SocPackCard.module.css';
 
@@ -9,12 +8,9 @@ interface SocPackCardProps {
   pack: PackData | null;
   chargeVoltage?: number;
   bmsTime?: string;
-  loading?: boolean;
 }
 
-export function SocPackCard({ soc, pack, chargeVoltage, bmsTime, loading }: SocPackCardProps) {
-  if (loading) return <LoadingSkeleton variant="card" />;
-
+export function SocPackCard({ soc, pack, chargeVoltage, bmsTime }: SocPackCardProps) {
   const voltageMax = chargeVoltage ?? 100;
   const currentMax = Math.max(Math.abs(pack?.totalCurrent ?? 0) * 1.5, 50);
 
