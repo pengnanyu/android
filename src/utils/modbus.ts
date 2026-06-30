@@ -270,7 +270,7 @@ export function parseCalendarGroups(parsed: ParsedProtocol): CalendarGroup[] {
 export interface CalendarRecord {
   groupIdx: number;
   recordIdx: number;
-  values: { name: string; nameZh: string; displayValue: string; unit: string; bitTag: boolean; bitLabels?: string[] }[];
+  values: { name: string; nameZh: string; displayValue: string; unit: string; bitTag: boolean; bitLabels?: string[]; dataType: string }[];
   isEmpty: boolean;
 }
 
@@ -310,6 +310,7 @@ export function parseCalendarRecord(
         unit: field.unit,
         bitTag: true,
         bitLabels,
+        dataType: field.dataType,
       });
     } else {
       let displayValue = '';
@@ -418,6 +419,7 @@ export function parseCalendarRecord(
         displayValue,
         unit: field.unit,
         bitTag: false,
+        dataType: field.dataType,
       });
     }
   }
