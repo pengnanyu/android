@@ -243,7 +243,6 @@ export function parseCalendarGroups(parsed: ParsedProtocol): CalendarGroup[] {
       }));
 
     const recordCount = fields.length > 0 ? fields[0]!.ratio : 0;
-    const recordOffset = fields.length > 0 ? fields[0]!.byteLen : 0;
 
     groups.push({
       configNameEn: inst.configNameEn,
@@ -253,7 +252,7 @@ export function parseCalendarGroups(parsed: ParsedProtocol): CalendarGroup[] {
       funcCode: inst.funcCode,
       recordCount,
       recordLen: inst.quantity,
-      recordOffset,
+      recordOffset: inst.quantity,
       fields,
     });
   }
