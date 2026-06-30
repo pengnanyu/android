@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react';
 import type { FieldValue, ParsedProtocol } from '@/utils/modbus';
 import type { ProtocolDatabase } from '@/types';
 import { CardShell } from '@/components/shared/CardShell';
-import type { StatusGroupType } from '@/types';
 import styles from './StatusCard.module.css';
 
 interface StatusCardProps {
@@ -23,17 +22,26 @@ function splitBitDesc(bitDesc: string, byteLen: number): string[] {
   return labels;
 }
 
+interface StatusItem {
+  name: string;
+  nameZh: string;
+  label: string;
+  active: boolean;
+  isSafety: boolean;
+}
+
 export function StatusCard({ protocolDb, parsedProtocol, parsedValues }: StatusCardProps) {
   const [activeTab, setActiveTab] = useState<TabKey>('safety');
 
-  const { safetyFlags, statusFlags, safetyActiveCount } = useMemo(() => {
-    interface BitEntry { configNameEn: string; nameEn: string; bitDesc: string; byteLen: number; rawValue: number; }
+  const { safetyItems, statusItems, safetyActiveCount } = useMemo(() => {
+    interface BitEntry { nameEn: string; nameZh: string; bitDesc: string; byteLen: number; rawValue: number; }
     const entries: BitEntry[] = [];
 
     if (protocolDb) {
       const bitTagRows = protocolDb.rows.filter(row => {
         const bt = String(row['BitTag'] ?? '');
-        return bt.toUpperCase() === 'TRUE';
+        const ct = String(row['ConfigType'] ?? '');
+        return bt.toUpperCase() === 'TRUE' && ct === 'Register';
       });
 
       if (bitTagRows.length > 0) {
@@ -45,11 +53,11 @@ export function StatusCard({ protocolDb, parsedProtocol, parsedValues }: StatusC
         for (const row of bitTagRows) {
           const bitDesc = String(row['BitDesc'] ?? '');
           const byteLen = Number(row['Length']) || 2;
-          const configNameEn = String(row['ConfigName_English'] ?? 'Status');
+          const nameEn = String(row['Name_English'] ?? '');
+          const nameZh = String(row['Name_Chinase'] ?? '');
 
           let rawValue = 0;
           if (parsedProtocol) {
-            const nameEn = String(row['Name_English'] ?? '');
             const matchField = parsedProtocol.dataFields.find(f => f.name === nameEn);
             if (matchField) {
               const val = valueMap.get(matchField.absAddr);
@@ -57,68 +65,39 @@ export function StatusCard({ protocolDb, parsedProtocol, parsedValues }: StatusC
             }
           }
 
-          entries.push({ configNameEn, nameEn: String(row['Name_English'] ?? ''), bitDesc, byteLen, rawValue });
+          entries.push({ nameEn, nameZh, bitDesc, byteLen, rawValue });
         }
       }
     }
 
-    if (entries.length === 0 && parsedProtocol) {
-      const valueMap = new Map<number, FieldValue>();
-      for (const v of parsedValues) {
-        valueMap.set(v.absAddr, v);
-      }
+    if (entries.length === 0) return { safetyItems: [], statusItems: [], safetyActiveCount: 0 };
 
-      for (const f of parsedProtocol.dataFields) {
-        if (!f.bitDesc && !f.bitTag) continue;
-        const inst = parsedProtocol.instructions[f.parentInstructionIndex];
-        const val = valueMap.get(f.absAddr);
-        entries.push({
-          configNameEn: inst?.configNameEn || 'Status',
-          nameEn: f.name,
-          bitDesc: f.bitDesc,
-          byteLen: f.byteLen,
-          rawValue: val?.rawValue ?? 0,
+    const allItems: StatusItem[] = [];
+    for (const e of entries) {
+      const isSafety = e.nameEn.toLowerCase().includes('alarm') || e.nameEn.toLowerCase().includes('safety');
+      const labels = splitBitDesc(e.bitDesc, e.byteLen);
+      for (let i = 0; i < labels.length; i++) {
+        allItems.push({
+          name: e.nameEn,
+          nameZh: e.nameZh,
+          label: labels[i]!,
+          active: ((e.rawValue >> i) & 1) === 1,
+          isSafety,
         });
       }
     }
 
-    if (entries.length === 0) return { safetyFlags: [], statusFlags: [], safetyActiveCount: 0 };
-
-    const groupMap = new Map<string, BitEntry[]>();
-    for (const e of entries) {
-      const list = groupMap.get(e.configNameEn) ?? [];
-      list.push(e);
-      groupMap.set(e.configNameEn, list);
-    }
-
-    const allFlags: { label: string; active: boolean; type: StatusGroupType }[] = [];
-    for (const [name, fields] of groupMap) {
-      const nameLc = name.toLowerCase();
-      const hasAlarmName = fields.some(f => {
-        const n = f.nameEn.toLowerCase();
-        return n.includes('alarm') || n.includes('safety');
-      });
-      const isSafety = nameLc.includes('safety') || nameLc.includes('alarm') || hasAlarmName;
-      const type: StatusGroupType = isSafety ? 'safety' : 'status';
-      for (const f of fields) {
-        const labels = splitBitDesc(f.bitDesc, f.byteLen);
-        for (let i = 0; i < labels.length; i++) {
-          allFlags.push({ label: labels[i]!, active: ((f.rawValue >> i) & 1) === 1, type });
-        }
-      }
-    }
-
-    const safety = allFlags.filter(f => f.type === 'safety');
-    const status = allFlags.filter(f => f.type === 'status');
+    const safety = allItems.filter(f => f.isSafety);
+    const status = allItems.filter(f => !f.isSafety);
 
     return {
-      safetyFlags: safety,
-      statusFlags: status,
+      safetyItems: safety,
+      statusItems: status,
       safetyActiveCount: safety.filter(f => f.active).length,
     };
   }, [protocolDb, parsedProtocol, parsedValues]);
 
-  if (safetyFlags.length === 0 && statusFlags.length === 0) {
+  if (safetyItems.length === 0 && statusItems.length === 0) {
     return (
       <CardShell title="状态指示">
         <div style={{ color: 'var(--color-muted-foreground)', fontSize: 14, textAlign: 'center', padding: '16px 0' }}>--</div>
@@ -127,11 +106,19 @@ export function StatusCard({ protocolDb, parsedProtocol, parsedValues }: StatusC
   }
 
   const tabs: { key: TabKey; label: string; badge?: number }[] = [];
-  if (safetyFlags.length > 0) tabs.push({ key: 'safety', label: '安全', badge: safetyActiveCount });
-  if (statusFlags.length > 0) tabs.push({ key: 'status', label: '状态' });
+  if (safetyItems.length > 0) tabs.push({ key: 'safety', label: '告警', badge: safetyActiveCount });
+  if (statusItems.length > 0) tabs.push({ key: 'status', label: '状态' });
 
   const effectiveTab = tabs.find(t => t.key === activeTab) ? activeTab : (tabs[0]?.key ?? 'safety');
-  const currentFlags = effectiveTab === 'safety' ? safetyFlags : statusFlags;
+  const currentItems = effectiveTab === 'safety' ? safetyItems : statusItems;
+  const isSafety = effectiveTab === 'safety';
+
+  const grouped = new Map<string, StatusItem[]>();
+  for (const item of currentItems) {
+    const list = grouped.get(item.name) ?? [];
+    list.push(item);
+    grouped.set(item.name, list);
+  }
 
   return (
     <CardShell title="状态指示">
@@ -140,7 +127,7 @@ export function StatusCard({ protocolDb, parsedProtocol, parsedValues }: StatusC
           {tabs.map(tab => (
             <button
               key={tab.key}
-              className={`${styles.tab} ${activeTab === tab.key ? styles.tabActive : ''} ${tab.key === 'safety' ? styles.tabSafety : styles.tabStatus}`}
+              className={`${styles.tab} ${effectiveTab === tab.key ? styles.tabActive : ''} ${tab.key === 'safety' ? styles.tabSafety : styles.tabStatus}`}
               onClick={() => setActiveTab(tab.key)}
             >
               {tab.label}
@@ -149,19 +136,23 @@ export function StatusCard({ protocolDb, parsedProtocol, parsedValues }: StatusC
           ))}
         </div>
       )}
-      <div className={styles.flagList}>
-        {currentFlags.map((flag, i) => {
-          const isSafety = activeTab === 'safety';
-          return (
-            <span
-              key={i}
-              className={`${styles.flag} ${flag.active ? (isSafety ? styles.flagSafetyActive : styles.flagStatusActive) : (isSafety ? styles.flagSafetyInactive : styles.flagStatusInactive)}`}
-            >
-              <span className={`${styles.dot} ${flag.active ? (isSafety ? styles.dotSafetyActive : styles.dotStatusActive) : styles.dotInactive}`} />
-              {flag.label}
-            </span>
-          );
-        })}
+      <div className={styles.groupList}>
+        {Array.from(grouped.entries()).map(([name, items]) => (
+          <div key={name} className={styles.group}>
+            <div className={styles.groupName}>{items[0]?.nameZh || name}</div>
+            <div className={styles.flagList}>
+              {items.map((item, i) => (
+                <span
+                  key={i}
+                  className={`${styles.flag} ${item.active ? (isSafety ? styles.flagSafetyActive : styles.flagStatusActive) : (isSafety ? styles.flagSafetyInactive : styles.flagStatusInactive)}`}
+                >
+                  <span className={`${styles.dot} ${item.active ? (isSafety ? styles.dotSafetyActive : styles.dotStatusActive) : styles.dotInactive}`} />
+                  {item.label}
+                </span>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
     </CardShell>
   );

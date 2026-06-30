@@ -49,6 +49,27 @@
   padding: 0 4px;
 }
 
+.groupList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.groupName {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-foreground);
+  opacity: 0.7;
+  padding-bottom: 2px;
+  border-bottom: 1px solid var(--color-border);
+}
+
 .flagList {
   display: flex;
   flex-wrap: wrap;
@@ -62,6 +83,7 @@
   padding: 3px 8px;
   border-radius: 4px;
   font-size: 12px;
+  min-width: 80px;
 }
 
 .dot {
