@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import styles from './CardShell.module.css';
 
 interface CardShellProps {
-  title: string;
+  title: ReactNode;
   titleExtra?: ReactNode;
   children: ReactNode;
   className?: string;

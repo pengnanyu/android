@@ -38,53 +38,53 @@ export function BatteryInfoPage() {
 
   const voltageInstrIdx = useMemo(() => {
     if (!parsedProtocol) return -1;
-    const marker = parsedProtocol.dataFields.find(
-      f => f.name === 'Voltage Max' || f.name === 'Voltage Min' || f.nameZh === '最高电压' || f.nameZh === '最低电压'
-    );
-    return marker?.parentInstructionIndex ?? -1;
+    const idx = parsedProtocol.instructions.findIndex(inst => inst.configNameEn === 'Cell Voltage');
+    return idx;
   }, [parsedProtocol]);
 
   const cellVoltages = useMemo(() => {
     if (voltageInstrIdx < 0) return [];
     return infoFields
-      .filter(f => f.parentInstructionIndex === voltageInstrIdx && /voltage/i.test(f.name) && f.name !== 'Voltage Max' && f.name !== 'Voltage Min')
+      .filter(f => f.parentInstructionIndex === voltageInstrIdx && f.name !== 'Voltage Max' && f.name !== 'Voltage Min')
       .map((f, i) => ({ index: i + 1, voltage: f.value, name: isZh ? f.nameZh : f.name }));
   }, [infoFields, voltageInstrIdx, isZh]);
 
   const voltageMax = useMemo(() => {
-    const f = findField(infoFields, 'Voltage Max');
+    if (voltageInstrIdx < 0) return undefined;
+    const f = infoFields.find(f => f.parentInstructionIndex === voltageInstrIdx && f.name === 'Voltage Max');
     return f?.value;
-  }, [infoFields]);
+  }, [infoFields, voltageInstrIdx]);
 
   const voltageMin = useMemo(() => {
-    const f = findField(infoFields, 'Voltage Min');
+    if (voltageInstrIdx < 0) return undefined;
+    const f = infoFields.find(f => f.parentInstructionIndex === voltageInstrIdx && f.name === 'Voltage Min');
     return f?.value;
-  }, [infoFields]);
+  }, [infoFields, voltageInstrIdx]);
 
   const temperInstrIdx = useMemo(() => {
     if (!parsedProtocol) return -1;
-    const marker = parsedProtocol.dataFields.find(
-      f => f.name === 'Temper Max' || f.name === 'Temper Min' || f.nameZh === '最高温度' || f.nameZh === '最低温度'
-    );
-    return marker?.parentInstructionIndex ?? -1;
+    const idx = parsedProtocol.instructions.findIndex(inst => inst.configNameEn === 'Tempe CH');
+    return idx;
   }, [parsedProtocol]);
 
   const temperatures = useMemo(() => {
     if (temperInstrIdx < 0) return [];
     return infoFields
-      .filter(f => f.parentInstructionIndex === temperInstrIdx && /temper/i.test(f.name) && f.name !== 'Temper Max' && f.name !== 'Temper Min')
+      .filter(f => f.parentInstructionIndex === temperInstrIdx && f.name !== 'Temper Max' && f.name !== 'Temper Min')
       .map((f, i) => ({ index: i + 1, temperature: f.value, name: isZh ? f.nameZh : f.name }));
   }, [infoFields, temperInstrIdx, isZh]);
 
   const temperMax = useMemo(() => {
-    const f = findField(infoFields, 'Temper Max');
+    if (temperInstrIdx < 0) return undefined;
+    const f = infoFields.find(f => f.parentInstructionIndex === temperInstrIdx && f.name === 'Temper Max');
     return f?.value;
-  }, [infoFields]);
+  }, [infoFields, temperInstrIdx]);
 
   const temperMin = useMemo(() => {
-    const f = findField(infoFields, 'Temper Min');
+    if (temperInstrIdx < 0) return undefined;
+    const f = infoFields.find(f => f.parentInstructionIndex === temperInstrIdx && f.name === 'Temper Min');
     return f?.value;
-  }, [infoFields]);
+  }, [infoFields, temperInstrIdx]);
 
   const graphFields = useMemo(() => {
     return infoFields.filter(f => f.graph);
