@@ -15,7 +15,7 @@ function findField(fields: FieldValue[], nameEn: string): FieldValue | undefined
 }
 
 export function BatteryInfoPage() {
-  const { parsedValues, deviceVersion } = useBmsStore();
+  const { parsedValues, deviceVersion, parsedProtocol } = useBmsStore();
   const { i18n } = useTranslation();
   const isZh = i18n.language === 'zh';
 
@@ -36,24 +36,86 @@ export function BatteryInfoPage() {
     return { totalVoltage: vF?.value ?? 0, totalCurrent: iF?.value ?? 0, power: pF?.value ?? 0 };
   }, [infoFields]);
 
+  const voltageInstrIdx = useMemo(() => {
+    if (!parsedProtocol) return -1;
+    const marker = parsedProtocol.dataFields.find(
+      f => f.name === 'Voltage Max' || f.name === 'Voltage Min' || f.nameZh === '最高电压' || f.nameZh === '最低电压'
+    );
+    return marker?.parentInstructionIndex ?? -1;
+  }, [parsedProtocol]);
+
   const cellVoltages = useMemo(() => {
+    if (voltageInstrIdx < 0) return [];
     return infoFields
-      .filter(f => /^Cell_\d+_Voltage$/i.test(f.name) || /^Cell\d+$/i.test(f.name) || /^Cell_Voltage_\d+$/i.test(f.name))
+      .filter(f => f.parentInstructionIndex === voltageInstrIdx && /voltage/i.test(f.name) && f.name !== 'Voltage Max' && f.name !== 'Voltage Min')
       .map((f, i) => ({ index: i + 1, voltage: f.value, name: isZh ? f.nameZh : f.name }));
-  }, [infoFields, isZh]);
+  }, [infoFields, voltageInstrIdx, isZh]);
+
+  const voltageMax = useMemo(() => {
+    const f = findField(infoFields, 'Voltage Max');
+    return f?.value;
+  }, [infoFields]);
+
+  const voltageMin = useMemo(() => {
+    const f = findField(infoFields, 'Voltage Min');
+    return f?.value;
+  }, [infoFields]);
+
+  const temperInstrIdx = useMemo(() => {
+    if (!parsedProtocol) return -1;
+    const marker = parsedProtocol.dataFields.find(
+      f => f.name === 'Temper Max' || f.name === 'Temper Min' || f.nameZh === '最高温度' || f.nameZh === '最低温度'
+    );
+    return marker?.parentInstructionIndex ?? -1;
+  }, [parsedProtocol]);
 
   const temperatures = useMemo(() => {
+    if (temperInstrIdx < 0) return [];
     return infoFields
-      .filter(f => /^Temp_\d+$/i.test(f.name) || /^Temperature_\d+$/i.test(f.name) || /^MOS_Temperature$/i.test(f.name))
+      .filter(f => f.parentInstructionIndex === temperInstrIdx && /temper/i.test(f.name) && f.name !== 'Temper Max' && f.name !== 'Temper Min')
       .map((f, i) => ({ index: i + 1, temperature: f.value, name: isZh ? f.nameZh : f.name }));
-  }, [infoFields, isZh]);
+  }, [infoFields, temperInstrIdx, isZh]);
+
+  const temperMax = useMemo(() => {
+    const f = findField(infoFields, 'Temper Max');
+    return f?.value;
+  }, [infoFields]);
+
+  const temperMin = useMemo(() => {
+    const f = findField(infoFields, 'Temper Min');
+    return f?.value;
+  }, [infoFields]);
+
+  const graphFields = useMemo(() => {
+    return infoFields.filter(f => f.graph);
+  }, [infoFields]);
+
+  const chartDataPoints = useMemo(() => {
+    if (graphFields.length === 0) return [];
+    const voltageF = graphFields.find(f => /voltage/i.test(f.name));
+    const currentF = graphFields.find(f => /current/i.test(f.name));
+    if (!voltageF && !currentF) return [];
+    return [{
+      timestamp: Date.now(),
+      voltage: voltageF?.value ?? 0,
+      current: currentF?.value ?? 0,
+    }];
+  }, [graphFields]);
 
   const extraFields = useMemo(() => {
-    const skipNames = new Set(['SOC', 'SOH', 'Total_Voltage', 'Total_Current', 'Power']);
+    const skipInstrIdx = new Set<number>();
+    if (voltageInstrIdx >= 0) skipInstrIdx.add(voltageInstrIdx);
+    if (temperInstrIdx >= 0) skipInstrIdx.add(temperInstrIdx);
     return infoFields
-      .filter(f => !skipNames.has(f.name) && !/^Cell_\d+_Voltage$/i.test(f.name) && !/^Cell\d+$/i.test(f.name) && !/^Cell_Voltage_\d+$/i.test(f.name) && !/^Temp_\d+$/i.test(f.name) && !/^Temperature_\d+$/i.test(f.name) && !/^MOS_Temperature$/i.test(f.name))
+      .filter(f => {
+        if (skipInstrIdx.has(f.parentInstructionIndex)) return false;
+        if (f.graph) return false;
+        if (f.bitTag) return false;
+        if (f.name === 'SOC' || f.name === 'SOH' || f.name === 'Total_Voltage' || f.name === 'Total_Current' || f.name === 'Power') return false;
+        return true;
+      })
       .map(f => ({ label: isZh ? f.nameZh : f.name, value: f.displayValue, unit: f.unit }));
-  }, [infoFields, isZh]);
+  }, [infoFields, voltageInstrIdx, temperInstrIdx, isZh]);
 
   const bmsTime = useMemo(() => {
     const tf = findField(infoFields, 'BMS_Time');
@@ -65,9 +127,9 @@ export function BatteryInfoPage() {
       <SocPackCard soc={soc} pack={pack} bmsTime={bmsTime} />
       <DeviceInfoCard bmsId={deviceVersion ?? undefined} extraFields={extraFields} />
       <StatusCard infoFields={infoFields} />
-      <VoltageCurrentChart dataPoints={[]} />
-      <CellVoltageCard cellVoltages={cellVoltages} />
-      <TemperatureCard temperatures={temperatures} />
+      <VoltageCurrentChart dataPoints={chartDataPoints} />
+      <CellVoltageCard cellVoltages={cellVoltages} voltageMax={voltageMax} voltageMin={voltageMin} />
+      <TemperatureCard temperatures={temperatures} temperMax={temperMax} temperMin={temperMin} />
     </div>
   );
 }

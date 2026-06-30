@@ -115,6 +115,7 @@ export interface ParsedDataField {
   rwType: string;
   bitTag: boolean;
   bitDesc: string;
+  graph: boolean;
 }
 
 export interface ParsedProtocol {
@@ -175,6 +176,7 @@ export function parseProtocolRows(rows: Record<string, unknown>[]): ParsedProtoc
       const rwType = String(row['Type'] ?? '');
       const bitTag = String(row['BitTag'] ?? '').toLowerCase() === 'true';
       const bitDesc = String(row['BitDesc'] ?? '');
+      const graph = String(row['Graph'] ?? '').toLowerCase() === 'true';
 
       dataFields.push({
         rowIndex: i,
@@ -193,6 +195,7 @@ export function parseProtocolRows(rows: Record<string, unknown>[]): ParsedProtoc
         rwType,
         bitTag,
         bitDesc,
+        graph,
       });
 
       accumulatedBytes += byteLen;
@@ -484,6 +487,7 @@ export interface FieldValue {
   bitTag: boolean;
   bitDesc: string;
   bitLabels?: string[];
+  graph: boolean;
 }
 
 function parseBitLabels(bitDesc: string, byteLen: number): string[] {
@@ -766,6 +770,7 @@ export function parseDataFields(
       bitTag: field.bitTag,
       bitDesc: field.bitDesc,
       bitLabels: field.bitTag ? parseBitLabels(field.bitDesc, field.byteLen) : undefined,
+      graph: field.graph,
     });
   }
 
