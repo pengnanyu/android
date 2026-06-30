@@ -25,14 +25,14 @@ export function FaultRecordPage() {
       const groupName = isZh ? group.configNameZh : group.configNameEn;
       csv += groupName + '\n';
 
-      const headers = ['#', ...group.fields.map(f => {
+      const headers = group.fields.map(f => {
         const name = isZh ? f.nameZh : f.name;
         return f.unit ? `${name}(${f.unit})` : name;
-      })];
+      });
       csv += headers.map(h => `"${h}"`).join(',') + '\n';
 
       for (const rec of groupRecords) {
-        const cells = [String(rec.recordIdx + 1)];
+        const cells = [];
         for (const v of rec.values) {
           if (v.bitTag && v.bitLabels) {
             cells.push(`"${v.bitLabels.join(' ')}"`);
@@ -90,6 +90,7 @@ export function FaultRecordPage() {
           const groupRecords = nonEmptyRecords.filter(r => r.groupIdx === gIdx);
           if (groupRecords.length === 0) return null;
           const groupName = isZh ? group.configNameZh : group.configNameEn;
+          const freezeIdx = group.fields.findIndex(f => f.dataType === 'Time');
           return (
             <div key={gIdx} className={styles.group}>
               <div className={styles.groupHeader}>{groupName}</div>
@@ -97,15 +98,29 @@ export function FaultRecordPage() {
                 <table className={styles.table}>
                   <thead>
                     <tr>
-                      <th className={styles.thIdx}>#</th>
-                      {group.fields.map((f, fi) => (
-                        <th key={fi} className={styles.th}>{isZh ? f.nameZh : f.name}{f.unit ? `(${f.unit})` : ''}</th>
-                      ))}
+                      {group.fields.map((f, fi) => {
+                        const isSticky = freezeIdx >= 0 && fi <= freezeIdx;
+                        let left = 0;
+                        if (isSticky && fi > 0) {
+                          for (let k = 0; k < fi; k++) {
+                            left += group.fields[k]!.dataType === 'Time' ? 200 : 80;
+                          }
+                        }
+                        return (
+                          <th
+                            key={fi}
+                            className={`${styles.th} ${isSticky ? styles.thSticky : ''}`}
+                            style={isSticky ? { left } : undefined}
+                          >
+                            {isZh ? f.nameZh : f.name}{f.unit ? `(${f.unit})` : ''}
+                          </th>
+                        );
+                      })}
                     </tr>
                   </thead>
                   <tbody>
                     {groupRecords.map((rec) => (
-                      <FaultRow key={`${gIdx}-${rec.recordIdx}`} record={rec} />
+                      <FaultRow key={`${gIdx}-${rec.recordIdx}`} record={rec} freezeIdx={freezeIdx} fields={group.fields} />
                     ))}
                   </tbody>
                 </table>
@@ -118,23 +133,31 @@ export function FaultRecordPage() {
   );
 }
 
-function FaultRow({ record }: { record: CalendarRecord }) {
+function FaultRow({ record, freezeIdx, fields }: { record: CalendarRecord; freezeIdx: number; fields: { dataType: string }[] }) {
   return (
     <tr className={styles.tr}>
-      <td className={styles.tdIdx}>{record.recordIdx + 1}</td>
-      {record.values.map((v, vi) => (
-        <td key={vi} className={styles.td}>
-          {v.bitTag && v.bitLabels ? (
-            <div className={styles.bitWrap}>
-              {v.bitLabels.map((bl) => (
-                <span key={bl} className={styles.bitTag}>{bl}</span>
-              ))}
-            </div>
-          ) : (
-            <span>{v.displayValue}</span>
-          )}
-        </td>
-      ))}
+      {record.values.map((v, vi) => {
+        const isSticky = freezeIdx >= 0 && vi <= freezeIdx;
+        let left = 0;
+        if (isSticky && vi > 0) {
+          for (let k = 0; k < vi; k++) {
+            left += fields[k]!.dataType === 'Time' ? 200 : 80;
+          }
+        }
+        return (
+          <td key={vi} className={`${styles.td} ${isSticky ? styles.tdSticky : ''}`} style={isSticky ? { left } : undefined}>
+            {v.bitTag && v.bitLabels ? (
+              <div className={styles.bitWrap}>
+                {v.bitLabels.map((bl) => (
+                  <span key={bl} className={styles.bitTag}>{bl}</span>
+                ))}
+              </div>
+            ) : (
+              <span>{v.displayValue}</span>
+            )}
+          </td>
+        );
+      })}
     </tr>
   );
 }

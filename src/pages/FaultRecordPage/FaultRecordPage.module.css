@@ -61,19 +61,14 @@
 }
 
 .tableWrap {
-  overflow-x: auto;
+  overflow: auto;
   overscroll-behavior: contain;
 }
 
 .table {
-  width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: 13px;
-}
-
-.thIdx {
-  width: 36px;
-  min-width: 36px;
 }
 
 .th {
@@ -84,6 +79,15 @@
   color: var(--color-muted-foreground);
   border-bottom: 1px solid var(--color-border);
   white-space: nowrap;
+  background: var(--color-card);
+  z-index: 2;
+}
+
+.thSticky {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  background: var(--color-card);
 }
 
 .tr {
@@ -94,17 +98,29 @@
   border-bottom: none;
 }
 
-.tdIdx {
-  padding: 6px 10px;
-  color: var(--color-muted-foreground);
-  font-variant-numeric: tabular-nums;
-  text-align: center;
-}
-
 .td {
   padding: 6px 10px;
   color: var(--color-foreground);
   white-space: nowrap;
+  background: var(--color-card);
+}
+
+.tdSticky {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--color-card);
+}
+
+.tdSticky::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: -6px;
+  bottom: 0;
+  width: 6px;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.06), transparent);
+  pointer-events: none;
 }
 
 .bitWrap {
