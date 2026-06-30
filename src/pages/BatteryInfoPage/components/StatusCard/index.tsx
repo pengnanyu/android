@@ -124,11 +124,12 @@ export function StatusCard({ protocolDb, parsedProtocol, parsedValues }: StatusC
   if (safetyFlags.length > 0) tabs.push({ key: 'safety', label: '安全', badge: safetyActiveCount });
   if (statusFlags.length > 0) tabs.push({ key: 'status', label: '状态' });
 
-  const currentFlags = activeTab === 'safety' ? safetyFlags : statusFlags;
+  const effectiveTab = tabs.find(t => t.key === activeTab) ? activeTab : (tabs[0]?.key ?? 'safety');
+  const currentFlags = effectiveTab === 'safety' ? safetyFlags : statusFlags;
 
   return (
     <CardShell title="状态指示">
-      {tabs.length > 1 && (
+      {tabs.length >= 1 && (
         <div className={styles.tabBar}>
           {tabs.map(tab => (
             <button
