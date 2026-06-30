@@ -42,6 +42,7 @@ export interface BmsActions {
   autoRead: () => void;
   writeField: (fieldRowIndex: number, newValue: number) => void;
   showToast: (message: string, type: 'success' | 'error') => void;
+  startBatchWrite: (count: number) => void;
 }
 
 export type BmsStore = BmsState & BmsActions;

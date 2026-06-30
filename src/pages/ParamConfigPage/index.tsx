@@ -20,7 +20,7 @@ function useIsNarrow(breakpoint: number): boolean {
 }
 
 export function ParamConfigPage() {
-  const { dataMemeryGroups, parsedValues, deviceVersion, toasts, writeField, showToast } = useBmsStore();
+  const { dataMemeryGroups, parsedValues, deviceVersion, toasts, writeField, showToast, startBatchWrite } = useBmsStore();
   const { i18n } = useTranslation();
   const isZh = i18n.language === 'zh';
   const isNarrow = useIsNarrow(NARROW_BREAKPOINT);
@@ -149,11 +149,12 @@ export function ParamConfigPage() {
   }, [deviceVersion, isZh, parsedValues, showToast]);
 
   const handleConfirmImport = useCallback(() => {
+    startBatchWrite(pendingImport.size);
     pendingImport.forEach((value, rowIndex) => {
       writeField(rowIndex, value);
     });
     setPendingImport(new Map());
-  }, [pendingImport, writeField]);
+  }, [pendingImport, writeField, startBatchWrite]);
 
   const handleCancelImport = useCallback(() => {
     setPendingImport(new Map());

@@ -65,13 +65,42 @@ export function BmsProvider({ children }: { children: ReactNode }) {
   const versionRetryRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const logIdRef = useRef(0);
   const toastIdRef = useRef(0);
+  const batchWritingRef = useRef(false);
+  const batchTotalRef = useRef(0);
+  const batchDoneRef = useRef(0);
+  const batchErrorRef = useRef(false);
 
   const showToast = useCallback((message: string, type: 'success' | 'error') => {
+    if (batchWritingRef.current) {
+      if (type === 'error') batchErrorRef.current = true;
+      batchDoneRef.current++;
+      if (batchDoneRef.current >= batchTotalRef.current) {
+        const total = batchTotalRef.current;
+        const err = batchErrorRef.current;
+        batchWritingRef.current = false;
+        batchTotalRef.current = 0;
+        batchDoneRef.current = 0;
+        batchErrorRef.current = false;
+        if (err) {
+          showToast(i18n.language === 'zh' ? `批量写入完成（部分失败）` : `Batch write done (some failed)`, 'error');
+        } else {
+          showToast(i18n.language === 'zh' ? `${total}项参数写入成功` : `${total} params written OK`, 'success');
+        }
+      }
+      return;
+    }
     const id = `t${toastIdRef.current++}`;
     setToasts(prev => [...prev, { id, message, type }]);
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id));
     }, 3000);
+  }, []);
+
+  const startBatchWrite = useCallback((count: number) => {
+    batchWritingRef.current = true;
+    batchTotalRef.current = count;
+    batchDoneRef.current = 0;
+    batchErrorRef.current = false;
   }, []);
   const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pollIdxRef = useRef(0);
@@ -686,7 +715,8 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     autoRead,
     writeField,
     showToast,
-  }), [connectionStatus, protocolDb, protocolLoading, deviceVersion, parsedFields, parsedValues, parsedProtocol, dataMemeryGroups, logs, toasts, sendFrame, clearLogs, autoRead, writeField, showToast]);
+    startBatchWrite,
+  }), [connectionStatus, protocolDb, protocolLoading, deviceVersion, parsedFields, parsedValues, parsedProtocol, dataMemeryGroups, logs, toasts, sendFrame, clearLogs, autoRead, writeField, showToast, startBatchWrite]);
 
   return (
     <BmsContext.Provider value={store}>
