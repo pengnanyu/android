@@ -16,24 +16,25 @@ export function CellVoltageCard({
   voltageMax,
   voltageMin,
 }: CellVoltageCardProps) {
-  return (
-    <CardShell title="单体电压">
-      {(voltageMax !== undefined || voltageMin !== undefined) && (
-        <div className={styles.headerInfo}>
-          {voltageMax !== undefined && (
-            <span className={styles.headerItem}>
-              <span className={styles.arrowUp}>↑</span>
-              {voltageMax}mV
-            </span>
-          )}
-          {voltageMin !== undefined && (
-            <span className={styles.headerItem}>
-              <span className={styles.arrowDown}>↓</span>
-              {voltageMin}mV
-            </span>
-          )}
-        </div>
+  const titleExtra = (voltageMax !== undefined || voltageMin !== undefined) ? (
+    <div className={styles.headerInfo}>
+      {voltageMax !== undefined && (
+        <span className={styles.headerItem}>
+          <span className={styles.arrowUp}>↑</span>
+          {voltageMax}mV
+        </span>
       )}
+      {voltageMin !== undefined && (
+        <span className={styles.headerItem}>
+          <span className={styles.arrowDown}>↓</span>
+          {voltageMin}mV
+        </span>
+      )}
+    </div>
+  ) : undefined;
+
+  return (
+    <CardShell title="单体电压" titleExtra={titleExtra} accentColor="#22c55e">
       <div className={styles.grid}>
         {cellVoltages.length > 0 ? cellVoltages.map((cell) => (
           <CellIcon

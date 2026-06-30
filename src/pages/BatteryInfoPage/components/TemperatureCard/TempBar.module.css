@@ -23,7 +23,7 @@
 .barFill {
   height: 100%;
   border-radius: 3px;
-  background: linear-gradient(90deg, oklch(0.6 0.15 200), oklch(0.6 0.15 30));
+  background: linear-gradient(90deg, #06b6d4, #f59e0b, #ef4444);
   transition: width 0.3s ease;
 }
 

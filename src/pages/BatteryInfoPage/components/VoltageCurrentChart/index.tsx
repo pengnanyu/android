@@ -33,7 +33,7 @@ export function VoltageCurrentChart({ dataPoints }: VoltageCurrentChartProps) {
   }, []);
 
   return (
-    <CardShell title="电压电流曲线">
+    <CardShell title="电压电流曲线" accentColor="#6366f1">
       <div ref={chartRef} className={styles.chartContainer} />
     </CardShell>
   );

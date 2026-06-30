@@ -6,55 +6,64 @@ interface ChartOption {
 }
 
 export function useChartOption(dataPoints: VoltageCurrentDataPoint[]): ChartOption {
-  return useMemo(() => ({
-    animation: false,
-    grid: { left: 50, right: 50, top: 20, bottom: 30 },
-    tooltip: { trigger: 'axis' },
-    xAxis: {
-      type: 'category',
-      data: dataPoints.map((p) => {
-        const d = new Date(p.timestamp);
-        return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}:${d.getSeconds().toString().padStart(2, '0')}`;
-      }),
-      axisLabel: { fontSize: 10, color: 'var(--color-muted-foreground)' },
-    },
-    yAxis: [
-      {
-        type: 'value',
-        name: 'V',
-        nameTextStyle: { fontSize: 11, color: 'var(--color-muted-foreground)' },
-        axisLabel: { fontSize: 10, color: 'var(--color-muted-foreground)' },
-        splitLine: { lineStyle: { color: 'var(--color-border)' } },
+  return useMemo(() => {
+
+    const showLine = dataPoints.length > 1;
+
+    return {
+      animation: false,
+      grid: { left: 50, right: 50, top: 20, bottom: 30 },
+      tooltip: { trigger: 'axis' },
+      xAxis: {
+        type: 'category',
+        data: dataPoints.map((p) => {
+          const d = new Date(p.timestamp);
+          return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}:${d.getSeconds().toString().padStart(2, '0')}`;
+        }),
+        axisLabel: { fontSize: 10, color: '#888' },
       },
-      {
-        type: 'value',
-        name: 'A',
-        nameTextStyle: { fontSize: 11, color: 'var(--color-muted-foreground)' },
-        axisLabel: { fontSize: 10, color: 'var(--color-muted-foreground)' },
-        splitLine: { show: false },
-      },
-    ],
-    series: [
-      {
-        name: 'Voltage',
-        type: 'line',
-        data: dataPoints.map((p) => p.voltage),
-        yAxisIndex: 0,
-        smooth: true,
-        showSymbol: false,
-        lineStyle: { width: 1.5, color: 'var(--gauge-voltage-arc)' },
-        itemStyle: { color: 'var(--gauge-voltage-arc)' },
-      },
-      {
-        name: 'Current',
-        type: 'line',
-        data: dataPoints.map((p) => p.current),
-        yAxisIndex: 1,
-        smooth: true,
-        showSymbol: false,
-        lineStyle: { width: 1.5, color: 'var(--gauge-current-positive)' },
-        itemStyle: { color: 'var(--gauge-current-positive)' },
-      },
-    ],
-  }), [dataPoints]);
+      yAxis: [
+        {
+          type: 'value',
+          name: 'V',
+          nameTextStyle: { fontSize: 11, color: '#888' },
+          axisLabel: { fontSize: 10, color: '#888' },
+          splitLine: { lineStyle: { color: '#e0e0e0', type: 'dashed' } },
+        },
+        {
+          type: 'value',
+          name: 'A',
+          nameTextStyle: { fontSize: 11, color: '#888' },
+          axisLabel: { fontSize: 10, color: '#888' },
+          splitLine: { show: false },
+        },
+      ],
+      series: [
+        {
+          name: 'Voltage',
+          type: 'line',
+          data: dataPoints.map((p) => p.voltage),
+          yAxisIndex: 0,
+          smooth: true,
+          showSymbol: !showLine,
+          symbolSize: 8,
+          lineStyle: { width: 2, color: '#6366f1' },
+          itemStyle: { color: '#6366f1' },
+          areaStyle: showLine ? { color: 'rgba(99,102,241,0.08)' } : undefined,
+        },
+        {
+          name: 'Current',
+          type: 'line',
+          data: dataPoints.map((p) => p.current),
+          yAxisIndex: 1,
+          smooth: true,
+          showSymbol: !showLine,
+          symbolSize: 8,
+          lineStyle: { width: 2, color: '#f59e0b' },
+          itemStyle: { color: '#f59e0b' },
+          areaStyle: showLine ? { color: 'rgba(245,158,11,0.08)' } : undefined,
+        },
+      ],
+    };
+  }, [dataPoints]);
 }

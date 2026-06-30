@@ -6,8 +6,7 @@
 
 .headerInfo {
   display: flex;
-  gap: 16px;
-  margin-bottom: 8px;
+  gap: 12px;
   font-size: 12px;
   color: var(--color-muted-foreground);
 }
@@ -15,13 +14,15 @@
 .headerItem {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
 }
 
 .arrowUp {
   color: var(--color-success);
+  font-weight: 600;
 }
 
 .arrowDown {
   color: var(--color-info);
+  font-weight: 600;
 }

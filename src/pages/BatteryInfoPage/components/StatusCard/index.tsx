@@ -40,7 +40,7 @@ export function StatusCard({ infoFields }: StatusCardProps) {
   });
 
   return (
-    <CardShell title="状态指示">
+    <CardShell title="状态指示" accentColor="#ef4444">
       {sorted.length > 0 ? sorted.map((group, i) => (
         <StatusGroup key={i} group={group} />
       )) : (

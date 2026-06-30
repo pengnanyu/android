@@ -11,18 +11,19 @@ interface TemperatureCardProps {
 }
 
 export function TemperatureCard({ temperatures, mosTemperature, temperMax, temperMin }: TemperatureCardProps) {
-  return (
-    <CardShell title="温度">
-      {(temperMax !== undefined || temperMin !== undefined) && (
-        <div className={styles.headerInfo}>
-          {temperMax !== undefined && (
-            <span className={styles.headerItem}>↑ {temperMax.toFixed(1)}℃</span>
-          )}
-          {temperMin !== undefined && (
-            <span className={styles.headerItem}>↓ {temperMin.toFixed(1)}℃</span>
-          )}
-        </div>
+  const titleExtra = (temperMax !== undefined || temperMin !== undefined) ? (
+    <div className={styles.headerInfo}>
+      {temperMax !== undefined && (
+        <span className={styles.headerItem}>↑ {temperMax.toFixed(1)}℃</span>
       )}
+      {temperMin !== undefined && (
+        <span className={styles.headerItem}>↓ {temperMin.toFixed(1)}℃</span>
+      )}
+    </div>
+  ) : undefined;
+
+  return (
+    <CardShell title="温度" titleExtra={titleExtra} accentColor="#06b6d4">
       <div className={styles.tempList}>
         {temperatures.length > 0 ? (
           <>
