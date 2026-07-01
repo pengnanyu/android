@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback } from 'react';
+import { useRef, useEffect, useCallback, useState } from 'react';
 import * as echarts from 'echarts';
 import type { VoltageCurrentDataPoint } from '@/types';
 import { CardShell } from '@/components/shared/CardShell';
@@ -13,21 +13,36 @@ interface VoltageCurrentChartProps {
   currentUnit?: string;
 }
 
+const MAX_POINTS = 120;
+
 export function VoltageCurrentChart({ dataPoints, voltageValue, currentValue, voltageUnit, currentUnit }: VoltageCurrentChartProps) {
   const chartRef = useRef<HTMLDivElement>(null);
   const instanceRef = useRef<echarts.ECharts | null>(null);
-  const option = useChartOption(dataPoints);
+  const [history, setHistory] = useState<VoltageCurrentDataPoint[]>([]);
 
-  const titleExtra = (voltageValue !== undefined || currentValue !== undefined) ? (
-    <div className={styles.titleValues}>
-      {voltageValue !== undefined && (
-        <span className={styles.voltageVal}>{voltageValue.toFixed(1)}{voltageUnit || 'V'}</span>
-      )}
-      {currentValue !== undefined && (
-        <span className={styles.currentVal}>{currentValue.toFixed(1)}{currentUnit || 'A'}</span>
-      )}
+  useEffect(() => {
+    if (dataPoints.length === 0) return;
+    const latest = dataPoints[dataPoints.length - 1]!;
+    setHistory(prev => {
+      const next = [...prev, latest];
+      return next.length > MAX_POINTS ? next.slice(-MAX_POINTS) : next;
+    });
+  }, [dataPoints]);
+
+  const option = useChartOption(history);
+
+  const titleExtra = (
+    <div className={styles.titleLegend}>
+      <span className={styles.legendItem}>
+        <span className={styles.legendDot} style={{ background: '#6366f1' }} />
+        Voltage
+      </span>
+      <span className={styles.legendItem}>
+        <span className={styles.legendDot} style={{ background: '#f59e0b' }} />
+        Current
+      </span>
     </div>
-  ) : undefined;
+  );
 
   const ensureInstance = useCallback(() => {
     if (!chartRef.current) return null;
@@ -59,8 +74,8 @@ export function VoltageCurrentChart({ dataPoints, voltageValue, currentValue, vo
   }, []);
 
   return (
-    <CardShell title="电压电流曲线" titleExtra={titleExtra}>
-      {dataPoints.length === 0 ? (
+    <CardShell title="电压电流曲线" titleExtra={titleExtra} className={styles.compactShell}>
+      {history.length === 0 ? (
         <div className={styles.empty}>--</div>
       ) : (
         <div ref={chartRef} className={styles.chartContainer} />

@@ -74,17 +74,6 @@ export function BatteryInfoPage() {
       .map((f, i) => ({ index: i + 1, temperature: f.value, name: isZh ? f.nameZh : f.name }));
   }, [infoFields, temperInstrIdx, isZh]);
 
-  const temperMax = useMemo(() => {
-    if (temperInstrIdx < 0) return undefined;
-    const f = infoFields.find(f => f.parentInstructionIndex === temperInstrIdx && f.name === 'Temper Max');
-    return f?.value;
-  }, [infoFields, temperInstrIdx]);
-
-  const temperMin = useMemo(() => {
-    if (temperInstrIdx < 0) return undefined;
-    const f = infoFields.find(f => f.parentInstructionIndex === temperInstrIdx && f.name === 'Temper Min');
-    return f?.value;
-  }, [infoFields, temperInstrIdx]);
 
   const graphFields = useMemo(() => {
     return infoFields.filter(f => f.graph);
@@ -120,6 +109,7 @@ export function BatteryInfoPage() {
         if (f.bitTag) return false;
         if (f.name === 'SOC' || f.name === 'SOH' || f.name === 'Total_Voltage' || f.name === 'Total_Current' || f.name === 'Power') return false;
         if (/bms.*time/i.test(f.name)) return false;
+        if (f.dataType === 'ID' || /bms.*id/i.test(f.name)) return false;
         return true;
       })
       .map(f => ({ label: isZh ? f.nameZh : f.name, value: f.displayValue, unit: f.unit }));
@@ -137,6 +127,11 @@ export function BatteryInfoPage() {
     return flags;
   }, [parsedValues]);
 
+  const bmsId = useMemo(() => {
+    const idField = infoFields.find(f => f.dataType === 'ID' || /bms.*id/i.test(f.name));
+    return idField?.displayValue;
+  }, [infoFields]);
+
   const bmsTime = useMemo(() => {
     const tf = infoFields.find(f => /bms.*time/i.test(f.name));
     return tf?.displayValue;
@@ -145,11 +140,11 @@ export function BatteryInfoPage() {
   return (
     <div className={styles.grid}>
       <SocPackCard soc={soc} pack={pack} bmsTime={bmsTime} />
-      <DeviceInfoCard bmsId={deviceVersion ?? undefined} extraFields={extraFields} />
+      <DeviceInfoCard bmsId={bmsId} extraFields={extraFields} />
       <StatusCard protocolDb={protocolDb} parsedProtocol={parsedProtocol} parsedValues={parsedValues} />
       <VoltageCurrentChart dataPoints={chartDataPoints} voltageValue={graphVoltage?.value} currentValue={graphCurrent?.value} voltageUnit={graphVoltage?.unit} currentUnit={graphCurrent?.unit} />
       <CellVoltageCard cellVoltages={cellVoltages} voltageMax={voltageMax} voltageMin={voltageMin} balanceFlags={balanceFlags} />
-      <TemperatureCard temperatures={temperatures} temperMax={temperMax} temperMin={temperMin} voltageMax={voltageMax} voltageMin={voltageMin} />
+      <TemperatureCard temperatures={temperatures} voltageMax={voltageMax} voltageMin={voltageMin} />
     </div>
   );
 }

@@ -12,18 +12,34 @@
   height: 280px;
 }
 
-.titleValues {
+.titleLegend {
   display: flex;
-  gap: 12px;
-  font-size: 13px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
+  gap: 10px;
+  font-size: 11px;
+  color: var(--color-muted-foreground);
 }
 
-.voltageVal {
-  color: #6366f1;
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.currentVal {
-  color: #f59e0b;
+.legendDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.compactShell {
+  padding: 10px !important;
+}
+
+.compactShell {
+  padding: 10px !important;
+}
+
+.compactShell :global(.title) {
+  margin-bottom: 6px !important;
 }
