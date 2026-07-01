@@ -23,13 +23,11 @@ export function CellIcon({ index, voltage, soc, isBalancing, compact }: CellIcon
             style={{ height: `calc(${fillPercent}% - 4px)`, background: fillColor }}
           />
         </div>
+        <span className={styles.cellName}>C{index}</span>
         <div className={styles.cap} />
       </div>
       {isBalancing && <span className={styles.balancing}>⚡</span>}
-      <div className={styles.cellInfo}>
-        <span className={styles.cellName}>C{index}</span>
-        <span className={styles.cellVoltage}>{voltageV}V</span>
-      </div>
+      <span className={styles.cellVoltage}>{voltageV}V</span>
     </div>
   );
 }

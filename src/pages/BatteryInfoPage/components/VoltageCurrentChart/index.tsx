@@ -43,6 +43,8 @@ export function VoltageCurrentChart({ dataPoints, cellVoltages, voltageMax, volt
         <span className={styles.legendDot} style={{ background: '#f59e0b' }} />
         Current
       </span>
+      {voltageMax !== undefined && <span className={styles.legendItem}><span className={styles.arrowUp}>↑</span>{(voltageMax / 1000).toFixed(2)}V</span>}
+      {voltageMin !== undefined && <span className={styles.legendItem}><span className={styles.arrowDown}>↓</span>{(voltageMin / 1000).toFixed(2)}V</span>}
     </div>
   );
 
@@ -78,13 +80,6 @@ export function VoltageCurrentChart({ dataPoints, cellVoltages, voltageMax, volt
     };
   }, []);
 
-  const headerInfo = (voltageMax !== undefined || voltageMin !== undefined) ? (
-    <div className={styles.headerInfo}>
-      {voltageMax !== undefined && <span className={styles.headerItem}><span className={styles.arrowUp}>↑</span>{(voltageMax / 1000).toFixed(2)}V</span>}
-      {voltageMin !== undefined && <span className={styles.headerItem}><span className={styles.arrowDown}>↓</span>{(voltageMin / 1000).toFixed(2)}V</span>}
-    </div>
-  ) : null;
-
   return (
     <CardShell title="电压电流曲线" titleExtra={titleExtra} className={styles.compactShell}>
       {history.length === 0 ? (
@@ -94,10 +89,6 @@ export function VoltageCurrentChart({ dataPoints, cellVoltages, voltageMax, volt
       )}
       {cellVoltages && cellVoltages.length > 0 && (
         <div className={styles.cellSection}>
-          <div className={styles.cellHeader}>
-            <span className={styles.cellTitle}>单体电压</span>
-            {headerInfo}
-          </div>
           <div className={cellStyles.grid}>
             {cellVoltages.map(cell => (
               <CellIcon
