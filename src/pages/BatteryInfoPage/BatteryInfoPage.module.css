@@ -1,6 +1,6 @@
-.grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
+.page {
+  display: flex;
+  flex-direction: column;
   gap: 10px;
   padding: 10px;
   overflow-y: auto;
@@ -11,18 +11,61 @@
 }
 
 @media (min-width: 640px) {
-  .grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .page {
     gap: 14px;
     padding: 14px;
   }
 }
 
 @media (min-width: 1024px) {
-  .grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .page {
     gap: 16px;
     padding: 16px;
+  }
+}
+
+.overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+
+@media (min-width: 640px) {
+  .overview {
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .overview {
+    grid-template-columns: 1fr 2fr;
+    gap: 16px;
+  }
+}
+
+.detail {
+  flex: 1;
+  min-height: 0;
+}
+
+.detailGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+
+@media (min-width: 640px) {
+  .detailGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .detailGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
   }
 }
 
@@ -94,7 +137,6 @@
   background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: 8px;
-
 }
 
 .sideTabLayout {
@@ -144,6 +186,5 @@
 .sideTabContent {
   flex: 1;
   min-width: 0;
-
   padding: 8px;
 }
