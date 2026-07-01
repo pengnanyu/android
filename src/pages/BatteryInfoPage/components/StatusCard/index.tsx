@@ -9,6 +9,7 @@ interface StatusCardProps {
   protocolDb: ProtocolDatabase | null;
   parsedProtocol: ParsedProtocol | null;
   parsedValues: FieldValue[];
+  noShell?: boolean;
 }
 
 type TabKey = 'safety' | 'status';
@@ -53,7 +54,7 @@ function buildGroups(items: StatusItem[], hideInactive: boolean): Map<string, St
   return grouped;
 }
 
-export function StatusCard({ protocolDb, parsedProtocol, parsedValues }: StatusCardProps) {
+export function StatusCard({ protocolDb, parsedProtocol, parsedValues, noShell }: StatusCardProps) {
   const [activeTab, setActiveTab] = useState<TabKey>('safety');
   const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -199,24 +200,30 @@ export function StatusCard({ protocolDb, parsedProtocol, parsedValues }: StatusC
     </div>
   );
 
+  const innerContent = (
+    <div ref={containerRef} className={styles.tabStack}>
+      {safetyItems.length > 0 && (
+        <div className={`${styles.tabPanel} ${effectiveTab === 'safety' ? styles.tabVisible : styles.tabHidden}`}>
+          <div className={styles.groupList}>
+            {renderGroups(safetyGroups, true)}
+          </div>
+        </div>
+      )}
+      {statusItems.length > 0 && (
+        <div className={`${styles.tabPanel} ${effectiveTab === 'status' ? styles.tabVisible : styles.tabHidden}`}>
+          <div className={styles.groupList}>
+            {renderGroups(statusGroups, false)}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  if (noShell) return innerContent;
+
   return (
     <CardShell title={titleContent}>
-      <div ref={containerRef} className={styles.tabStack}>
-        {safetyItems.length > 0 && (
-          <div className={`${styles.tabPanel} ${effectiveTab === 'safety' ? styles.tabVisible : styles.tabHidden}`}>
-            <div className={styles.groupList}>
-              {renderGroups(safetyGroups, true)}
-            </div>
-          </div>
-        )}
-        {statusItems.length > 0 && (
-          <div className={`${styles.tabPanel} ${effectiveTab === 'status' ? styles.tabVisible : styles.tabHidden}`}>
-            <div className={styles.groupList}>
-              {renderGroups(statusGroups, false)}
-            </div>
-          </div>
-        )}
-      </div>
+      {innerContent}
     </CardShell>
   );
 }

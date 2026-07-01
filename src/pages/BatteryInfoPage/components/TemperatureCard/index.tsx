@@ -8,9 +8,10 @@ interface TemperatureCardProps {
   mosTemperature?: TempData;
   temperMax?: number;
   temperMin?: number;
+  noShell?: boolean;
 }
 
-export function TemperatureCard({ temperatures, mosTemperature, temperMax, temperMin }: TemperatureCardProps) {
+export function TemperatureCard({ temperatures, mosTemperature, temperMax, temperMin, noShell }: TemperatureCardProps) {
   const titleExtra = (temperMax !== undefined || temperMin !== undefined) ? (
     <div className={styles.headerInfo}>
       {temperMax !== undefined && (
@@ -22,22 +23,28 @@ export function TemperatureCard({ temperatures, mosTemperature, temperMax, tempe
     </div>
   ) : undefined;
 
+  const listContent = (
+    <div className={styles.tempList}>
+      {temperatures.length > 0 ? (
+        <>
+          {temperatures.map((temp) => (
+            <TempBar key={temp.index} index={temp.index} temperature={temp.temperature} name={temp.name} />
+          ))}
+          {mosTemperature && (
+            <TempBar index={mosTemperature.index} temperature={mosTemperature.temperature} name="MOS" />
+          )}
+        </>
+      ) : (
+        <div style={{ color: 'var(--color-muted-foreground)', fontSize: 14, textAlign: 'center', padding: '16px 0' }}>--</div>
+      )}
+    </div>
+  );
+
+  if (noShell) return listContent;
+
   return (
     <CardShell title="温度" titleExtra={titleExtra}>
-      <div className={styles.tempList}>
-        {temperatures.length > 0 ? (
-          <>
-            {temperatures.map((temp) => (
-              <TempBar key={temp.index} index={temp.index} temperature={temp.temperature} name={temp.name} />
-            ))}
-            {mosTemperature && (
-              <TempBar index={mosTemperature.index} temperature={mosTemperature.temperature} name="MOS" />
-            )}
-          </>
-        ) : (
-          <div style={{ color: 'var(--color-muted-foreground)', fontSize: 14, textAlign: 'center', padding: '16px 0' }}>--</div>
-        )}
-      </div>
+      {listContent}
     </CardShell>
   );
 }

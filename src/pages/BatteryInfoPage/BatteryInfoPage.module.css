@@ -25,3 +25,51 @@
     padding: 16px;
   }
 }
+
+.mergedTabs {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.mergedTab {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 5px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-muted-foreground);
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.mergedTab:hover {
+  background: var(--color-muted);
+}
+
+.mergedTabActive {
+  background: var(--color-muted);
+  border-color: var(--color-border);
+  color: var(--color-foreground);
+}
+
+.mergedStack {
+  display: grid;
+}
+
+.mergedStack>div {
+  grid-area: 1 / 1;
+}
+
+.panelVisible {
+  visibility: visible;
+}
+
+.panelHidden {
+  visibility: hidden;
+  pointer-events: none;
+}

@@ -1,23 +1,45 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useBmsStore } from '@/store/context';
 import { useTranslation } from 'react-i18next';
 import type { FieldValue } from '@/utils/modbus';
+import { useColumnCount } from '@/hooks/useColumnCount';
 import { SocPackCard } from './components/SocPackCard';
 import { DeviceInfoCard } from './components/DeviceInfoCard';
 import { StatusCard } from './components/StatusCard';
 import { VoltageCurrentChart } from './components/VoltageCurrentChart';
 import { CellVoltageCard } from './components/CellVoltageCard';
 import { TemperatureCard } from './components/TemperatureCard';
+import { CardShell } from '@/components/shared/CardShell';
 import styles from './BatteryInfoPage.module.css';
 
 function findField(fields: FieldValue[], nameEn: string): FieldValue | undefined {
   return fields.find(f => f.name === nameEn);
 }
 
+type MergedTab = 'device' | 'cells' | 'status';
+
+function FingerprintIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 12C2 6.5 6.5 2 12 2a10 10 0 0 1 8 4" /><path d="M5 12a7 7 0 0 1 7-7 7 7 0 0 1 5.7 3" /><path d="M8 12a4 4 0 0 1 4-4 4 4 0 0 1 3.5 2.1" /><path d="M12 12h.01" /><path d="M17.5 8.5A10 10 0 0 1 22 12" /><path d="M15 11a7 7 0 0 1 4 6" /><path d="M12 16a4 4 0 0 1 2 3.5" /><path d="M8 16a10 10 0 0 0 1 5" />
+    </svg>
+  );
+}
+
+function ShieldIcon({ color }: { color: string }) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+      <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V7L12 2z" fill={color} fillOpacity={0.15} stroke={color} strokeWidth="1.5" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function BatteryInfoPage() {
   const { parsedValues, parsedProtocol, protocolDb } = useBmsStore();
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const isZh = i18n.language === 'zh';
+  const { ref: gridRef, cols } = useColumnCount();
+  const [mergedTab, setMergedTab] = useState<MergedTab>('device');
 
   const infoFields = useMemo(() => parsedValues.filter(f => f.configType === 'Info' || f.configType === 'Register'), [parsedValues]);
 
@@ -38,8 +60,7 @@ export function BatteryInfoPage() {
 
   const voltageInstrIdx = useMemo(() => {
     if (!parsedProtocol) return -1;
-    const idx = parsedProtocol.instructions.findIndex(inst => inst.configNameEn === 'Cell Voltage');
-    return idx;
+    return parsedProtocol.instructions.findIndex(inst => inst.configNameEn === 'Cell Voltage');
   }, [parsedProtocol]);
 
   const cellVoltages = useMemo(() => {
@@ -51,20 +72,17 @@ export function BatteryInfoPage() {
 
   const voltageMax = useMemo(() => {
     if (voltageInstrIdx < 0) return undefined;
-    const f = infoFields.find(f => f.parentInstructionIndex === voltageInstrIdx && f.name === 'Voltage Max');
-    return f?.value;
+    return infoFields.find(f => f.parentInstructionIndex === voltageInstrIdx && f.name === 'Voltage Max')?.value;
   }, [infoFields, voltageInstrIdx]);
 
   const voltageMin = useMemo(() => {
     if (voltageInstrIdx < 0) return undefined;
-    const f = infoFields.find(f => f.parentInstructionIndex === voltageInstrIdx && f.name === 'Voltage Min');
-    return f?.value;
+    return infoFields.find(f => f.parentInstructionIndex === voltageInstrIdx && f.name === 'Voltage Min')?.value;
   }, [infoFields, voltageInstrIdx]);
 
   const temperInstrIdx = useMemo(() => {
     if (!parsedProtocol) return -1;
-    const idx = parsedProtocol.instructions.findIndex(inst => inst.configNameEn === 'Tempe CH');
-    return idx;
+    return parsedProtocol.instructions.findIndex(inst => inst.configNameEn === 'Tempe CH');
   }, [parsedProtocol]);
 
   const temperatures = useMemo(() => {
@@ -76,37 +94,21 @@ export function BatteryInfoPage() {
 
   const temperMax = useMemo(() => {
     if (temperInstrIdx < 0) return undefined;
-    const f = infoFields.find(f => f.parentInstructionIndex === temperInstrIdx && /temper\s*max/i.test(f.name));
-    return f?.value;
+    return infoFields.find(f => f.parentInstructionIndex === temperInstrIdx && /temper\s*max/i.test(f.name))?.value;
   }, [infoFields, temperInstrIdx]);
 
   const temperMin = useMemo(() => {
     if (temperInstrIdx < 0) return undefined;
-    const f = infoFields.find(f => f.parentInstructionIndex === temperInstrIdx && /temper\s*min/i.test(f.name));
-    return f?.value;
+    return infoFields.find(f => f.parentInstructionIndex === temperInstrIdx && /temper\s*min/i.test(f.name))?.value;
   }, [infoFields, temperInstrIdx]);
 
-  const graphFields = useMemo(() => {
-    return infoFields.filter(f => f.graph);
-  }, [infoFields]);
-
-  const graphVoltage = useMemo(() => {
-    const f = graphFields.find(f => /voltage/i.test(f.name));
-    return f;
-  }, [graphFields]);
-
-  const graphCurrent = useMemo(() => {
-    const f = graphFields.find(f => /current/i.test(f.name));
-    return f;
-  }, [graphFields]);
+  const graphFields = useMemo(() => infoFields.filter(f => f.graph), [infoFields]);
+  const graphVoltage = useMemo(() => graphFields.find(f => /voltage/i.test(f.name)), [graphFields]);
+  const graphCurrent = useMemo(() => graphFields.find(f => /current/i.test(f.name)), [graphFields]);
 
   const chartDataPoints = useMemo(() => {
     if (!graphVoltage && !graphCurrent) return [];
-    return [{
-      timestamp: Date.now(),
-      voltage: graphVoltage?.value ?? 0,
-      current: graphCurrent?.value ?? 0,
-    }];
+    return [{ timestamp: Date.now(), voltage: graphVoltage?.value ?? 0, current: graphCurrent?.value ?? 0 }];
   }, [graphVoltage, graphCurrent]);
 
   const extraFields = useMemo(() => {
@@ -148,14 +150,85 @@ export function BatteryInfoPage() {
     return tf?.displayValue;
   }, [infoFields]);
 
+  const deviceCard = <DeviceInfoCard bmsId={bmsId} extraFields={extraFields} />;
+  const statusCard = <StatusCard protocolDb={protocolDb} parsedProtocol={parsedProtocol} parsedValues={parsedValues} />;
+  const cellCard = <CellVoltageCard cellVoltages={cellVoltages} voltageMax={voltageMax} voltageMin={voltageMin} balanceFlags={balanceFlags} />;
+  const tempCard = <TemperatureCard temperatures={temperatures} temperMax={temperMax} temperMin={temperMin} />;
+
+  const deviceCardNoShell = <DeviceInfoCard bmsId={bmsId} extraFields={extraFields} noShell />;
+  const statusCardNoShell = <StatusCard protocolDb={protocolDb} parsedProtocol={parsedProtocol} parsedValues={parsedValues} noShell />;
+  const cellCardNoShell = <CellVoltageCard cellVoltages={cellVoltages} voltageMax={voltageMax} voltageMin={voltageMin} balanceFlags={balanceFlags} noShell />;
+  const tempCardNoShell = <TemperatureCard temperatures={temperatures} temperMax={temperMax} temperMin={temperMin} noShell />;
+
+  const mergedTabs: { key: MergedTab; icon: React.ReactNode; label: string }[] = [
+    { key: 'device', icon: <FingerprintIcon />, label: t('battery.deviceInfo') },
+    { key: 'cells', icon: null, label: isZh ? '单体电压/温度' : 'Voltage/Temp' },
+    { key: 'status', icon: <ShieldIcon color="#16a34a" />, label: t('status.status') },
+  ];
+
+  const mergedContent = (
+    <CardShell
+      title={
+        <div className={styles.mergedTabs}>
+          {mergedTabs.map(tab => (
+            <button
+              key={tab.key}
+              className={`${styles.mergedTab} ${mergedTab === tab.key ? styles.mergedTabActive : ''}`}
+              onClick={() => setMergedTab(tab.key)}
+            >
+              {tab.icon}
+              <span>{tab.label}</span>
+            </button>
+          ))}
+        </div>
+      }
+      titleExtra={bmsId && mergedTab === 'device' ? <span style={{ fontSize: 12, opacity: 0.7 }}>{bmsId}</span> : undefined}
+    >
+      <div className={styles.mergedStack}>
+        <div className={mergedTab === 'device' ? styles.panelVisible : styles.panelHidden}>
+          {deviceCardNoShell}
+        </div>
+        <div className={mergedTab === 'cells' ? styles.panelVisible : styles.panelHidden}>
+          {cellCardNoShell}
+          <div style={{ marginTop: 8 }} />
+          {tempCardNoShell}
+        </div>
+        <div className={mergedTab === 'status' ? styles.panelVisible : styles.panelHidden}>
+          {statusCardNoShell}
+        </div>
+      </div>
+    </CardShell>
+  );
+
+  const cellTempMerged = (
+    <CardShell title={isZh ? '单体电压/温度' : 'Voltage/Temp'}>
+      {cellCardNoShell}
+      <div style={{ marginTop: 8 }} />
+      {tempCardNoShell}
+    </CardShell>
+  );
+
   return (
-    <div className={styles.grid}>
+    <div className={styles.grid} ref={gridRef}>
       <SocPackCard soc={soc} pack={pack} bmsTime={bmsTime} />
-      <DeviceInfoCard bmsId={bmsId} extraFields={extraFields} />
-      <StatusCard protocolDb={protocolDb} parsedProtocol={parsedProtocol} parsedValues={parsedValues} />
-      <VoltageCurrentChart dataPoints={chartDataPoints} />
-      <CellVoltageCard cellVoltages={cellVoltages} voltageMax={voltageMax} voltageMin={voltageMin} balanceFlags={balanceFlags} />
-      <TemperatureCard temperatures={temperatures} temperMax={temperMax} temperMin={temperMin} />
+      {cols === 1 ? (
+        mergedContent
+      ) : cols === 2 ? (
+        <>
+          {deviceCard}
+          {statusCard}
+          <VoltageCurrentChart dataPoints={chartDataPoints} />
+          {cellTempMerged}
+        </>
+      ) : (
+        <>
+          {deviceCard}
+          {statusCard}
+          <VoltageCurrentChart dataPoints={chartDataPoints} />
+          {cellCard}
+          {tempCard}
+        </>
+      )}
     </div>
   );
 }

@@ -9,6 +9,7 @@ interface CellVoltageCardProps {
   voltageMax?: number;
   voltageMin?: number;
   balanceFlags?: boolean[];
+  noShell?: boolean;
 }
 
 export function CellVoltageCard({
@@ -17,6 +18,7 @@ export function CellVoltageCard({
   voltageMax,
   voltageMin,
   balanceFlags,
+  noShell,
 }: CellVoltageCardProps) {
   const titleExtra = (voltageMax !== undefined || voltageMin !== undefined) ? (
     <div className={styles.headerInfo}>
@@ -35,21 +37,27 @@ export function CellVoltageCard({
     </div>
   ) : undefined;
 
+  const gridContent = (
+    <div className={styles.grid}>
+      {cellVoltages.length > 0 ? cellVoltages.map((cell) => (
+        <CellIcon
+          key={cell.index}
+          index={cell.index}
+          voltage={cell.voltage}
+          soc={soc}
+          isBalancing={balanceFlags?.[(cell.index - 1)] ?? false}
+        />
+      )) : (
+        <div style={{ color: 'var(--color-muted-foreground)', fontSize: 14, textAlign: 'center', padding: '16px 0', gridColumn: '1 / -1' }}>--</div>
+      )}
+    </div>
+  );
+
+  if (noShell) return gridContent;
+
   return (
     <CardShell title="单体电压" titleExtra={titleExtra}>
-      <div className={styles.grid}>
-        {cellVoltages.length > 0 ? cellVoltages.map((cell) => (
-          <CellIcon
-            key={cell.index}
-            index={cell.index}
-            voltage={cell.voltage}
-            soc={soc}
-            isBalancing={balanceFlags?.[(cell.index - 1)] ?? false}
-          />
-        )) : (
-          <div style={{ color: 'var(--color-muted-foreground)', fontSize: 14, textAlign: 'center', padding: '16px 0', gridColumn: '1 / -1' }}>--</div>
-        )}
-      </div>
+      {gridContent}
     </CardShell>
   );
 }
