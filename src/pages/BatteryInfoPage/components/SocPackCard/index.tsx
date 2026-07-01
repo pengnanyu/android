@@ -11,15 +11,16 @@ interface SocPackCardProps {
 }
 
 export function SocPackCard({ soc, pack, chargeVoltage, bmsTime }: SocPackCardProps) {
-  const voltageMax = chargeVoltage ?? 100;
-  const currentMax = Math.max(Math.abs(pack?.totalCurrent ?? 0) * 1.5, 50);
-
   return (
     <CardShell
       title="SOC Pack"
       titleExtra={bmsTime ? <span>{bmsTime}</span> : undefined}
     >
-      <div className={styles.layout}>
+      <div className={styles.core}>
+        <div className={styles.sideCard}>
+          <div className={styles.sideValue}>{(pack?.totalVoltage ?? 0).toFixed(1)}</div>
+          <div className={styles.sideLabel}>V</div>
+        </div>
         <div className={styles.ringArea}>
           <GaugeCanvas
             type="soc"
@@ -27,51 +28,28 @@ export function SocPackCard({ soc, pack, chargeVoltage, bmsTime }: SocPackCardPr
             max={100}
             soc={soc?.soc ?? 0}
           />
-
         </div>
-        <div className={styles.statsArea}>
-          <div className={styles.statCards}>
-            <div className={styles.statCard}>
-              <div className={styles.statHeader}>
-                <span className={styles.statDot} style={{ background: '#6366f1' }} />
-                <span className={styles.statLabel}>Voltage</span>
-              </div>
-              <div className={styles.statValue}>{(pack?.totalVoltage ?? 0).toFixed(1)}</div>
-              <div className={styles.statUnit}>V</div>
-            </div>
-            <div className={styles.statCard}>
-              <div className={styles.statHeader}>
-                <span className={styles.statDot} style={{ background: '#f59e0b' }} />
-                <span className={styles.statLabel}>Current</span>
-              </div>
-              <div className={styles.statValue}>{(pack?.totalCurrent ?? 0).toFixed(1)}</div>
-              <div className={styles.statUnit}>A</div>
-            </div>
-            <div className={styles.statCard}>
-              <div className={styles.statHeader}>
-                <span className={styles.statDot} style={{ background: '#10b981' }} />
-                <span className={styles.statLabel}>Power</span>
-              </div>
-              <div className={styles.statValue}>{(pack?.power ?? 0).toFixed(0)}</div>
-              <div className={styles.statUnit}>W</div>
-            </div>
-            <div className={styles.statCard}>
-              <div className={styles.statHeader}>
-                <span className={styles.statDot} style={{ background: '#8b5cf6' }} />
-                <span className={styles.statLabel}>SOH</span>
-              </div>
-              <div className={styles.statValue}>{soc?.soh ?? 0}</div>
-              <div className={styles.statUnit}>%</div>
-            </div>
-          </div>
-          <div className={styles.miniGauges}>
-            <div className={styles.miniGauge}>
-              <GaugeCanvas type="voltage" value={pack?.totalVoltage ?? 0} max={voltageMax} />
-            </div>
-            <div className={styles.miniGauge}>
-              <GaugeCanvas type="current" value={pack?.totalCurrent ?? 0} max={currentMax} />
-            </div>
-          </div>
+        <div className={styles.sideCard}>
+          <div className={styles.sideValue}>{(pack?.totalCurrent ?? 0).toFixed(1)}</div>
+          <div className={styles.sideLabel}>A</div>
+        </div>
+      </div>
+      <div className={styles.bottomCards}>
+        <div className={styles.bottomCard}>
+          <div className={styles.bottomValue}>--</div>
+          <div className={styles.bottomLabel}>剩余放空</div>
+        </div>
+        <div className={styles.bottomCard}>
+          <div className={styles.bottomValue}>--</div>
+          <div className={styles.bottomLabel}>剩余充满</div>
+        </div>
+        <div className={styles.bottomCard}>
+          <div className={styles.bottomValue}>{(pack?.power ?? 0).toFixed(0)}</div>
+          <div className={styles.bottomLabel}>Power W</div>
+        </div>
+        <div className={styles.bottomCard}>
+          <div className={styles.bottomValue}>{soc?.soh ?? '--'}</div>
+          <div className={styles.bottomLabel}>SOH %</div>
         </div>
       </div>
     </CardShell>
