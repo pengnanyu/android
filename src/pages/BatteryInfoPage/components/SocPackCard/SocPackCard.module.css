@@ -113,3 +113,59 @@
     font-size: 13px;
   }
 }
+
+.safetyBar {
+  padding: 6px 12px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-top: 1px solid var(--color-border);
+}
+
+.safetySection {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.safetyTag {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.tagAlarm {
+  background: #fbbf24;
+  color: #78350f;
+}
+
+.tagSafety {
+  background: #dc2626;
+  color: #fff;
+}
+
+.safetyFlags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+.safetyFlag {
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.flagAlarm {
+  background: oklch(0.97 0.04 90);
+  color: #92400e;
+}
+
+.flagSafety {
+  background: oklch(0.97 0.03 25);
+  color: #dc2626;
+}

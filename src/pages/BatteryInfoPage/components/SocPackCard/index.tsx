@@ -1,4 +1,5 @@
 import type { SocData, PackData } from '@/types';
+import type { StatusItem } from '../hooks/useStatusItems';
 import { CardShell } from '@/components/shared/CardShell';
 import { GaugeCanvas } from './GaugeCanvas';
 import styles from './SocPackCard.module.css';
@@ -9,9 +10,16 @@ interface SocPackCardProps {
   bmsTime?: string;
   dischargeTime?: string;
   chargeTime?: string;
+  safetyItems?: StatusItem[];
+  safetyActiveCount?: number;
+  alarmActiveCount?: number;
 }
 
-export function SocPackCard({ soc, pack, bmsTime, dischargeTime, chargeTime }: SocPackCardProps) {
+export function SocPackCard({ soc, pack, bmsTime, dischargeTime, chargeTime, safetyItems, safetyActiveCount, alarmActiveCount }: SocPackCardProps) {
+  const activeSafetyItems = safetyItems?.filter(f => f.active) ?? [];
+  const alarmItems = activeSafetyItems.filter(f => f.isAlarm);
+  const safetyOnlyItems = activeSafetyItems.filter(f => !f.isAlarm);
+
   return (
     <CardShell
       title="SOC Pack"
@@ -58,6 +66,30 @@ export function SocPackCard({ soc, pack, bmsTime, dischargeTime, chargeTime }: S
           </div>
         </div>
       </div>
+      {activeSafetyItems.length > 0 && (
+        <div className={styles.safetyBar}>
+          {alarmItems.length > 0 && (
+            <div className={styles.safetySection}>
+              <span className={`${styles.safetyTag} ${styles.tagAlarm}`}>Alarm {alarmActiveCount ?? 0}</span>
+              <div className={styles.safetyFlags}>
+                {alarmItems.map((item, i) => (
+                  <span key={i} className={`${styles.safetyFlag} ${styles.flagAlarm}`}>{item.label}</span>
+                ))}
+              </div>
+            </div>
+          )}
+          {safetyOnlyItems.length > 0 && (
+            <div className={styles.safetySection}>
+              <span className={`${styles.safetyTag} ${styles.tagSafety}`}>Safety {(safetyActiveCount ?? 0) - (alarmActiveCount ?? 0)}</span>
+              <div className={styles.safetyFlags}>
+                {safetyOnlyItems.map((item, i) => (
+                  <span key={i} className={`${styles.safetyFlag} ${styles.flagSafety}`}>{item.label}</span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </CardShell>
   );
 }
