@@ -164,7 +164,7 @@ function drawSocGauge(ctx: CanvasRenderingContext2D, w: number, h: number, _valu
   const cx = w / 2;
   const cy = h / 2;
   const r = Math.min(w, h) * 0.38;
-  const lineWidth = r * 0.13;
+  const lineWidth = r * 0.18;
 
   const startAngle = (135 * Math.PI) / 180;
   const totalSweep = (270 * Math.PI) / 180;
@@ -198,16 +198,28 @@ function drawSocGauge(ctx: CanvasRenderingContext2D, w: number, h: number, _valu
       ctx.stroke();
     }
 
+    ctx.save();
+    ctx.shadowColor = `rgba(${cr},${cg},${cb},0.6)`;
+    ctx.shadowBlur = 18;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, startAngle, valueAngle);
+    ctx.strokeStyle = `rgba(${cr},${cg},${cb},0.5)`;
+    ctx.lineWidth = lineWidth;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+    ctx.restore();
+
     const glowR = r + lineWidth * 0.5;
-    const glowGrad = ctx.createRadialGradient(cx, cy, r - lineWidth, cx, cy, glowR + 4);
-    const [gr, gg, gb] = getSocRgb(soc);
-    glowGrad.addColorStop(0, `rgba(${gr},${gg},${gb},0)`);
-    glowGrad.addColorStop(0.7, `rgba(${gr},${gg},${gb},0.08)`);
-    glowGrad.addColorStop(1, `rgba(${gr},${gg},${gb},0)`);
+    const glowGrad = ctx.createRadialGradient(cx, cy, r - lineWidth, cx, cy, glowR + 6);
+    glowGrad.addColorStop(0, `rgba(${cr},${cg},${cb},0)`);
+    glowGrad.addColorStop(0.5, `rgba(${cr},${cg},${cb},0.12)`);
+    glowGrad.addColorStop(1, `rgba(${cr},${cg},${cb},0)`);
     ctx.beginPath();
     ctx.arc(cx, cy, r, startAngle, valueAngle);
     ctx.strokeStyle = glowGrad;
-    ctx.lineWidth = lineWidth + 8;
+    ctx.lineWidth = lineWidth + 16;
     ctx.lineCap = 'round';
     ctx.stroke();
   }
