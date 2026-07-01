@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 
-export function useColumnCount(breakpoints: [number, number, number] = [640, 1024, 1400]): { ref: React.RefObject<HTMLDivElement | null>; cols: number } {
-  const ref = useRef<HTMLDivElement | null>(null);
+export function useColumnCount(breakpoints: [number, number, number] = [640, 1024, 1400]): { ref: React.RefObject<HTMLDivElement>; cols: number } {
+  const ref = useRef<HTMLDivElement>(null);
   const [cols, setCols] = useState(1);
 
   useEffect(() => {
