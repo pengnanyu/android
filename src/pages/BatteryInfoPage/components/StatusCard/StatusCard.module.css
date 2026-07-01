@@ -16,7 +16,7 @@
   border: 1px solid transparent;
   background: transparent;
   color: var(--color-muted-foreground);
-  transition: all 0.15s;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 
 .tabBtn:hover {
@@ -33,6 +33,23 @@
   background: oklch(0.95 0.04 145);
   border-color: oklch(0.7 0.12 145);
   color: oklch(0.45 0.15 145);
+}
+
+.tabStack {
+  display: grid;
+}
+
+.tabPanel {
+  grid-area: 1 / 1;
+}
+
+.tabVisible {
+  visibility: visible;
+}
+
+.tabHidden {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .groupList {

@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useLayoutEffect } from 'react';
+import { useState, useMemo, useRef, useLayoutEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { FieldValue, ParsedProtocol } from '@/utils/modbus';
 import type { ProtocolDatabase } from '@/types';
@@ -42,44 +42,22 @@ function ShieldIcon({ color, count }: { color: string; count?: number }) {
   );
 }
 
-function FlagGroup({ items, isSafety }: { items: StatusItem[]; isSafety: boolean }) {
-  const listRef = useRef<HTMLDivElement>(null);
-  const [flagWidth, setFlagWidth] = useState<number | undefined>(undefined);
-
-  useLayoutEffect(() => {
-    if (!listRef.current) return;
-    const flags = listRef.current.querySelectorAll<HTMLElement>('[data-flag]');
-    let maxW = 0;
-    flags.forEach(el => {
-      el.style.width = '';
-      const w = el.scrollWidth;
-      if (w > maxW) maxW = w;
-    });
-    if (maxW > 0) setFlagWidth(maxW);
-  }, [items]);
-
-  return (
-    <div className={styles.group}>
-      <div className={styles.groupName}>{items[0]?.nameZh || items[0]?.name}</div>
-      <div className={styles.flagList} ref={listRef}>
-        {items.map((item, i) => (
-          <span
-            key={i}
-            data-flag
-            className={`${styles.flag} ${item.active ? (isSafety ? styles.flagSafetyActive : styles.flagStatusActive) : (isSafety ? styles.flagSafetyInactive : styles.flagStatusInactive)}`}
-            style={flagWidth ? { width: flagWidth } : undefined}
-          >
-            {item.label}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
+function buildGroups(items: StatusItem[], hideInactive: boolean): Map<string, StatusItem[]> {
+  const grouped = new Map<string, StatusItem[]>();
+  for (const item of items) {
+    if (hideInactive && !item.active) continue;
+    const list = grouped.get(item.name) ?? [];
+    list.push(item);
+    grouped.set(item.name, list);
+  }
+  return grouped;
 }
 
 export function StatusCard({ protocolDb, parsedProtocol, parsedValues }: StatusCardProps) {
   const [activeTab, setActiveTab] = useState<TabKey>('safety');
   const { t } = useTranslation();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [flagWidth, setFlagWidth] = useState<number | undefined>(undefined);
 
   const { safetyItems, statusItems, safetyActiveCount } = useMemo(() => {
     interface BitEntry { nameEn: string; nameZh: string; bitDesc: string; byteLen: number; rawValue: number; }
@@ -146,6 +124,22 @@ export function StatusCard({ protocolDb, parsedProtocol, parsedValues }: StatusC
     };
   }, [protocolDb, parsedProtocol, parsedValues]);
 
+  const measureFlags = useCallback(() => {
+    if (!containerRef.current) return;
+    const flags = containerRef.current.querySelectorAll<HTMLElement>('[data-flag]');
+    let maxW = 0;
+    flags.forEach(el => {
+      el.style.width = '';
+      const w = el.scrollWidth;
+      if (w > maxW) maxW = w;
+    });
+    if (maxW > 0) setFlagWidth(maxW);
+  }, []);
+
+  useLayoutEffect(() => {
+    measureFlags();
+  }, [measureFlags, safetyItems, statusItems]);
+
   if (safetyItems.length === 0 && statusItems.length === 0) {
     return (
       <CardShell title={null!}>
@@ -159,16 +153,28 @@ export function StatusCard({ protocolDb, parsedProtocol, parsedValues }: StatusC
   if (statusItems.length > 0) tabs.push({ key: 'status' });
 
   const effectiveTab = tabs.find(t => t.key === activeTab) ? activeTab : (tabs[0]?.key ?? 'safety');
-  const currentItems = effectiveTab === 'safety' ? safetyItems : statusItems;
-  const isSafety = effectiveTab === 'safety';
 
-  const grouped = new Map<string, StatusItem[]>();
-  for (const item of currentItems) {
-    if (isSafety && !item.active) continue;
-    const list = grouped.get(item.name) ?? [];
-    list.push(item);
-    grouped.set(item.name, list);
-  }
+  const safetyGroups = buildGroups(safetyItems, true);
+  const statusGroups = buildGroups(statusItems, false);
+
+  const renderGroups = (groups: Map<string, StatusItem[]>, isSafety: boolean) =>
+    Array.from(groups.entries()).map(([name, items]) => (
+      <div key={name} className={styles.group}>
+        <div className={styles.groupName}>{items[0]?.nameZh || name}</div>
+        <div className={styles.flagList}>
+          {items.map((item, i) => (
+            <span
+              key={i}
+              data-flag
+              className={`${styles.flag} ${item.active ? (isSafety ? styles.flagSafetyActive : styles.flagStatusActive) : (isSafety ? styles.flagSafetyInactive : styles.flagStatusInactive)}`}
+              style={flagWidth ? { width: flagWidth } : undefined}
+            >
+              {item.label}
+            </span>
+          ))}
+        </div>
+      </div>
+    ));
 
   const titleContent = (
     <div className={styles.titleTabs}>
@@ -195,10 +201,21 @@ export function StatusCard({ protocolDb, parsedProtocol, parsedValues }: StatusC
 
   return (
     <CardShell title={titleContent}>
-      <div className={styles.groupList}>
-        {Array.from(grouped.entries()).map(([name, items]) => (
-          <FlagGroup key={name} items={items} isSafety={isSafety} />
-        ))}
+      <div ref={containerRef} className={styles.tabStack}>
+        {safetyItems.length > 0 && (
+          <div className={`${styles.tabPanel} ${effectiveTab === 'safety' ? styles.tabVisible : styles.tabHidden}`}>
+            <div className={styles.groupList}>
+              {renderGroups(safetyGroups, true)}
+            </div>
+          </div>
+        )}
+        {statusItems.length > 0 && (
+          <div className={`${styles.tabPanel} ${effectiveTab === 'status' ? styles.tabVisible : styles.tabHidden}`}>
+            <div className={styles.groupList}>
+              {renderGroups(statusGroups, false)}
+            </div>
+          </div>
+        )}
       </div>
     </CardShell>
   );
