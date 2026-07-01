@@ -44,6 +44,15 @@
   }
 }
 
+.orderSoc,
+.orderChart,
+.orderDevice,
+.orderStatus,
+.orderTemp {
+  display: flex;
+  flex-direction: column;
+}
+
 .orderSoc {
   order: 1;
 }
