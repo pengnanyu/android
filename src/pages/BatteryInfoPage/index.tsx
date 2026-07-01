@@ -15,7 +15,7 @@ function findField(fields: FieldValue[], nameEn: string): FieldValue | undefined
 }
 
 export function BatteryInfoPage() {
-  const { parsedValues, deviceVersion, parsedProtocol, protocolDb } = useBmsStore();
+  const { parsedValues, parsedProtocol, protocolDb } = useBmsStore();
   const { i18n } = useTranslation();
   const isZh = i18n.language === 'zh';
 
@@ -142,7 +142,7 @@ export function BatteryInfoPage() {
       <SocPackCard soc={soc} pack={pack} bmsTime={bmsTime} />
       <DeviceInfoCard bmsId={bmsId} extraFields={extraFields} />
       <StatusCard protocolDb={protocolDb} parsedProtocol={parsedProtocol} parsedValues={parsedValues} />
-      <VoltageCurrentChart dataPoints={chartDataPoints} voltageValue={graphVoltage?.value} currentValue={graphCurrent?.value} voltageUnit={graphVoltage?.unit} currentUnit={graphCurrent?.unit} />
+      <VoltageCurrentChart dataPoints={chartDataPoints} />
       <CellVoltageCard cellVoltages={cellVoltages} voltageMax={voltageMax} voltageMin={voltageMin} balanceFlags={balanceFlags} />
       <TemperatureCard temperatures={temperatures} voltageMax={voltageMax} voltageMin={voltageMin} />
     </div>

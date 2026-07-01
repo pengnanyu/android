@@ -15,7 +15,7 @@ interface VoltageCurrentChartProps {
 
 const MAX_POINTS = 120;
 
-export function VoltageCurrentChart({ dataPoints, voltageValue, currentValue, voltageUnit, currentUnit }: VoltageCurrentChartProps) {
+export function VoltageCurrentChart({ dataPoints }: VoltageCurrentChartProps) {
   const chartRef = useRef<HTMLDivElement>(null);
   const instanceRef = useRef<echarts.ECharts | null>(null);
   const [history, setHistory] = useState<VoltageCurrentDataPoint[]>([]);
