@@ -197,27 +197,8 @@ export function BatteryInfoPage() {
     <div className={styles.detailGrid}>
       <DeviceInfoCard bmsId={bmsId} extraFields={extraFields} />
       <StatusCard protocolDb={protocolDb} parsedProtocol={parsedProtocol} parsedValues={parsedValues} />
-      {cols >= 3 ? (
-        <>
-          <CellVoltageCard cellVoltages={cellVoltages} voltageMax={voltageMax} voltageMin={voltageMin} balanceFlags={balanceFlags} />
-          <TemperatureCard temperatures={temperatures} temperMax={temperMax} temperMin={temperMin} />
-        </>
-      ) : (
-        <div className={styles.sideTabCard}>
-          <div className={styles.sideTabNav}>
-            <button className={`${styles.sideTab} ${cellTempTab === 'voltage' ? styles.sideTabActive : ''}`} onClick={() => setCellTempTab('voltage')}>
-              {isZh ? '电压' : 'V'}
-            </button>
-            <button className={`${styles.sideTab} ${cellTempTab === 'temperature' ? styles.sideTabActive : ''}`} onClick={() => setCellTempTab('temperature')}>
-              {isZh ? '温度' : 'T'}
-            </button>
-          </div>
-          <div className={styles.sideTabContent}>
-            {cellTempTab === 'voltage' && <CellVoltageCard cellVoltages={cellVoltages} voltageMax={voltageMax} voltageMin={voltageMin} balanceFlags={balanceFlags} noShell />}
-            {cellTempTab === 'temperature' && <TemperatureCard temperatures={temperatures} temperMax={temperMax} temperMin={temperMin} noShell />}
-          </div>
-        </div>
-      )}
+      <CellVoltageCard cellVoltages={cellVoltages} voltageMax={voltageMax} voltageMin={voltageMin} balanceFlags={balanceFlags} />
+      <TemperatureCard temperatures={temperatures} temperMax={temperMax} temperMin={temperMin} />
     </div>
   );
 

@@ -27,9 +27,7 @@ export function SocPackCard({ soc, pack, chargeVoltage, bmsTime }: SocPackCardPr
             max={100}
             soc={soc?.soc ?? 0}
           />
-          {soc?.soh !== undefined && soc.soh > 0 && (
-            <div className={styles.sohLabel}>SOH {soc.soh}%</div>
-          )}
+
         </div>
         <div className={styles.statsArea}>
           <div className={styles.statCards}>
@@ -56,6 +54,14 @@ export function SocPackCard({ soc, pack, chargeVoltage, bmsTime }: SocPackCardPr
               </div>
               <div className={styles.statValue}>{(pack?.power ?? 0).toFixed(0)}</div>
               <div className={styles.statUnit}>W</div>
+            </div>
+            <div className={styles.statCard}>
+              <div className={styles.statHeader}>
+                <span className={styles.statDot} style={{ background: '#8b5cf6' }} />
+                <span className={styles.statLabel}>SOH</span>
+              </div>
+              <div className={styles.statValue}>{soc?.soh ?? 0}</div>
+              <div className={styles.statUnit}>%</div>
             </div>
           </div>
           <div className={styles.miniGauges}>
