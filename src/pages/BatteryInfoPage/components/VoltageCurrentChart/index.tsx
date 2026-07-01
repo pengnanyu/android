@@ -44,14 +44,17 @@ export function VoltageCurrentChart({ dataPoints }: VoltageCurrentChartProps) {
   const ensureInstance = useCallback(() => {
     if (!chartRef.current) return null;
     if (!instanceRef.current) {
-      instanceRef.current = echarts.init(chartRef.current);
+      instanceRef.current = echarts.init(chartRef.current, undefined, { renderer: 'canvas' });
     }
     return instanceRef.current;
   }, []);
 
   useEffect(() => {
     const chart = ensureInstance();
-    if (chart) chart.setOption(option, true);
+    if (chart) {
+      chart.setOption(option, true);
+      chart.resize();
+    }
   }, [option, ensureInstance]);
 
   useEffect(() => {
