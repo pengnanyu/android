@@ -30,7 +30,6 @@
   background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: 8px;
-  overflow: hidden;
 }
 
 .edgeTabBar {
@@ -38,6 +37,7 @@
   background: var(--color-muted);
   padding: 4px 4px 0;
   gap: 2px;
+  border-radius: 8px 8px 0 0;
 }
 
 .edgeTab {
@@ -48,8 +48,7 @@
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
-  border: 1px solid transparent;
-  border-bottom: none;
+  border: none;
   border-radius: 8px 8px 0 0;
   background: transparent;
   color: var(--color-muted-foreground);
@@ -62,13 +61,12 @@
 
 .edgeTabActive {
   background: var(--color-card);
-  border-color: var(--color-border);
   color: var(--color-foreground);
-  margin-bottom: -1px;
 }
 
 .edgeBody {
   padding: 12px;
+  min-height: 100px;
 }
 
 .sideTabCard {
@@ -77,7 +75,7 @@
   background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: 8px;
-  overflow: hidden;
+
 }
 
 .sideTabLayout {
@@ -127,6 +125,6 @@
 .sideTabContent {
   flex: 1;
   min-width: 0;
-  overflow: hidden;
+
   padding: 8px;
 }
