@@ -24,50 +24,28 @@
   }
 }
 
-.overview {
+.mainGrid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 10px;
 }
 
 @media (min-width: 640px) {
-  .overview {
+  .mainGrid {
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: 14px;
   }
 }
 
 @media (min-width: 1024px) {
-  .overview {
+  .mainGrid {
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: 16px;
   }
-}
-
-.detail {
-  min-height: 0;
 }
 
 .chartSpan2 {
   grid-column: span 2;
-}
-
-.detailGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 10px;
-}
-
-@media (min-width: 640px) {
-  .detailGrid {
-    gap: 14px;
-  }
-}
-
-@media (min-width: 1024px) {
-  .detailGrid {
-    gap: 16px;
-  }
 }
 
 .edgeCard {

@@ -209,13 +209,21 @@ export function BatteryInfoPage() {
 
   return (
     <div className={styles.page} ref={gridRef}>
-      <div className={styles.overview}>
-        <SocPackCard soc={soc} pack={pack} bmsTime={bmsTime} dischargeTime={dischargeTime} chargeTime={chargeTime} safetyItems={safetyItems} safetyActiveCount={safetyActiveCount} alarmActiveCount={alarmActiveCount} />
-        <VoltageCurrentChart dataPoints={chartDataPoints} cellVoltages={cellVoltages} voltageMax={voltageMax} voltageMin={voltageMin} balanceFlags={balanceFlags} className={cols > 1 ? styles.chartSpan2 : undefined} />
-      </div>
-      <div className={styles.detail}>
-        {detailContent}
-      </div>
+      {cols === 1 ? (
+        <>
+          <SocPackCard soc={soc} pack={pack} bmsTime={bmsTime} dischargeTime={dischargeTime} chargeTime={chargeTime} safetyItems={safetyItems} safetyActiveCount={safetyActiveCount} alarmActiveCount={alarmActiveCount} />
+          <VoltageCurrentChart dataPoints={chartDataPoints} cellVoltages={cellVoltages} voltageMax={voltageMax} voltageMin={voltageMin} balanceFlags={balanceFlags} />
+          {detailContent}
+        </>
+      ) : (
+        <div className={styles.mainGrid}>
+          <SocPackCard soc={soc} pack={pack} bmsTime={bmsTime} dischargeTime={dischargeTime} chargeTime={chargeTime} safetyItems={safetyItems} safetyActiveCount={safetyActiveCount} alarmActiveCount={alarmActiveCount} />
+          <DeviceInfoCard bmsId={bmsId} extraFields={extraFields} />
+          <VoltageCurrentChart dataPoints={chartDataPoints} cellVoltages={cellVoltages} voltageMax={voltageMax} voltageMin={voltageMin} balanceFlags={balanceFlags} className={styles.chartSpan2} />
+          <StatusCard protocolDb={protocolDb} parsedProtocol={parsedProtocol} parsedValues={parsedValues} />
+          <TemperatureCard temperatures={temperatures} temperMax={temperMax} temperMin={temperMin} />
+        </div>
+      )}
     </div>
   );
 }

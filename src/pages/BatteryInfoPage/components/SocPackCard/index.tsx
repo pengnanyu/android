@@ -20,10 +20,22 @@ export function SocPackCard({ soc, pack, bmsTime, dischargeTime, chargeTime, saf
   const alarmItems = activeSafetyItems.filter(f => f.isAlarm);
   const safetyOnlyItems = activeSafetyItems.filter(f => !f.isAlarm);
 
+  const titleExtra = (
+    <div className={styles.titleBar}>
+      {bmsTime && <span className={styles.titleTime}>{bmsTime}</span>}
+      {alarmItems.length > 0 && (
+        <span className={`${styles.safetyTag} ${styles.tagAlarm}`}>Alarm {alarmActiveCount ?? 0}</span>
+      )}
+      {safetyOnlyItems.length > 0 && (
+        <span className={`${styles.safetyTag} ${styles.tagSafety}`}>Safety {(safetyActiveCount ?? 0) - (alarmActiveCount ?? 0)}</span>
+      )}
+    </div>
+  );
+
   return (
     <CardShell
-      title="SOC Pack"
-      titleExtra={bmsTime ? <span>{bmsTime}</span> : undefined}
+      title={null!}
+      titleExtra={titleExtra}
       className={styles.shell}
     >
       <div className={styles.container}>
@@ -66,30 +78,6 @@ export function SocPackCard({ soc, pack, bmsTime, dischargeTime, chargeTime, saf
           </div>
         </div>
       </div>
-      {activeSafetyItems.length > 0 && (
-        <div className={styles.safetyBar}>
-          {alarmItems.length > 0 && (
-            <div className={styles.safetySection}>
-              <span className={`${styles.safetyTag} ${styles.tagAlarm}`}>Alarm {alarmActiveCount ?? 0}</span>
-              <div className={styles.safetyFlags}>
-                {alarmItems.map((item, i) => (
-                  <span key={i} className={`${styles.safetyFlag} ${styles.flagAlarm}`}>{item.label}</span>
-                ))}
-              </div>
-            </div>
-          )}
-          {safetyOnlyItems.length > 0 && (
-            <div className={styles.safetySection}>
-              <span className={`${styles.safetyTag} ${styles.tagSafety}`}>Safety {(safetyActiveCount ?? 0) - (alarmActiveCount ?? 0)}</span>
-              <div className={styles.safetyFlags}>
-                {safetyOnlyItems.map((item, i) => (
-                  <span key={i} className={`${styles.safetyFlag} ${styles.flagSafety}`}>{item.label}</span>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
     </CardShell>
   );
 }

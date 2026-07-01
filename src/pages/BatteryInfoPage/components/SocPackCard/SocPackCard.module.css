@@ -114,19 +114,16 @@
   }
 }
 
-.safetyBar {
-  padding: 6px 12px 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  border-top: 1px solid var(--color-border);
-}
-
-.safetySection {
+.titleBar {
   display: flex;
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
+}
+
+.titleTime {
+  font-size: 12px;
+  opacity: 0.8;
 }
 
 .safetyTag {
@@ -145,27 +142,4 @@
 .tagSafety {
   background: #dc2626;
   color: #fff;
-}
-
-.safetyFlags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 3px;
-}
-
-.safetyFlag {
-  font-size: 10px;
-  padding: 1px 5px;
-  border-radius: 3px;
-  white-space: nowrap;
-}
-
-.flagAlarm {
-  background: oklch(0.97 0.04 90);
-  color: #92400e;
-}
-
-.flagSafety {
-  background: oklch(0.97 0.03 25);
-  color: #dc2626;
 }
