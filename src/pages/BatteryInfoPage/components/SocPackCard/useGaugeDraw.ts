@@ -1,5 +1,5 @@
 import { useRef, useEffect, useCallback } from 'react';
-import { getSocColor } from '@/utils/color';
+
 
 interface GaugeConfig {
   type: 'current' | 'voltage' | 'soc';
