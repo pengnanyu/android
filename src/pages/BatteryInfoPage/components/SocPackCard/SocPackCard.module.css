@@ -20,12 +20,12 @@
 }
 
 .overlay {
-  position: relative;
+  position: absolute;
+  inset: 0;
   z-index: 1;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 220px;
   padding: 12px;
 }
 
@@ -99,7 +99,7 @@
   }
 
   .overlay {
-    min-height: 180px;
+
     padding: 8px;
   }
 

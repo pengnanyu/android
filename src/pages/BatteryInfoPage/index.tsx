@@ -54,18 +54,19 @@ export function BatteryInfoPage() {
   const pack = useMemo(() => {
     const vF = findField(infoFields, 'BatteryVoltage') ?? findField(infoFields, 'Total_Voltage');
     const iF = findField(infoFields, 'Current') ?? findField(infoFields, 'Total_Current');
-    const pF = findField(infoFields, 'Power');
     if (!vF && !iF) return null;
-    return { totalVoltage: vF?.value ?? 0, totalCurrent: iF?.value ?? 0, power: pF?.value ?? 0 };
+    const v = vF?.value ?? 0;
+    const i = iF?.value ?? 0;
+    return { totalVoltage: v, totalCurrent: i, power: v * i };
   }, [infoFields]);
 
   const dischargeTime = useMemo(() => {
-    const df = infoFields.find(v => /discharge.*time|remain.*empty|empty.*time/i.test(v.name));
+    const df = findField(infoFields, 'AverageTimeToEmpty');
     return df?.displayValue;
   }, [infoFields]);
 
   const chargeTime = useMemo(() => {
-    const cf = infoFields.find(v => /charge.*time|remain.*full|full.*time/i.test(v.name));
+    const cf = findField(infoFields, 'AverageTimeToFull');
     return cf?.displayValue;
   }, [infoFields]);
 
@@ -131,8 +132,7 @@ export function BatteryInfoPage() {
         if (skipInstrIdx.has(f.parentInstructionIndex)) return false;
         if (f.graph) return false;
         if (f.bitTag) return false;
-        if (f.name === 'SOC' || f.name === 'SOH' || f.name === 'Total_Voltage' || f.name === 'Total_Current' || f.name === 'BatteryVoltage' || f.name === 'Current' || f.name === 'Power') return false;
-        if (/discharge.*time|remain.*empty|empty.*time|charge.*time|remain.*full|full.*time/i.test(f.name)) return false;
+        if (f.name === 'SOC' || f.name === 'SOH' || f.name === 'Total_Voltage' || f.name === 'Total_Current' || f.name === 'BatteryVoltage' || f.name === 'Current' || f.name === 'Power' || f.name === 'AverageTimeToEmpty' || f.name === 'AverageTimeToFull') return false;
         if (/bms.*time/i.test(f.name)) return false;
         if (f.dataType === 'ID' || /bms.*id/i.test(f.name)) return false;
         return true;
