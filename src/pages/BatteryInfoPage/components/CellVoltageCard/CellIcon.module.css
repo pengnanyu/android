@@ -1,21 +1,30 @@
 .cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
   position: relative;
-  aspect-ratio: 2 / 1;
+  cursor: default;
+}
+
+.battery {
+  position: relative;
+  width: 28px;
+  height: 44px;
   border: 2.5px solid var(--color-border);
   border-radius: 4px;
   background: var(--color-muted);
-  margin-right: 6px;
 }
 
-.cell::after {
-  content: '';
+.cap {
   position: absolute;
-  right: -8px;
-  top: 22%;
-  width: 5px;
-  height: 56%;
+  top: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 4px;
   background: var(--color-border);
-  border-radius: 0 3px 3px 0;
+  border-radius: 2px 2px 0 0;
 }
 
 .inner {
@@ -28,27 +37,24 @@
 .fill {
   position: absolute;
   left: 3px;
-  bottom: 3px;
-  top: 3px;
-  transition: width 0.3s ease;
+  right: 3px;
+  bottom: 2px;
+  transition: height 0.3s ease;
   border-radius: 2px;
 }
 
 .cellInfo {
-  position: absolute;
-  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  z-index: 1;
-  text-shadow: 0 0 4px var(--color-card), 0 0 4px var(--color-card), 0 1px 2px var(--color-card);
+  gap: 0;
 }
 
 .cellName {
-  font-size: 10px;
-  color: var(--color-foreground);
+  font-size: 9px;
+  color: var(--color-muted-foreground);
   font-weight: 600;
+  line-height: 1.2;
 }
 
 .cellVoltage {
@@ -56,13 +62,33 @@
   color: var(--color-foreground);
   font-variant-numeric: tabular-nums;
   font-weight: 500;
+  line-height: 1.2;
 }
 
 .balancing {
   position: absolute;
-  top: 2px;
-  right: 4px;
+  top: -2px;
+  right: -2px;
   font-size: 10px;
   color: var(--color-warning);
   z-index: 2;
+}
+
+.cellCompact .battery {
+  width: 22px;
+  height: 34px;
+}
+
+.cellCompact .cap {
+  width: 10px;
+  height: 3px;
+  top: -4px;
+}
+
+.cellCompact .cellName {
+  font-size: 8px;
+}
+
+.cellCompact .cellVoltage {
+  font-size: 9px;
 }
