@@ -70,20 +70,19 @@ export function BatteryInfoPage() {
   const temperatures = useMemo(() => {
     if (temperInstrIdx < 0) return [];
     return infoFields
-      .filter(f => f.parentInstructionIndex === temperInstrIdx && f.name !== 'Temper Max' && f.name !== 'Temper Min')
+      .filter(f => f.parentInstructionIndex === temperInstrIdx && !/temper\s*(max|min)/i.test(f.name))
       .map((f, i) => ({ index: i + 1, temperature: f.value, name: isZh ? f.nameZh : f.name }));
   }, [infoFields, temperInstrIdx, isZh]);
 
-
   const temperMax = useMemo(() => {
     if (temperInstrIdx < 0) return undefined;
-    const f = infoFields.find(f => f.parentInstructionIndex === temperInstrIdx && f.name === 'Temper Max');
+    const f = infoFields.find(f => f.parentInstructionIndex === temperInstrIdx && /temper\s*max/i.test(f.name));
     return f?.value;
   }, [infoFields, temperInstrIdx]);
 
   const temperMin = useMemo(() => {
     if (temperInstrIdx < 0) return undefined;
-    const f = infoFields.find(f => f.parentInstructionIndex === temperInstrIdx && f.name === 'Temper Min');
+    const f = infoFields.find(f => f.parentInstructionIndex === temperInstrIdx && /temper\s*min/i.test(f.name));
     return f?.value;
   }, [infoFields, temperInstrIdx]);
 
