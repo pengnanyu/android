@@ -25,7 +25,19 @@ function setupViewportUnit() {
   }
 }
 
+function hideMobileAddressBar() {
+  if (!/Mobi|Android/i.test(navigator.userAgent)) return;
+  if (window.matchMedia('(display-mode: standalone)').matches) return;
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      document.documentElement.style.height = 'calc(var(--vh, 1vh) * 100 + 1px)';
+      window.scrollTo(0, 1);
+    }, 100);
+  });
+}
+
 setupViewportUnit();
+hideMobileAddressBar();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

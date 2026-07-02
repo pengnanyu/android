@@ -33,6 +33,7 @@ function AppContent() {
         activeRoute={activePath}
         onNavigate={handleNavigate}
       />
+      <div style={{ height: '1px' }} aria-hidden="true" />
     </>
   );
 }
