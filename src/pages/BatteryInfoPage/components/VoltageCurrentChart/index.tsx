@@ -2,7 +2,6 @@ import { useRef, useEffect, useCallback } from 'react';
 import * as echarts from 'echarts';
 import type { VoltageCurrentDataPoint, CellVoltage } from '@/types';
 import { CardShell } from '@/components/shared/CardShell';
-import { useChartOption } from './useChartOption';
 import { CellIcon } from '../CellVoltageCard/CellIcon';
 import cellStyles from '../CellVoltageCard/CellVoltageCard.module.css';
 import styles from './VoltageCurrentChart.module.css';
@@ -19,24 +18,109 @@ interface VoltageCurrentChartProps {
   soc?: number;
 }
 
+function formatTime(ts: number): string {
+  const d = new Date(ts);
+  return `${d.getMinutes().toString().padStart(2, '0')}:${d.getSeconds().toString().padStart(2, '0')}`;
+}
+
+function buildInitialOption(dataPoints: VoltageCurrentDataPoint[], totalCount: number) {
+  const startIdx = Math.max(0, totalCount - DEFAULT_VISIBLE);
+  const startPercent = totalCount <= DEFAULT_VISIBLE ? 0 : (startIdx / totalCount * 100);
+  const endPercent = 100;
+
+  return {
+    animation: false,
+    grid: { left: 30, right: 30, top: 10, bottom: 40 },
+    tooltip: { trigger: 'axis' },
+    xAxis: {
+      type: 'category',
+      data: dataPoints.map(p => formatTime(p.timestamp)),
+      axisLabel: { fontSize: 10 },
+    },
+    yAxis: [
+      {
+        type: 'value',
+        name: 'V',
+        nameTextStyle: { fontSize: 10 },
+        axisLabel: { fontSize: 10 },
+        splitLine: { lineStyle: { type: 'dashed' } },
+      },
+      {
+        type: 'value',
+        name: 'A',
+        nameTextStyle: { fontSize: 10 },
+        axisLabel: { fontSize: 10 },
+        splitLine: { show: false },
+      },
+    ],
+    dataZoom: [
+      {
+        type: 'inside',
+        xAxisIndex: 0,
+        start: startPercent,
+        end: endPercent,
+        zoomOnMouseWheel: true,
+        moveOnMouseMove: true,
+        moveOnMouseWheel: false,
+      },
+      {
+        type: 'slider',
+        xAxisIndex: 0,
+        start: startPercent,
+        end: endPercent,
+        height: 14,
+        bottom: 4,
+        borderColor: 'transparent',
+        backgroundColor: 'var(--color-muted)',
+        fillerColor: 'var(--color-primary)',
+        handleStyle: { color: 'var(--color-primary)' },
+        textStyle: { fontSize: 10 },
+      },
+    ],
+    series: [
+      {
+        name: 'Voltage',
+        type: 'line',
+        data: dataPoints.map(p => p.voltage),
+        yAxisIndex: 0,
+        smooth: true,
+        showSymbol: false,
+        lineStyle: { width: 2, color: '#6366f1' },
+        itemStyle: { color: '#6366f1' },
+        areaStyle: { color: 'rgba(99,102,241,0.1)' },
+      },
+      {
+        name: 'Current',
+        type: 'line',
+        data: dataPoints.map(p => p.current),
+        yAxisIndex: 1,
+        smooth: true,
+        showSymbol: false,
+        lineStyle: { width: 2, color: '#f59e0b' },
+        itemStyle: { color: '#f59e0b' },
+        areaStyle: { color: 'rgba(245,158,11,0.1)' },
+      },
+    ],
+  };
+}
+
 export function VoltageCurrentChart({ history, cellVoltages, voltageMax, voltageMin, balanceFlags, soc }: VoltageCurrentChartProps) {
   const chartRef = useRef<HTMLDivElement>(null);
   const instanceRef = useRef<echarts.ECharts | null>(null);
   const restoreTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const userZoomedRef = useRef(false);
-
-  const option = useChartOption(history, history.length);
+  const prevLenRef = useRef(0);
+  const initializedRef = useRef(false);
 
   const dispatchRestore = useCallback(() => {
     const chart = instanceRef.current;
     if (!chart || history.length === 0) return;
     const startIdx = Math.max(0, history.length - DEFAULT_VISIBLE);
     const startPercent = history.length <= DEFAULT_VISIBLE ? 0 : (startIdx / history.length * 100);
-    const endPercent = 100;
     chart.dispatchAction({
       type: 'dataZoom',
       start: startPercent,
-      end: endPercent,
+      end: 100,
     });
     userZoomedRef.current = false;
   }, [history.length]);
@@ -56,24 +140,39 @@ export function VoltageCurrentChart({ history, cellVoltages, voltageMax, voltage
     </div>
   );
 
-  const ensureInstance = useCallback(() => {
-    if (!chartRef.current) return null;
-    if (!instanceRef.current) {
-      instanceRef.current = echarts.init(chartRef.current, undefined, { renderer: 'canvas' });
-      instanceRef.current.on('datazoom', () => {
+  useEffect(() => {
+    const el = chartRef.current;
+    if (!el || history.length === 0) return;
+
+    let chart = instanceRef.current;
+    if (!chart) {
+      chart = echarts.init(el, undefined, { renderer: 'canvas' });
+      instanceRef.current = chart;
+      chart.on('datazoom', () => {
         userZoomedRef.current = true;
       });
     }
-    return instanceRef.current;
-  }, []);
 
-  useEffect(() => {
-    const chart = ensureInstance();
-    if (chart) {
-      chart.setOption(option, true);
-      chart.resize();
+    if (!initializedRef.current) {
+      chart.setOption(buildInitialOption(history, history.length), true);
+      initializedRef.current = true;
+      prevLenRef.current = history.length;
+      return;
     }
-  }, [option, ensureInstance]);
+
+    const newPoints = history.slice(prevLenRef.current);
+    prevLenRef.current = history.length;
+
+    if (newPoints.length === 0) return;
+
+    chart.setOption({
+      xAxis: { data: history.map(p => formatTime(p.timestamp)) },
+      series: [
+        { data: history.map(p => p.voltage) },
+        { data: history.map(p => p.current) },
+      ],
+    }, false, true);
+  }, [history]);
 
   useEffect(() => {
     const el = chartRef.current;
@@ -115,6 +214,7 @@ export function VoltageCurrentChart({ history, cellVoltages, voltageMax, voltage
       if (restoreTimerRef.current) clearTimeout(restoreTimerRef.current);
       instanceRef.current?.dispose();
       instanceRef.current = null;
+      initializedRef.current = false;
     };
   }, [dispatchRestore]);
 
