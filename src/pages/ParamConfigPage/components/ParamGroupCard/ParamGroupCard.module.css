@@ -62,6 +62,61 @@
   white-space: nowrap;
 }
 
+.headerActions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.headerBtn {
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+  border: 1px solid var(--color-border);
+  background: var(--color-background);
+  color: var(--color-foreground);
+  transition: background-color 0.15s;
+  white-space: nowrap;
+}
+
+.headerBtn:hover {
+  background: var(--color-muted);
+}
+
+.headerBtnCancel {
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+  border: 1px solid var(--color-border);
+  background: var(--color-background);
+  color: var(--color-foreground);
+  transition: background-color 0.15s;
+  white-space: nowrap;
+}
+
+.headerBtnCancel:hover {
+  background: var(--color-muted);
+}
+
+.headerBtnConfirm {
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+  border: none;
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
+  font-weight: 500;
+  transition: opacity 0.15s;
+  white-space: nowrap;
+}
+
+.headerBtnConfirm:hover {
+  opacity: 0.9;
+}
+
 .groupContent {
   display: flex;
   flex-direction: column;

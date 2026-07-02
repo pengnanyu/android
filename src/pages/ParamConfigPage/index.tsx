@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useBmsStore } from '@/store/context';
-import { ParamToolbar } from './components/ParamToolbar';
+
 import { ParamGroupCard } from './components/ParamGroupCard';
 import styles from './ParamConfigPage.module.css';
 
@@ -218,14 +218,6 @@ export function ParamConfigPage() {
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        <ParamToolbar
-          onImport={handleImport}
-          onExport={handleExport}
-          onPreset={(_id: string) => { }}
-          hasPendingImport={hasPendingImport}
-          onConfirmImport={handleConfirmImport}
-          onCancelImport={handleCancelImport}
-        />
         <div className={styles.body}>
           {showNav && (
             <nav className={styles.nav}>
@@ -250,6 +242,12 @@ export function ParamConfigPage() {
                   onValueChange={handleValueChange}
                   onBlur={handleBlur}
                   onBack={isNarrow ? handleBack : undefined}
+                  onImport={handleImport}
+                  onExport={handleExport}
+                  onPreset={(_id: string) => { }}
+                  hasPendingImport={hasPendingImport}
+                  onConfirmImport={handleConfirmImport}
+                  onCancelImport={handleCancelImport}
                 />
               ) : (
                 <div className={styles.empty}>暂无参数数据</div>

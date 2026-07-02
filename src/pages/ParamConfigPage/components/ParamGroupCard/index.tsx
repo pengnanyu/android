@@ -9,9 +9,15 @@ interface ParamGroupCardProps {
   onValueChange: (key: string, newValue: string | number) => void;
   onBlur: (key: string) => void;
   onBack?: () => void;
+  onImport?: () => void;
+  onExport?: () => void;
+  onPreset?: (presetId: string) => void;
+  hasPendingImport?: boolean;
+  onConfirmImport?: () => void;
+  onCancelImport?: () => void;
 }
 
-export function ParamGroupCard({ groupName, params, onValueChange, onBlur, onBack }: ParamGroupCardProps) {
+export function ParamGroupCard({ groupName, params, onValueChange, onBlur, onBack, onImport, onExport, onPreset, hasPendingImport, onConfirmImport, onCancelImport }: ParamGroupCardProps) {
   const { t } = useTranslation();
 
   return (
@@ -30,6 +36,24 @@ export function ParamGroupCard({ groupName, params, onValueChange, onBlur, onBac
           </button>
         )}
         <span className={styles.groupTitle}>{groupName}</span>
+        <div className={styles.headerActions} onClick={(e) => e.stopPropagation()}>
+          {hasPendingImport ? (
+            <>
+              <button className={styles.headerBtnCancel} onClick={onCancelImport}>
+                {t('param.cancelImport')}
+              </button>
+              <button className={styles.headerBtnConfirm} onClick={onConfirmImport}>
+                {t('param.confirmImport')}
+              </button>
+            </>
+          ) : (
+            <>
+              {onImport && <button className={styles.headerBtn} onClick={onImport}>{t('param.importConfig')}</button>}
+              {onExport && <button className={styles.headerBtn} onClick={onExport}>{t('param.exportConfig')}</button>}
+              {onPreset && <button className={styles.headerBtn} onClick={() => onPreset('default')}>{t('param.preset')}</button>}
+            </>
+          )}
+        </div>
       </div>
       <div className={styles.groupContent}>
         <div className={styles.rowHeader}>

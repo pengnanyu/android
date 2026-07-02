@@ -1,15 +1,21 @@
 import { useMemo } from 'react';
 import type { VoltageCurrentDataPoint } from '@/types';
 
+const DEFAULT_VISIBLE = 120;
+
 interface ChartOption {
   [key: string]: unknown;
 }
 
-export function useChartOption(dataPoints: VoltageCurrentDataPoint[]): ChartOption {
+export function useChartOption(dataPoints: VoltageCurrentDataPoint[], totalCount: number): ChartOption {
   return useMemo(() => {
+    const startIdx = Math.max(0, totalCount - DEFAULT_VISIBLE);
+    const endPercent = totalCount <= DEFAULT_VISIBLE ? 100 : ((totalCount / (totalCount || 1)) * 100);
+    const startPercent = totalCount <= DEFAULT_VISIBLE ? 0 : ((startIdx / (totalCount || 1)) * 100);
+
     return {
       animation: false,
-      grid: { left: 30, right: 30, top: 10, bottom: 24 },
+      grid: { left: 30, right: 30, top: 10, bottom: 40 },
       tooltip: { trigger: 'axis' },
       xAxis: {
         type: 'category',
@@ -33,6 +39,30 @@ export function useChartOption(dataPoints: VoltageCurrentDataPoint[]): ChartOpti
           nameTextStyle: { fontSize: 10 },
           axisLabel: { fontSize: 10 },
           splitLine: { show: false },
+        },
+      ],
+      dataZoom: [
+        {
+          type: 'inside',
+          xAxisIndex: 0,
+          start: startPercent,
+          end: endPercent,
+          zoomOnMouseWheel: true,
+          moveOnMouseMove: true,
+          moveOnMouseWheel: false,
+        },
+        {
+          type: 'slider',
+          xAxisIndex: 0,
+          start: startPercent,
+          end: endPercent,
+          height: 14,
+          bottom: 4,
+          borderColor: 'transparent',
+          backgroundColor: 'var(--color-muted)',
+          fillerColor: 'var(--color-primary)',
+          handleStyle: { color: 'var(--color-primary)' },
+          textStyle: { fontSize: 10 },
         },
       ],
       series: [
@@ -60,5 +90,5 @@ export function useChartOption(dataPoints: VoltageCurrentDataPoint[]): ChartOpti
         },
       ],
     };
-  }, [dataPoints]);
+  }, [dataPoints, totalCount]);
 }

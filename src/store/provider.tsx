@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useEffect, useRef, type ReactNode } from 'react';
 import type { ConnectionStatus, ProtocolDatabase, BridgeMessage } from '@/types';
-import type { BmsStore, LogEntry, DataMemeryGroup, Toast } from './context';
+import type { BmsStore, DataMemeryGroup, Toast } from './context';
 import { BmsContext } from './context';
 import { useBridgeMessage } from '@/hooks/useBridgeMessage';
 import { isEmbedded } from '@/utils/platform';
@@ -53,7 +53,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
   const [dataMemeryGroups, setDataMemeryGroups] = useState<DataMemeryGroup[]>([]);
   const [calendarGroups, setCalendarGroups] = useState<CalendarGroup[]>([]);
   const [calendarRecords, setCalendarRecords] = useState<CalendarRecord[]>([]);
-  const [logs, setLogs] = useState<LogEntry[]>([]);
+
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   const parsedValuesMapRef = useRef<Map<number, FieldValue>>(new Map());
@@ -71,7 +71,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
   const sendMessageRef = useRef<((msg: BridgeMessage) => void) | null>(null);
   const versionRef = useRef<string | null>(null);
   const versionRetryRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const logIdRef = useRef(0);
+
   const toastIdRef = useRef(0);
   const batchWritingRef = useRef(false);
   const batchTotalRef = useRef(0);
@@ -135,11 +135,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
   const stopVersionRetryRef = useRef<() => void>(() => { });
   const stopAllTimersRef = useRef<() => void>(() => { });
 
-  const addLog = useCallback((entry: Omit<LogEntry, 'id'>) => {
-    logIdRef.current += 1;
-    const id = `${entry.direction}_${logIdRef.current}`;
-
-    setLogs(prev => [...prev.slice(-200), { ...entry, id }]);
+  const addLog = useCallback((_entry: Omit<{ id: string; timestamp: number; direction: 'TX' | 'RX'; configType?: string; parsedInfo?: string; rawHex: string }, 'id'>) => {
   }, []);
 
   const sendFrame = useCallback((frame: number[]) => {
@@ -884,9 +880,6 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     }
   }, [protocolDb, connectionStatus, stopAllTimers, startInitialPoll]);
 
-  const clearLogs = useCallback(() => {
-    setLogs([]);
-  }, []);
 
   executePendingWriteOrPollRef.current = () => {
     if (pendingCalendarReadRef.current) {
@@ -917,16 +910,14 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     dataMemeryGroups,
     calendarGroups,
     calendarRecords,
-    logs,
     toasts,
     sendFrame,
-    clearLogs,
     autoRead,
     writeField,
     showToast,
     startBatchWrite,
     readCalendar,
-  }), [connectionStatus, protocolDb, protocolLoading, deviceVersion, parsedFields, parsedValues, parsedProtocol, dataMemeryGroups, calendarGroups, calendarRecords, logs, toasts, sendFrame, clearLogs, autoRead, writeField, showToast, startBatchWrite, readCalendar]);
+  }), [connectionStatus, protocolDb, protocolLoading, deviceVersion, parsedFields, parsedValues, parsedProtocol, dataMemeryGroups, calendarGroups, calendarRecords, toasts, sendFrame, autoRead, writeField, showToast, startBatchWrite, readCalendar]);
 
   return (
     <BmsContext.Provider value={store}>

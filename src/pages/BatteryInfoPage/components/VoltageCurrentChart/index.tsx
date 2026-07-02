@@ -7,6 +7,9 @@ import { CellIcon } from '../CellVoltageCard/CellIcon';
 import cellStyles from '../CellVoltageCard/CellVoltageCard.module.css';
 import styles from './VoltageCurrentChart.module.css';
 
+const DEFAULT_VISIBLE = 120;
+const RESTORE_DELAY = 3000;
+
 interface VoltageCurrentChartProps {
   history: VoltageCurrentDataPoint[];
   cellVoltages?: CellVoltage[];
@@ -19,8 +22,24 @@ interface VoltageCurrentChartProps {
 export function VoltageCurrentChart({ history, cellVoltages, voltageMax, voltageMin, balanceFlags, soc }: VoltageCurrentChartProps) {
   const chartRef = useRef<HTMLDivElement>(null);
   const instanceRef = useRef<echarts.ECharts | null>(null);
+  const restoreTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const userZoomedRef = useRef(false);
 
-  const option = useChartOption(history);
+  const option = useChartOption(history, history.length);
+
+  const dispatchRestore = useCallback(() => {
+    const chart = instanceRef.current;
+    if (!chart || history.length === 0) return;
+    const startIdx = Math.max(0, history.length - DEFAULT_VISIBLE);
+    const startPercent = history.length <= DEFAULT_VISIBLE ? 0 : (startIdx / history.length * 100);
+    const endPercent = 100;
+    chart.dispatchAction({
+      type: 'dataZoom',
+      start: startPercent,
+      end: endPercent,
+    });
+    userZoomedRef.current = false;
+  }, [history.length]);
 
   const titleExtra = (
     <div className={styles.titleLegend}>
@@ -41,6 +60,9 @@ export function VoltageCurrentChart({ history, cellVoltages, voltageMax, voltage
     if (!chartRef.current) return null;
     if (!instanceRef.current) {
       instanceRef.current = echarts.init(chartRef.current, undefined, { renderer: 'canvas' });
+      instanceRef.current.on('datazoom', () => {
+        userZoomedRef.current = true;
+      });
     }
     return instanceRef.current;
   }, []);
@@ -68,12 +90,33 @@ export function VoltageCurrentChart({ history, cellVoltages, voltageMax, voltage
     });
     ro.observe(el);
 
+    const handleMouseEnter = () => {
+      if (restoreTimerRef.current) {
+        clearTimeout(restoreTimerRef.current);
+        restoreTimerRef.current = null;
+      }
+    };
+
+    const handleMouseLeave = () => {
+      if (!userZoomedRef.current) return;
+      restoreTimerRef.current = setTimeout(() => {
+        dispatchRestore();
+        restoreTimerRef.current = null;
+      }, RESTORE_DELAY);
+    };
+
+    el.addEventListener('mouseenter', handleMouseEnter);
+    el.addEventListener('mouseleave', handleMouseLeave);
+
     return () => {
       ro.disconnect();
+      el.removeEventListener('mouseenter', handleMouseEnter);
+      el.removeEventListener('mouseleave', handleMouseLeave);
+      if (restoreTimerRef.current) clearTimeout(restoreTimerRef.current);
       instanceRef.current?.dispose();
       instanceRef.current = null;
     };
-  }, []);
+  }, [dispatchRestore]);
 
   return (
     <CardShell title="电压电流曲线" titleExtra={titleExtra}>

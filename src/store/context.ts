@@ -2,15 +2,6 @@ import { createContext, useContext } from 'react';
 import type { ConnectionStatus, ProtocolDatabase } from '@/types';
 import type { FieldValue, ParsedProtocol, CalendarGroup, CalendarRecord } from '@/utils/modbus';
 
-export interface LogEntry {
-  id: string;
-  timestamp: number;
-  direction: 'TX' | 'RX';
-  configType?: string;
-  parsedInfo?: string;
-  rawHex: string;
-}
-
 export interface DataMemeryGroup {
   configNameEn: string;
   configNameZh: string;
@@ -34,13 +25,11 @@ export interface BmsState {
   dataMemeryGroups: DataMemeryGroup[];
   calendarGroups: CalendarGroup[];
   calendarRecords: CalendarRecord[];
-  logs: LogEntry[];
   toasts: Toast[];
 }
 
 export interface BmsActions {
   sendFrame: (frame: number[]) => void;
-  clearLogs: () => void;
   autoRead: () => void;
   writeField: (fieldRowIndex: number, newValue: number) => void;
   showToast: (message: string, type: 'success' | 'error') => void;

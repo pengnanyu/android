@@ -1,36 +1,25 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useBmsStore } from '@/store/context';
 import { SendFrameCard } from './components/SendFrameCard';
-import { ReceiveLogCard, type LogFilter } from './components/ReceiveLogCard';
-import { ProtocolDbCard } from './components/ProtocolDbCard';
 import styles from './ExtendedCommandPage.module.css';
 
 export function ExtendedCommandPage() {
-  const { protocolDb, protocolLoading, parsedValues, logs, sendFrame, autoRead } = useBmsStore();
-  const [prefilledHex, setPrefilledHex] = useState<string | undefined>();
-  const [filter, setFilter] = useState<LogFilter>('all');
+  const { protocolDb, protocolLoading, sendFrame, autoRead } = useBmsStore();
+  const [prefilledHex] = useState<string | undefined>();
 
   const handleSendFrame = useCallback((frame: number[]) => {
     sendFrame(frame);
   }, [sendFrame]);
 
-  const handleFillCommand = useCallback((hex: string) => {
-    setPrefilledHex(hex);
-  }, []);
+  useEffect(() => {
+    if (protocolDb && !protocolLoading) {
+      autoRead();
+    }
+  }, [protocolDb, protocolLoading, autoRead]);
 
   return (
     <div className={styles.container}>
       <SendFrameCard onSendFrame={handleSendFrame} prefilledHex={prefilledHex} />
-      <ReceiveLogCard logs={logs} filter={filter} onFilterChange={setFilter} />
-      <ProtocolDbCard
-        database={protocolDb}
-        parsedValues={parsedValues}
-        loading={protocolLoading}
-        onInitProtocol={() => { }}
-        onLoadDatabase={() => { }}
-        onAutoRead={autoRead}
-        onFillCommand={handleFillCommand}
-      />
     </div>
   );
 }

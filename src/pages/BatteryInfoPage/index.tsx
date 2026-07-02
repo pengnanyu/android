@@ -128,7 +128,6 @@ export function BatteryInfoPage() {
   const graphCurrent = useMemo(() => graphFields.find(f => /current/i.test(f.name)), [graphFields]);
 
 
-  const MAX_CHART_POINTS = 120;
   const [chartHistory, setChartHistory] = useState<VoltageCurrentDataPoint[]>([]);
   const lastChartTsRef = useRef(0);
 
@@ -138,10 +137,7 @@ export function BatteryInfoPage() {
     if (ts === lastChartTsRef.current) return;
     lastChartTsRef.current = ts;
     const pt: VoltageCurrentDataPoint = { timestamp: ts, voltage: graphVoltage?.value ?? 0, current: graphCurrent?.value ?? 0 };
-    setChartHistory(prev => {
-      const next = [...prev, pt];
-      return next.length > MAX_CHART_POINTS ? next.slice(-MAX_CHART_POINTS) : next;
-    });
+    setChartHistory(prev => [...prev, pt]);
   }, [graphVoltage, graphCurrent]);
 
   const extraFields = useMemo(() => {
