@@ -18,7 +18,7 @@
 .titleLegend {
   display: flex;
   gap: 10px;
-  font-size: 11px;
+  font-size: 13px;
   color: var(--color-muted-foreground);
 }
 

@@ -52,7 +52,7 @@
 }
 
 .sideLabel {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--color-muted-foreground);
   font-weight: 500;
 }
@@ -121,7 +121,7 @@
 }
 
 .titleTime {
-  font-size: 12px;
+  font-size: 13px;
   opacity: 0.8;
   flex-shrink: 0;
 }
@@ -155,7 +155,7 @@
 }
 
 .safetyFlag {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   padding: 1px 6px;
   border-radius: 3px;
