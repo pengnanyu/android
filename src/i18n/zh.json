@@ -23,7 +23,11 @@
     "minTemperature": "最低温度",
     "bmsTime": "BMS 时间",
     "bmsId": "BMS ID",
-    "chargeVoltage": "充电电压"
+    "chargeVoltage": "充电电压",
+    "dischargeTime": "剩余放空",
+    "chargeTime": "剩余充满",
+    "powerW": "功率 W",
+    "sohPercent": "SOH %"
   },
   "status": {
     "safety": "安全",
@@ -45,7 +49,8 @@
     "writeVerifyFailed": "写入验证失败",
     "pendingImportHint": "已导入配置，请确认差异后写入",
     "confirmImport": "确认写入",
-    "cancelImport": "取消"
+    "cancelImport": "取消",
+    "noParamData": "暂无参数数据"
   },
   "fault": {
     "title": "异常记录",

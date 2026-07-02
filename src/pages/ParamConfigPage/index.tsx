@@ -21,7 +21,7 @@ function useIsNarrow(breakpoint: number): boolean {
 
 export function ParamConfigPage() {
   const { dataMemeryGroups, parsedValues, deviceVersion, toasts, writeField, showToast, startBatchWrite } = useBmsStore();
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const isZh = i18n.language === 'zh';
   const isNarrow = useIsNarrow(NARROW_BREAKPOINT);
 
@@ -250,7 +250,7 @@ export function ParamConfigPage() {
                   onCancelImport={handleCancelImport}
                 />
               ) : (
-                <div className={styles.empty}>暂无参数数据</div>
+                <div className={styles.empty}>{t('param.noParamData')}</div>
               )}
             </div>
           )}

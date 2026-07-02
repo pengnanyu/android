@@ -23,7 +23,11 @@
     "minTemperature": "Min Temp",
     "bmsTime": "BMS Time",
     "bmsId": "BMS ID",
-    "chargeVoltage": "Charge Voltage"
+    "chargeVoltage": "Charge Voltage",
+    "dischargeTime": "Time to Empty",
+    "chargeTime": "Time to Full",
+    "powerW": "Power W",
+    "sohPercent": "SOH %"
   },
   "status": {
     "safety": "Safety",
@@ -45,7 +49,8 @@
     "writeVerifyFailed": "Write verification failed",
     "pendingImportHint": "Config imported, review differences then confirm",
     "confirmImport": "Confirm Write",
-    "cancelImport": "Cancel"
+    "cancelImport": "Cancel",
+    "noParamData": "No parameter data"
   },
   "fault": {
     "title": "Fault Records",

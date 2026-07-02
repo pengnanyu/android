@@ -181,7 +181,7 @@ export function BatteryInfoPage() {
 
   const edgeTabs: { key: MergedTab; icon: React.ReactNode; label: string }[] = [
     { key: 'device', icon: <FingerprintIcon />, label: t('battery.deviceInfo') },
-    { key: 'temperature', icon: <ThermometerIcon />, label: isZh ? '温度' : 'Temp' },
+    { key: 'temperature', icon: <ThermometerIcon />, label: t('battery.temperature') },
     { key: 'status', icon: <ShieldSvg color="#16a34a" />, label: t('status.status') },
   ];
 

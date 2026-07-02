@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { SocData, PackData } from '@/types';
 import type { StatusItem } from '../../hooks/useStatusItems';
 import { CardShell } from '@/components/shared/CardShell';
@@ -15,6 +16,7 @@ interface SocPackCardProps {
 }
 
 export function SocPackCard({ soc, pack, bmsTime, dischargeTime, chargeTime, safetyItems }: SocPackCardProps) {
+  const { t } = useTranslation();
   const activeSafetyItems = safetyItems?.filter(f => f.active) ?? [];
   const wrapRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -79,19 +81,19 @@ export function SocPackCard({ soc, pack, bmsTime, dischargeTime, chargeTime, saf
           <div className={styles.bottomCards}>
             <div className={styles.bottomCard}>
               <div className={styles.bottomValue}>{dischargeTime ?? '--'}</div>
-              <div className={styles.bottomLabel}>剩余放空</div>
+              <div className={styles.bottomLabel}>{t('battery.dischargeTime')}</div>
             </div>
             <div className={styles.bottomCard}>
               <div className={styles.bottomValue}>{chargeTime ?? '--'}</div>
-              <div className={styles.bottomLabel}>剩余充满</div>
+              <div className={styles.bottomLabel}>{t('battery.chargeTime')}</div>
             </div>
             <div className={styles.bottomCard}>
               <div className={styles.bottomValue}>{(pack?.power ?? 0).toFixed(0)}</div>
-              <div className={styles.bottomLabel}>Power W</div>
+              <div className={styles.bottomLabel}>{t('battery.powerW')}</div>
             </div>
             <div className={styles.bottomCard}>
               <div className={styles.bottomValue}>{soc?.soh ?? '--'}</div>
-              <div className={styles.bottomLabel}>SOH %</div>
+              <div className={styles.bottomLabel}>{t('battery.sohPercent')}</div>
             </div>
           </div>
         </div>
