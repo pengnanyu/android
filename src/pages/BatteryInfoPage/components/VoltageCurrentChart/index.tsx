@@ -18,24 +18,31 @@ interface VoltageCurrentChartProps {
   soc?: number;
 }
 
-function formatTime(ts: number): string {
-  const d = new Date(ts);
-  return `${d.getMinutes().toString().padStart(2, '0')}:${d.getSeconds().toString().padStart(2, '0')}`;
-}
-
-function buildInitialOption(dataPoints: VoltageCurrentDataPoint[], totalCount: number) {
-  const startIdx = Math.max(0, totalCount - DEFAULT_VISIBLE);
-  const startPercent = totalCount <= DEFAULT_VISIBLE ? 0 : (startIdx / totalCount * 100);
-  const endPercent = 100;
+function buildInitialOption(dataPoints: VoltageCurrentDataPoint[]) {
+  const total = dataPoints.length;
+  const startIdx = Math.max(0, total - DEFAULT_VISIBLE);
+  const startTime = total <= DEFAULT_VISIBLE ? dataPoints[0]!.timestamp : dataPoints[startIdx]!.timestamp;
+  const endTime = dataPoints[total - 1]!.timestamp;
 
   return {
     animation: false,
     grid: { left: 30, right: 30, top: 10, bottom: 40 },
-    tooltip: { trigger: 'axis' },
+    tooltip: {
+      trigger: 'axis',
+      formatter(params: unknown) {
+        const ps = Array.isArray(params) ? params : [params];
+        const p0 = ps[0] as { axisValue?: string; marker?: string; seriesName?: string; value?: unknown };
+        let s = `<b>${p0?.axisValue ?? ''}</b><br/>`;
+        for (const item of ps) {
+          const it = item as { marker?: string; seriesName?: string; value?: unknown };
+          s += `${it.marker ?? ''} ${it.seriesName ?? ''}: ${Array.isArray(it.value) ? it.value[1] : it.value}<br/>`;
+        }
+        return s;
+      },
+    },
     xAxis: {
-      type: 'category',
-      data: dataPoints.map(p => formatTime(p.timestamp)),
-      axisLabel: { fontSize: 10 },
+      type: 'time',
+      axisLabel: { fontSize: 10, formatter: '{mm}:{ss}' },
     },
     yAxis: [
       {
@@ -57,8 +64,8 @@ function buildInitialOption(dataPoints: VoltageCurrentDataPoint[], totalCount: n
       {
         type: 'inside',
         xAxisIndex: 0,
-        start: startPercent,
-        end: endPercent,
+        startValue: startTime,
+        endValue: endTime,
         zoomOnMouseWheel: true,
         moveOnMouseMove: true,
         moveOnMouseWheel: false,
@@ -66,8 +73,8 @@ function buildInitialOption(dataPoints: VoltageCurrentDataPoint[], totalCount: n
       {
         type: 'slider',
         xAxisIndex: 0,
-        start: startPercent,
-        end: endPercent,
+        startValue: startTime,
+        endValue: endTime,
         height: 14,
         bottom: 4,
         borderColor: 'transparent',
@@ -81,7 +88,7 @@ function buildInitialOption(dataPoints: VoltageCurrentDataPoint[], totalCount: n
       {
         name: 'Voltage',
         type: 'line',
-        data: dataPoints.map(p => p.voltage),
+        data: dataPoints.map(p => [p.timestamp, p.voltage]),
         yAxisIndex: 0,
         smooth: true,
         showSymbol: false,
@@ -92,7 +99,7 @@ function buildInitialOption(dataPoints: VoltageCurrentDataPoint[], totalCount: n
       {
         name: 'Current',
         type: 'line',
-        data: dataPoints.map(p => p.current),
+        data: dataPoints.map(p => [p.timestamp, p.current]),
         yAxisIndex: 1,
         smooth: true,
         showSymbol: false,
@@ -102,6 +109,17 @@ function buildInitialOption(dataPoints: VoltageCurrentDataPoint[], totalCount: n
       },
     ],
   };
+}
+
+function getZoomRange(chart: echarts.ECharts): { startValue: number; endValue: number } | null {
+  try {
+    const opt = chart.getOption();
+    const dz = opt.dataZoom as Array<{ startValue?: number; endValue?: number }> | undefined;
+    if (dz && dz[0] && dz[0].startValue !== undefined && dz[0].endValue !== undefined) {
+      return { startValue: dz[0].startValue as number, endValue: dz[0].endValue as number };
+    }
+  } catch { /* ignore */ }
+  return null;
 }
 
 export function VoltageCurrentChart({ history, cellVoltages, voltageMax, voltageMin, balanceFlags, soc }: VoltageCurrentChartProps) {
@@ -116,14 +134,13 @@ export function VoltageCurrentChart({ history, cellVoltages, voltageMax, voltage
     const chart = instanceRef.current;
     if (!chart || history.length === 0) return;
     const startIdx = Math.max(0, history.length - DEFAULT_VISIBLE);
-    const startPercent = history.length <= DEFAULT_VISIBLE ? 0 : (startIdx / history.length * 100);
     chart.dispatchAction({
       type: 'dataZoom',
-      start: startPercent,
-      end: 100,
+      startValue: history[startIdx]!.timestamp,
+      endValue: history[history.length - 1]!.timestamp,
     });
     userZoomedRef.current = false;
-  }, [history.length]);
+  }, [history]);
 
   const titleExtra = (
     <div className={styles.titleLegend}>
@@ -154,7 +171,7 @@ export function VoltageCurrentChart({ history, cellVoltages, voltageMax, voltage
     }
 
     if (!initializedRef.current) {
-      chart.setOption(buildInitialOption(history, history.length), true);
+      chart.setOption(buildInitialOption(history), true);
       initializedRef.current = true;
       prevLenRef.current = history.length;
       return;
@@ -165,13 +182,22 @@ export function VoltageCurrentChart({ history, cellVoltages, voltageMax, voltage
 
     if (newPoints.length === 0) return;
 
+    const savedZoom = getZoomRange(chart);
+
     chart.setOption({
-      xAxis: { data: history.map(p => formatTime(p.timestamp)) },
       series: [
-        { data: history.map(p => p.voltage) },
-        { data: history.map(p => p.current) },
+        { data: history.map(p => [p.timestamp, p.voltage]) },
+        { data: history.map(p => [p.timestamp, p.current]) },
       ],
-    }, false, true);
+    }, { replaceMerge: ['series'] });
+
+    if (savedZoom) {
+      chart.dispatchAction({
+        type: 'dataZoom',
+        startValue: savedZoom.startValue,
+        endValue: savedZoom.endValue,
+      });
+    }
   }, [history]);
 
   useEffect(() => {
