@@ -4,8 +4,22 @@
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  padding: 12px;
+  padding: 8px;
   gap: 8px;
+}
+
+@media (min-width: 640px) {
+  .container {
+    padding: 12px;
+    gap: 12px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding: 16px;
+    gap: 16px;
+  }
 }
 
 .toastBar {
@@ -55,7 +69,7 @@
 
 .body {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   min-height: 0;
   flex: 1;
   overflow: hidden;
@@ -147,9 +161,6 @@
 }
 
 @media (max-width: 639px) {
-  .container {
-    padding: 8px;
-  }
 
   .body {
     flex-direction: column;
