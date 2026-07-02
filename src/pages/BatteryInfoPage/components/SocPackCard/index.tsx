@@ -40,15 +40,29 @@ export function SocPackCard({ soc, pack, bmsTime, dischargeTime, chargeTime, saf
     </span>
   ));
 
+  const hasAlarm = activeSafetyItems.some(f => f.isAlarm);
+  const hasSafety = activeSafetyItems.some(f => f.isSafety && !f.isAlarm);
+  const shieldColor = hasAlarm ? '#eab308' : hasSafety ? '#ef4444' : '#22c55e';
+
   const titleContent = activeSafetyItems.length > 0 ? (
     <div className={styles.titleBar}>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+        <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V7L12 2z" fill={shieldColor} fillOpacity={0.15} stroke={shieldColor} strokeWidth="1.5" strokeLinejoin="round" />
+      </svg>
       <div className={styles.marqueeWrap} ref={wrapRef}>
         <div className={`${styles.marqueeTrack} ${overflowing ? styles.marqueeScroll : ''}`} ref={trackRef}>
           {overflowing ? [...flags, ...flags] : flags}
         </div>
       </div>
     </div>
-  ) : 'SOC';
+  ) : (
+    <>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+        <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V7L12 2z" fill={shieldColor} fillOpacity={0.15} stroke={shieldColor} strokeWidth="1.5" strokeLinejoin="round" />
+      </svg>
+      SOC
+    </>
+  );
 
   const titleExtraContent = bmsTime ? <span>{bmsTime}</span> : undefined;
 

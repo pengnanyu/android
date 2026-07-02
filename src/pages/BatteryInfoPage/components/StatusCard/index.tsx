@@ -31,9 +31,15 @@ export function StatusCard({ protocolDb, parsedProtocol, parsedValues, noShell }
 
   const statusGroups = useMemo(() => buildGroups(statusItems), [statusItems]);
 
+  const statusIcon = (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+      <path d="M2 20h.01" /><path d="M7 20v-4" /><path d="M12 20v-8" /><path d="M17 20V8" /><path d="M22 4v16" />
+    </svg>
+  );
+
   if (statusItems.length === 0) {
     return (
-      <CardShell title={t('status.status')}>
+      <CardShell title={<>{statusIcon}{t('status.status')}</>}>
         <div style={{ color: 'var(--color-muted-foreground)', fontSize: 14, textAlign: 'center', padding: '16px 0' }}>--</div>
       </CardShell>
     );
@@ -66,7 +72,7 @@ export function StatusCard({ protocolDb, parsedProtocol, parsedValues, noShell }
   }
 
   return (
-    <CardShell title={t('status.status')}>
+    <CardShell title={<>{statusIcon}{t('status.status')}</>}>
       {innerContent}
     </CardShell>
   );

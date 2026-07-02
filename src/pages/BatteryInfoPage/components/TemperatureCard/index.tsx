@@ -1,4 +1,5 @@
 import type { TempData } from '@/types';
+import { useTranslation } from 'react-i18next';
 import { CardShell } from '@/components/shared/CardShell';
 import { TempBar } from './TempBar';
 import styles from './TemperatureCard.module.css';
@@ -12,6 +13,12 @@ interface TemperatureCardProps {
 }
 
 export function TemperatureCard({ temperatures, mosTemperature, temperMax, temperMin, noShell }: TemperatureCardProps) {
+  const { t } = useTranslation();
+  const tempIcon = (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+      <path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z" />
+    </svg>
+  );
   const titleExtra = (temperMax !== undefined || temperMin !== undefined) ? (
     <div className={styles.headerInfo}>
       {temperMax !== undefined && (
@@ -43,7 +50,7 @@ export function TemperatureCard({ temperatures, mosTemperature, temperMax, tempe
   if (noShell) return listContent;
 
   return (
-    <CardShell title="温度" titleExtra={titleExtra}>
+    <CardShell title={<>{tempIcon}{t('battery.temp')}</>} titleExtra={titleExtra}>
       {listContent}
     </CardShell>
   );

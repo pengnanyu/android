@@ -1,5 +1,6 @@
 import { useRef, useEffect, useCallback } from 'react';
 import * as echarts from 'echarts';
+import { useTranslation } from 'react-i18next';
 import type { VoltageCurrentDataPoint, CellVoltage } from '@/types';
 import { CardShell } from '@/components/shared/CardShell';
 import { CellIcon } from '../CellVoltageCard/CellIcon';
@@ -120,6 +121,7 @@ function readZoomRange(chart: echarts.ECharts): { startValue: number; endValue: 
 }
 
 export function VoltageCurrentChart({ history, cellVoltages, voltageMax, voltageMin, balanceFlags, soc }: VoltageCurrentChartProps) {
+  const { t } = useTranslation();
   const chartRef = useRef<HTMLDivElement>(null);
   const instanceRef = useRef<echarts.ECharts | null>(null);
   const restoreTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -242,7 +244,7 @@ export function VoltageCurrentChart({ history, cellVoltages, voltageMax, voltage
   }, [restoreToFull]);
 
   return (
-    <CardShell title="电压电流曲线" titleExtra={titleExtra}>
+    <CardShell title={<><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>{t('battery.viChart')}</>} titleExtra={titleExtra}>
       {history.length === 0 ? (
         <div className={styles.empty}>--</div>
       ) : (
