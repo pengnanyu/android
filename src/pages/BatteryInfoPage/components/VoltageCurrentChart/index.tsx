@@ -111,7 +111,7 @@ function buildInitialOption(dataPoints: VoltageCurrentDataPoint[]) {
   };
 }
 
-function getZoomRange(chart: echarts.ECharts): { startValue: number; endValue: number } | null {
+function readZoomRange(chart: echarts.ECharts): { startValue: number; endValue: number } | null {
   try {
     const opt = chart.getOption();
     const dz = opt.dataZoom as Array<{ startValue?: number; endValue?: number }> | undefined;
@@ -129,17 +129,23 @@ export function VoltageCurrentChart({ history, cellVoltages, voltageMax, voltage
   const hoveringRef = useRef(false);
   const prevLenRef = useRef(0);
   const initializedRef = useRef(false);
+  const historyRef = useRef(history);
+  historyRef.current = history;
 
-  const dispatchRestore = useCallback(() => {
+  const restoreToDefault = useCallback(() => {
     const chart = instanceRef.current;
-    if (!chart || history.length === 0) return;
-    const startIdx = Math.max(0, history.length - DEFAULT_VISIBLE);
-    chart.dispatchAction({
-      type: 'dataZoom',
-      startValue: history[startIdx]!.timestamp,
-      endValue: history[history.length - 1]!.timestamp,
+    const h = historyRef.current;
+    if (!chart || h.length === 0) return;
+    const startIdx = Math.max(0, h.length - DEFAULT_VISIBLE);
+    const sv = h[startIdx]!.timestamp;
+    const ev = h[h.length - 1]!.timestamp;
+    chart.setOption({
+      dataZoom: [
+        { type: 'inside', startValue: sv, endValue: ev },
+        { type: 'slider', startValue: sv, endValue: ev },
+      ],
     });
-  }, [history]);
+  }, []);
 
   const titleExtra = (
     <div className={styles.titleLegend}>
@@ -173,34 +179,32 @@ export function VoltageCurrentChart({ history, cellVoltages, voltageMax, voltage
       return;
     }
 
-    const newPoints = history.slice(prevLenRef.current);
+    const newCount = history.length - prevLenRef.current;
     prevLenRef.current = history.length;
+    if (newCount <= 0) return;
 
-    if (newPoints.length === 0) return;
-
-    const savedZoom = getZoomRange(chart);
-
-    chart.setOption({
-      series: [
-        { data: history.map(p => [p.timestamp, p.voltage]) },
-        { data: history.map(p => [p.timestamp, p.current]) },
-      ],
-    }, { replaceMerge: ['series'] });
+    const vData = history.map(p => [p.timestamp, p.voltage]);
+    const cData = history.map(p => [p.timestamp, p.current]);
 
     if (hoveringRef.current) {
-      if (savedZoom) {
-        chart.dispatchAction({
-          type: 'dataZoom',
-          startValue: savedZoom.startValue,
-          endValue: savedZoom.endValue,
-        });
-      }
+      const saved = readZoomRange(chart);
+      chart.setOption({
+        series: [{ data: vData }, { data: cData }],
+        dataZoom: [
+          { type: 'inside', startValue: saved!.startValue, endValue: saved!.endValue },
+          { type: 'slider', startValue: saved!.startValue, endValue: saved!.endValue },
+        ],
+      });
     } else {
       const startIdx = Math.max(0, history.length - DEFAULT_VISIBLE);
-      chart.dispatchAction({
-        type: 'dataZoom',
-        startValue: savedZoom ? savedZoom.startValue : history[startIdx]!.timestamp,
-        endValue: history[history.length - 1]!.timestamp,
+      const sv = history[startIdx]!.timestamp;
+      const ev = history[history.length - 1]!.timestamp;
+      chart.setOption({
+        series: [{ data: vData }, { data: cData }],
+        dataZoom: [
+          { type: 'inside', startValue: sv, endValue: ev },
+          { type: 'slider', startValue: sv, endValue: ev },
+        ],
       });
     }
   }, [history]);
@@ -212,15 +216,11 @@ export function VoltageCurrentChart({ history, cellVoltages, voltageMax, voltage
     const ro = new ResizeObserver(() => {
       const chart = instanceRef.current;
       if (!chart) return;
-      const w = el.clientWidth;
-      const h = el.clientHeight;
-      if (w > 0 && h > 0) {
-        chart.resize();
-      }
+      if (el.clientWidth > 0 && el.clientHeight > 0) chart.resize();
     });
     ro.observe(el);
 
-    const handleMouseEnter = () => {
+    const onEnter = () => {
       hoveringRef.current = true;
       if (restoreTimerRef.current) {
         clearTimeout(restoreTimerRef.current);
@@ -228,27 +228,27 @@ export function VoltageCurrentChart({ history, cellVoltages, voltageMax, voltage
       }
     };
 
-    const handleMouseLeave = () => {
+    const onLeave = () => {
       hoveringRef.current = false;
       restoreTimerRef.current = setTimeout(() => {
-        dispatchRestore();
+        restoreToDefault();
         restoreTimerRef.current = null;
       }, RESTORE_DELAY);
     };
 
-    el.addEventListener('mouseenter', handleMouseEnter);
-    el.addEventListener('mouseleave', handleMouseLeave);
+    el.addEventListener('mouseenter', onEnter);
+    el.addEventListener('mouseleave', onLeave);
 
     return () => {
       ro.disconnect();
-      el.removeEventListener('mouseenter', handleMouseEnter);
-      el.removeEventListener('mouseleave', handleMouseLeave);
+      el.removeEventListener('mouseenter', onEnter);
+      el.removeEventListener('mouseleave', onLeave);
       if (restoreTimerRef.current) clearTimeout(restoreTimerRef.current);
       instanceRef.current?.dispose();
       instanceRef.current = null;
       initializedRef.current = false;
     };
-  }, [dispatchRestore]);
+  }, [restoreToDefault]);
 
   return (
     <CardShell title="电压电流曲线" titleExtra={titleExtra}>
