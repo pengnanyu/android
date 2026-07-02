@@ -11,6 +11,22 @@ import './i18n';
 
 document.documentElement.setAttribute('data-theme', 'light');
 
+function setupViewportUnit() {
+  const update = () => {
+    const vh = window.visualViewport ? window.visualViewport.height * 0.01 : window.innerHeight * 0.01;
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+  };
+  update();
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', update);
+    window.visualViewport.addEventListener('scroll', update);
+  } else {
+    window.addEventListener('resize', update);
+  }
+}
+
+setupViewportUnit();
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />

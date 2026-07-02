@@ -1,0 +1,1120 @@
+{
+  "rootHash": "f9e4941a1137fdfecf83b465035d2cac89ae50e3328eb448c199c6fdead63f68",
+  "timestamp": 1782961156649,
+  "fileCount": 62,
+  "files": [
+    {
+      "path": "vite.config.ts",
+      "hash": "993002197a317fccb8a2f0402640a279e1e4c7a4b6622bea1ce950294875cfbc",
+      "size": 578,
+      "modified": 1782706557151.7776
+    },
+    {
+      "path": "src\\main.tsx",
+      "hash": "b4f03f9641812dfb3045a4e4e95618d1037c7bd68b141662af5449aff6da0e26",
+      "size": 666,
+      "modified": 1782916893247.8396
+    },
+    {
+      "path": "src\\vite-env.d.ts",
+      "hash": "29f018542a200b2a51efcca93f30a4258771a66192a9922b45eda21dedff0c14",
+      "size": 37,
+      "modified": 1782706557148.7449
+    },
+    {
+      "path": "src\\utils\\color.ts",
+      "hash": "7444491bd2157789e9e17f70cb1a29be42fde6edee1981cacc4c87fc9bacbadb",
+      "size": 491,
+      "modified": 1782706557144.4275
+    },
+    {
+      "path": "src\\utils\\format.ts",
+      "hash": "fb7cafa35cfa05db0e21079a77e08c4e7cd1b48ea63c53e86c7dc4a304dbad6c",
+      "size": 489,
+      "modified": 1782706557144.8264
+    },
+    {
+      "path": "src\\utils\\i18n-field.ts",
+      "hash": "b97995a8411a1c7dfab9684a034713643ea7fcc6fc3c070d1eb973f55fa4071c",
+      "size": 407,
+      "modified": 1782706557145.332
+    },
+    {
+      "path": "src\\utils\\modbus.ts",
+      "hash": "e73e8f9d9cf6ca7d117bb3785b1e4731f0f86ef86085ce853fba4c3979e2710c",
+      "size": 29449,
+      "modified": 1782816547621.1616
+    },
+    {
+      "path": "src\\utils\\platform.ts",
+      "hash": "e755bd5015fcc638ee688ac0bb65b5b22d16b9c8ef527b7d12aaf3fb9c810882",
+      "size": 857,
+      "modified": 1782916893243.8293
+    },
+    {
+      "path": "src\\utils\\protocol-cache.ts",
+      "hash": "e7c7ea1a0f71385349312bdd8eb87491a035b5944e40177a8dedba3c455086db",
+      "size": 2318,
+      "modified": 1782916893264.9067
+    },
+    {
+      "path": "src\\utils\\storage.ts",
+      "hash": "9265a78fef03aacc5fe9e3df62f9639046a755086f27094bdfc821522a94cf79",
+      "size": 776,
+      "modified": 1782916893245.8276
+    },
+    {
+      "path": "src\\types\\battery.ts",
+      "hash": "899eecf5ad57f24a0c11195ab3522e0ae2aa1cc35ba46f923b14565cce765124",
+      "size": 434,
+      "modified": 1782706557138.8252
+    },
+    {
+      "path": "src\\types\\bridge.ts",
+      "hash": "25b82c8bb01c77a821903654e76d191cfe7dfa5472e8c1bd29821cd18c93d30e",
+      "size": 1114,
+      "modified": 1782782662300.3499
+    },
+    {
+      "path": "src\\types\\device.ts",
+      "hash": "a0d6520a76765636abb7573f2a1e85fa7619a9efeb22bf969420019cff25625f",
+      "size": 190,
+      "modified": 1782706557140.2456
+    },
+    {
+      "path": "src\\types\\fault.ts",
+      "hash": "50d3e4b1c554d3153df1d18547a249e66e8c9f1f2456b1b734b8ce86e6c76daa",
+      "size": 190,
+      "modified": 1782706557140.752
+    },
+    {
+      "path": "src\\types\\index.ts",
+      "hash": "226e2e39281157063d567fbf954ef6620c2269f685471ff0fa4c243409f0d86a",
+      "size": 810,
+      "modified": 1782782662301.3496
+    },
+    {
+      "path": "src\\types\\param.ts",
+      "hash": "11f0fe68a32a2e375b45f4cbc63636b005e9331b1fef521963ae9cf83d37cae8",
+      "size": 398,
+      "modified": 1782781812913.0166
+    },
+    {
+      "path": "src\\types\\protocol.ts",
+      "hash": "52d2a5be59f6656e64969af72c09dd1183f51d0a0b6ee2219a488a958702e5a8",
+      "size": 769,
+      "modified": 1782706557142.409
+    },
+    {
+      "path": "src\\types\\status.ts",
+      "hash": "0a02fdd5c597dec4c31ec70a9be15179cdd6e0ba1a9dbd1da52687afba4be2fb",
+      "size": 227,
+      "modified": 1782706557143.427
+    },
+    {
+      "path": "src\\types\\wx.d.ts",
+      "hash": "cc47156a8bf89c2d0d4f33606883baf3a042e8345dc9e237e14ce38165ebdcc1",
+      "size": 314,
+      "modified": 1782916893265.9043
+    },
+    {
+      "path": "src\\store\\context.ts",
+      "hash": "3414a80ee83ca9956e0acfd85d85d9c9428e3ec5c7fa520eede21dbe764ad5a5",
+      "size": 1413,
+      "modified": 1782960544022.1113
+    },
+    {
+      "path": "src\\store\\provider.tsx",
+      "hash": "9de177300f8dd42a96cdc442431dccbdbf8aa91691a2db62da23eb4c02523505",
+      "size": 35107,
+      "modified": 1782960544034.1006
+    },
+    {
+      "path": "src\\pages\\ParamConfigPage\\index.tsx",
+      "hash": "2996737bdfba4a9459c838a19ce70c9bcf2539624afb28b5a9d4cdbfa5e41fc1",
+      "size": 9501,
+      "modified": 1782960544019.097
+    },
+    {
+      "path": "src\\pages\\ParamConfigPage\\components\\ParamToolbar\\index.tsx",
+      "hash": "2419a71494be2833286c35667ac52eca8982419f03ff63e2bad2c6b017d9f0da",
+      "size": 1447,
+      "modified": 1782781812913.0166
+    },
+    {
+      "path": "src\\pages\\ParamConfigPage\\components\\ParamGroupCard\\index.tsx",
+      "hash": "f1d3df94a2acdacb4553e920af98a72e4f1709bed63523d0cda534b06aa07288",
+      "size": 2684,
+      "modified": 1782960544005.0996
+    },
+    {
+      "path": "src\\pages\\ParamConfigPage\\components\\ParamGroupCard\\ParamInput.tsx",
+      "hash": "fb86e3406e9f205deb389d6db8d10d3750504d78ac5cf93f3d493226081bbc70",
+      "size": 4844,
+      "modified": 1782781812920.5327
+    },
+    {
+      "path": "src\\pages\\ParamConfigPage\\components\\ParamGroupCard\\ParamRow.tsx",
+      "hash": "b33d5d838be261a0dc9fa62168809e974c18983f491952cf3640ac13425067b3",
+      "size": 857,
+      "modified": 1782781812913.0166
+    },
+    {
+      "path": "src\\pages\\FaultRecordPage\\index.tsx",
+      "hash": "e2dcba5b689a35a825bdd8968044d40a160c3388e63e48dcbc08e8987e2eb930",
+      "size": 7263,
+      "modified": 1782815231328.8025
+    },
+    {
+      "path": "src\\pages\\FaultRecordPage\\components\\FaultCard\\index.tsx",
+      "hash": "7cf2b9dda7a6e69c68bd6a52583400e7b13120a8c53c818979b8d25305a2079f",
+      "size": 768,
+      "modified": 1782706557117.764
+    },
+    {
+      "path": "src\\pages\\ExtendedCommandPage\\index.tsx",
+      "hash": "cba671c8c2f01a335b351d999493adb6df78299e9ea7743b7584929b545910b5",
+      "size": 784,
+      "modified": 1782960544022.1113
+    },
+    {
+      "path": "src\\pages\\ExtendedCommandPage\\components\\SendFrameCard\\index.tsx",
+      "hash": "f282b8d387fac806a90a15ee1dfb3e2b7749a652f33c48c07d03a062f060f2e6",
+      "size": 2115,
+      "modified": 1782706557114.16
+    },
+    {
+      "path": "src\\pages\\ExtendedCommandPage\\components\\ProtocolDbCard\\DynamicTable.tsx",
+      "hash": "ce1d0370b3ff4ef61db70c947f696cc316e4881716f3bf7200e92dc3276315ae",
+      "size": 4414,
+      "modified": 1782706557107.35
+    },
+    {
+      "path": "src\\pages\\ExtendedCommandPage\\components\\ProtocolDbCard\\index.tsx",
+      "hash": "31c5bf34e8384518753138191374f21369ee5e62c4b96a0f43d3d331f77c4c5c",
+      "size": 1837,
+      "modified": 1782706557108.7373
+    },
+    {
+      "path": "src\\pages\\BatteryInfoPage\\index.tsx",
+      "hash": "c434e7783c6889a2b208513164557dfb7549257eac2498aedbbc088c47139050",
+      "size": 11368,
+      "modified": 1782960543991.2866
+    },
+    {
+      "path": "src\\pages\\BatteryInfoPage\\hooks\\useStatusItems.ts",
+      "hash": "223b09715813b42b0b0cc03ef04dafa6af14b11df683ffd6a782870ee7be8ff3",
+      "size": 3168,
+      "modified": 1782907077634.767
+    },
+    {
+      "path": "src\\pages\\BatteryInfoPage\\components\\VoltageCurrentChart\\index.tsx",
+      "hash": "3157e0d6d4b646a4f9945c7d32ad070e561cf9e64b3c7a62914a68fa7f1765a7",
+      "size": 4841,
+      "modified": 1782960544005.0996
+    },
+    {
+      "path": "src\\pages\\BatteryInfoPage\\components\\VoltageCurrentChart\\useChartOption.ts",
+      "hash": "7b60c949ad12aebcabb14635ba41b90473e6c231cdb50f6119b6231408201eb6",
+      "size": 2844,
+      "modified": 1782960543993.9895
+    },
+    {
+      "path": "src\\pages\\BatteryInfoPage\\components\\TemperatureCard\\index.tsx",
+      "hash": "8ce0f0b491d870c7623b0432a01771380427a8c86110650f9114998538de347a",
+      "size": 1609,
+      "modified": 1782878973189.8218
+    },
+    {
+      "path": "src\\pages\\BatteryInfoPage\\components\\TemperatureCard\\TempBar.tsx",
+      "hash": "2bd43bad2753913281b140e600709f78dacf8df3a054a2009851e028aa3d3f68",
+      "size": 1473,
+      "modified": 1782913307673.3645
+    },
+    {
+      "path": "src\\pages\\BatteryInfoPage\\components\\StatusCard\\index.tsx",
+      "hash": "e8f5062a78a757924e79a842d33861fe0c3d396580e2278aa2bf8944eb2fba9e",
+      "size": 2386,
+      "modified": 1782916627140.0278
+    },
+    {
+      "path": "src\\pages\\BatteryInfoPage\\components\\SocPackCard\\GaugeCanvas.tsx",
+      "hash": "b590e1f6541cd39f97cbaedc8ba2f2703999367ad5abe5ac894290c34ae975db",
+      "size": 480,
+      "modified": 1782706557084.532
+    },
+    {
+      "path": "src\\pages\\BatteryInfoPage\\components\\SocPackCard\\index.tsx",
+      "hash": "6f1a03af133787a5a23c76f02355fa6d2da88c7ea5b1ff57c1ee2e31d178e7d1",
+      "size": 3772,
+      "modified": 1782913307672.3604
+    },
+    {
+      "path": "src\\pages\\BatteryInfoPage\\components\\SocPackCard\\useGaugeDraw.ts",
+      "hash": "6afd11a06645635dbea2b6c9abd285924696040054d8c47eda47ecbd2ec20083",
+      "size": 7824,
+      "modified": 1782902420365.8274
+    },
+    {
+      "path": "src\\pages\\BatteryInfoPage\\components\\DeviceInfoCard\\index.tsx",
+      "hash": "ed8a3a536c6c89367ba5621ffaf3141a85e16b7fd9f440e5f18b59d272529e00",
+      "size": 1651,
+      "modified": 1782878973175.1575
+    },
+    {
+      "path": "src\\pages\\BatteryInfoPage\\components\\CellVoltageCard\\CellIcon.tsx",
+      "hash": "2c689e46250315a551b06642d7afac9b026250b597a84565ee6b9f870e4e10f6",
+      "size": 1140,
+      "modified": 1782911543638.4807
+    },
+    {
+      "path": "src\\pages\\BatteryInfoPage\\components\\CellVoltageCard\\index.tsx",
+      "hash": "6262528a9edcfb08855d4b6467174700ffd7e2031cd3b7dbd1b3e5b47a151b94",
+      "size": 1698,
+      "modified": 1782878973176.664
+    },
+    {
+      "path": "src\\i18n\\index.ts",
+      "hash": "17e9e757ccd55da95fbbeae9e74e0fe7982957bfa914d9c5ff2c23c060e42a41",
+      "size": 354,
+      "modified": 1782706557073.434
+    },
+    {
+      "path": "src\\hooks\\useBridgeMessage.ts",
+      "hash": "46874ad0a7b408275935652b2f6d6222746c65e422309921e76c069206c6567f",
+      "size": 3416,
+      "modified": 1782916893260.9048
+    },
+    {
+      "path": "src\\hooks\\useColumnCount.ts",
+      "hash": "c50e5a90b9bcc60d15e448deda5b1dbc762d2bd67ab549fe451231ff4b060f0f",
+      "size": 803,
+      "modified": 1782879102415.4531
+    },
+    {
+      "path": "src\\hooks\\useLocale.ts",
+      "hash": "d446b90250a31f44284e789443956710b7f03f4e435e3859c3fa702e15e6a0cc",
+      "size": 594,
+      "modified": 1782706557069.7224
+    },
+    {
+      "path": "src\\hooks\\usePlatform.ts",
+      "hash": "4f42281a4257efdbc226f26f8962d84925da1263fe746885b3be2da18c5fa5a9",
+      "size": 491,
+      "modified": 1782706557071.1597
+    },
+    {
+      "path": "src\\hooks\\useResponsiveGrid.ts",
+      "hash": "969f4a2be97a033585576ba83366477e70f037b01643feabb6f3278e8c56e627",
+      "size": 734,
+      "modified": 1782706557071.1597
+    },
+    {
+      "path": "src\\hooks\\useStorage.ts",
+      "hash": "d9008c60611239300da70071940e3a503b3ec6b5cb6a85d823fc9086831d786c",
+      "size": 775,
+      "modified": 1782706557072.172
+    },
+    {
+      "path": "src\\hooks\\useTheme.ts",
+      "hash": "88fdbdde7625adf2f3e839f59bf15459c336934a5681d8d791ae3f20ff4c413e",
+      "size": 1136,
+      "modified": 1782706557072.5735
+    },
+    {
+      "path": "src\\components\\shared\\Nav\\index.tsx",
+      "hash": "2b30ec0f413f813f15d2d40ec6b06bed35a63d51073876e5c81b30c9d12ea82c",
+      "size": 3305,
+      "modified": 1782714462430.4124
+    },
+    {
+      "path": "src\\components\\shared\\LoadingSkeleton\\index.tsx",
+      "hash": "e49e015cf63219559e19a5bc8a5bea68e6ff3c9832b7416e5c5ea20467f86b6b",
+      "size": 384,
+      "modified": 1782706557066.5762
+    },
+    {
+      "path": "src\\components\\shared\\EmptyState\\index.tsx",
+      "hash": "063dea6a6f005878548cf95ac809704cdb72e215cd54f83776b16126fcd1370f",
+      "size": 295,
+      "modified": 1782706557064.754
+    },
+    {
+      "path": "src\\components\\shared\\ConfirmDialog\\index.tsx",
+      "hash": "1aeef6c7ba3301e7bb569184699f3a1ac4f7b87381e702db3b69ca5c9f69515b",
+      "size": 1025,
+      "modified": 1782706557063.756
+    },
+    {
+      "path": "src\\components\\shared\\CardShell\\index.tsx",
+      "hash": "38c7af992a50595f02a2d3f1065f3d55eed218553a5d6dc7d37929310e9f7061",
+      "size": 626,
+      "modified": 1782836907331.0867
+    },
+    {
+      "path": "src\\app\\App.tsx",
+      "hash": "a63804671a00ae8f0ecb729bd91a5d3977bf38e18a6bb29539a7acc45f739c62",
+      "size": 1409,
+      "modified": 1782806677215.8062
+    },
+    {
+      "path": "src\\app\\providers.tsx",
+      "hash": "abd28daf55d06a3d8975f9ad98c5efc601e706fc1408990cdaa68a398f916e81",
+      "size": 411,
+      "modified": 1782706557060.0774
+    },
+    {
+      "path": "src\\app\\routes.tsx",
+      "hash": "78411506944257218cb69e575b183a411de7cd4d581d61a393cad57c6a842b6c",
+      "size": 830,
+      "modified": 1782712504422.0586
+    },
+    {
+      "path": "public\\sw.js",
+      "hash": "f9e002315dd355b3af49e0c8bbf25536fbc60cef36f7bbceae3257589003f953",
+      "size": 1609,
+      "modified": 1782916627137.5225
+    }
+  ],
+  "tree": {
+    "hash": "f9e4941a1137fdfecf83b465035d2cac89ae50e3328eb448c199c6fdead63f68",
+    "left": {
+      "hash": "679b0ee2e154f3186622f914605987d6285748d8a5771ed1d15d5da45ef9f379",
+      "left": {
+        "hash": "8d4d3e895e283868f06b822ca2532591f9d8578b759992e60151a84d790c5cc5",
+        "left": {
+          "hash": "fbd45a4953828918dfe956905661e1c97d75737fbd4b3e38afdf4816d6afa3ca",
+          "left": {
+            "hash": "1539137e48c8d74a645cced525d98690a3094eceee1b17ca919dbc9a407f858d",
+            "left": {
+              "hash": "f54f3498e006d61a7871b5ec374baa53faa71b99e17b058f55ff397340dd4b94",
+              "left": {
+                "hash": "f9e002315dd355b3af49e0c8bbf25536fbc60cef36f7bbceae3257589003f953",
+                "file": {
+                  "path": "public\\sw.js",
+                  "hash": "f9e002315dd355b3af49e0c8bbf25536fbc60cef36f7bbceae3257589003f953",
+                  "size": 1609,
+                  "modified": 1782916627137.5225
+                }
+              },
+              "right": {
+                "hash": "a63804671a00ae8f0ecb729bd91a5d3977bf38e18a6bb29539a7acc45f739c62",
+                "file": {
+                  "path": "src\\app\\App.tsx",
+                  "hash": "a63804671a00ae8f0ecb729bd91a5d3977bf38e18a6bb29539a7acc45f739c62",
+                  "size": 1409,
+                  "modified": 1782806677215.8062
+                }
+              }
+            },
+            "right": {
+              "hash": "7ab80da40ab2f4508dac59c53f7c979506a3e2fb21f725200f1edb3f1d1222f6",
+              "left": {
+                "hash": "abd28daf55d06a3d8975f9ad98c5efc601e706fc1408990cdaa68a398f916e81",
+                "file": {
+                  "path": "src\\app\\providers.tsx",
+                  "hash": "abd28daf55d06a3d8975f9ad98c5efc601e706fc1408990cdaa68a398f916e81",
+                  "size": 411,
+                  "modified": 1782706557060.0774
+                }
+              },
+              "right": {
+                "hash": "78411506944257218cb69e575b183a411de7cd4d581d61a393cad57c6a842b6c",
+                "file": {
+                  "path": "src\\app\\routes.tsx",
+                  "hash": "78411506944257218cb69e575b183a411de7cd4d581d61a393cad57c6a842b6c",
+                  "size": 830,
+                  "modified": 1782712504422.0586
+                }
+              }
+            }
+          },
+          "right": {
+            "hash": "9c7af783e383f5c0f90b8dba2f2c4adca0865f6795214b469be3b59f8c002e2f",
+            "left": {
+              "hash": "22553fd7154b1562bbc2c974c91e2c3a1897609c2e28e8ea7fef441d3329b5c1",
+              "left": {
+                "hash": "38c7af992a50595f02a2d3f1065f3d55eed218553a5d6dc7d37929310e9f7061",
+                "file": {
+                  "path": "src\\components\\shared\\CardShell\\index.tsx",
+                  "hash": "38c7af992a50595f02a2d3f1065f3d55eed218553a5d6dc7d37929310e9f7061",
+                  "size": 626,
+                  "modified": 1782836907331.0867
+                }
+              },
+              "right": {
+                "hash": "1aeef6c7ba3301e7bb569184699f3a1ac4f7b87381e702db3b69ca5c9f69515b",
+                "file": {
+                  "path": "src\\components\\shared\\ConfirmDialog\\index.tsx",
+                  "hash": "1aeef6c7ba3301e7bb569184699f3a1ac4f7b87381e702db3b69ca5c9f69515b",
+                  "size": 1025,
+                  "modified": 1782706557063.756
+                }
+              }
+            },
+            "right": {
+              "hash": "89e768821939f9914aa8e3900af270650ffa62f6940edbae5d73c57fa3d0ac97",
+              "left": {
+                "hash": "063dea6a6f005878548cf95ac809704cdb72e215cd54f83776b16126fcd1370f",
+                "file": {
+                  "path": "src\\components\\shared\\EmptyState\\index.tsx",
+                  "hash": "063dea6a6f005878548cf95ac809704cdb72e215cd54f83776b16126fcd1370f",
+                  "size": 295,
+                  "modified": 1782706557064.754
+                }
+              },
+              "right": {
+                "hash": "e49e015cf63219559e19a5bc8a5bea68e6ff3c9832b7416e5c5ea20467f86b6b",
+                "file": {
+                  "path": "src\\components\\shared\\LoadingSkeleton\\index.tsx",
+                  "hash": "e49e015cf63219559e19a5bc8a5bea68e6ff3c9832b7416e5c5ea20467f86b6b",
+                  "size": 384,
+                  "modified": 1782706557066.5762
+                }
+              }
+            }
+          }
+        },
+        "right": {
+          "hash": "f1a24db9e1845a7be734bf65fb733fe546c7db84ff686da401fa9bd1cde28136",
+          "left": {
+            "hash": "faa3fce9ed723b52f25ed727b4b8138f14af2e214b6cf3c94bcdf63af34779a4",
+            "left": {
+              "hash": "9eb7dfec68ebd15fe8c6b027a01deabc25c04d7632b831c8eb5de232497a5728",
+              "left": {
+                "hash": "2b30ec0f413f813f15d2d40ec6b06bed35a63d51073876e5c81b30c9d12ea82c",
+                "file": {
+                  "path": "src\\components\\shared\\Nav\\index.tsx",
+                  "hash": "2b30ec0f413f813f15d2d40ec6b06bed35a63d51073876e5c81b30c9d12ea82c",
+                  "size": 3305,
+                  "modified": 1782714462430.4124
+                }
+              },
+              "right": {
+                "hash": "46874ad0a7b408275935652b2f6d6222746c65e422309921e76c069206c6567f",
+                "file": {
+                  "path": "src\\hooks\\useBridgeMessage.ts",
+                  "hash": "46874ad0a7b408275935652b2f6d6222746c65e422309921e76c069206c6567f",
+                  "size": 3416,
+                  "modified": 1782916893260.9048
+                }
+              }
+            },
+            "right": {
+              "hash": "2cd8fc62f25b28fd454f4a97e525f46fa2682fa32422801860cddf9d3642e996",
+              "left": {
+                "hash": "c50e5a90b9bcc60d15e448deda5b1dbc762d2bd67ab549fe451231ff4b060f0f",
+                "file": {
+                  "path": "src\\hooks\\useColumnCount.ts",
+                  "hash": "c50e5a90b9bcc60d15e448deda5b1dbc762d2bd67ab549fe451231ff4b060f0f",
+                  "size": 803,
+                  "modified": 1782879102415.4531
+                }
+              },
+              "right": {
+                "hash": "d446b90250a31f44284e789443956710b7f03f4e435e3859c3fa702e15e6a0cc",
+                "file": {
+                  "path": "src\\hooks\\useLocale.ts",
+                  "hash": "d446b90250a31f44284e789443956710b7f03f4e435e3859c3fa702e15e6a0cc",
+                  "size": 594,
+                  "modified": 1782706557069.7224
+                }
+              }
+            }
+          },
+          "right": {
+            "hash": "59adbe19471692313f5ca98e3ae6adea602c54b652b8e5e8b6ac23c4d285adcb",
+            "left": {
+              "hash": "ec28de45e9974b719c7d2c22a2c57c5363ff15808f0ef238887b4635540a805f",
+              "left": {
+                "hash": "4f42281a4257efdbc226f26f8962d84925da1263fe746885b3be2da18c5fa5a9",
+                "file": {
+                  "path": "src\\hooks\\usePlatform.ts",
+                  "hash": "4f42281a4257efdbc226f26f8962d84925da1263fe746885b3be2da18c5fa5a9",
+                  "size": 491,
+                  "modified": 1782706557071.1597
+                }
+              },
+              "right": {
+                "hash": "969f4a2be97a033585576ba83366477e70f037b01643feabb6f3278e8c56e627",
+                "file": {
+                  "path": "src\\hooks\\useResponsiveGrid.ts",
+                  "hash": "969f4a2be97a033585576ba83366477e70f037b01643feabb6f3278e8c56e627",
+                  "size": 734,
+                  "modified": 1782706557071.1597
+                }
+              }
+            },
+            "right": {
+              "hash": "4633a264f66019f9bf8a507263446a3756fe72f080add49ab5ba305e1d4f9ca1",
+              "left": {
+                "hash": "d9008c60611239300da70071940e3a503b3ec6b5cb6a85d823fc9086831d786c",
+                "file": {
+                  "path": "src\\hooks\\useStorage.ts",
+                  "hash": "d9008c60611239300da70071940e3a503b3ec6b5cb6a85d823fc9086831d786c",
+                  "size": 775,
+                  "modified": 1782706557072.172
+                }
+              },
+              "right": {
+                "hash": "88fdbdde7625adf2f3e839f59bf15459c336934a5681d8d791ae3f20ff4c413e",
+                "file": {
+                  "path": "src\\hooks\\useTheme.ts",
+                  "hash": "88fdbdde7625adf2f3e839f59bf15459c336934a5681d8d791ae3f20ff4c413e",
+                  "size": 1136,
+                  "modified": 1782706557072.5735
+                }
+              }
+            }
+          }
+        }
+      },
+      "right": {
+        "hash": "a193abda5b343149bc02261e4fa855b8e050646cc1ca2599059c527bba89a408",
+        "left": {
+          "hash": "f8458a235bf31f2df4b48e2f17d8e30f5fa50a32b242317a6a3c749cad495b0f",
+          "left": {
+            "hash": "0392814219d1b476a529e78c18d558c358e10ada14606f80659219b713896dd5",
+            "left": {
+              "hash": "6d5b3dbfe094c089939f5abf8940d85f9bad02f0e837804975c735fb64472c6c",
+              "left": {
+                "hash": "17e9e757ccd55da95fbbeae9e74e0fe7982957bfa914d9c5ff2c23c060e42a41",
+                "file": {
+                  "path": "src\\i18n\\index.ts",
+                  "hash": "17e9e757ccd55da95fbbeae9e74e0fe7982957bfa914d9c5ff2c23c060e42a41",
+                  "size": 354,
+                  "modified": 1782706557073.434
+                }
+              },
+              "right": {
+                "hash": "b4f03f9641812dfb3045a4e4e95618d1037c7bd68b141662af5449aff6da0e26",
+                "file": {
+                  "path": "src\\main.tsx",
+                  "hash": "b4f03f9641812dfb3045a4e4e95618d1037c7bd68b141662af5449aff6da0e26",
+                  "size": 666,
+                  "modified": 1782916893247.8396
+                }
+              }
+            },
+            "right": {
+              "hash": "13f9553a2686496ab387d49112980212e10c56fa99dabc6947973960a522bd2d",
+              "left": {
+                "hash": "2c689e46250315a551b06642d7afac9b026250b597a84565ee6b9f870e4e10f6",
+                "file": {
+                  "path": "src\\pages\\BatteryInfoPage\\components\\CellVoltageCard\\CellIcon.tsx",
+                  "hash": "2c689e46250315a551b06642d7afac9b026250b597a84565ee6b9f870e4e10f6",
+                  "size": 1140,
+                  "modified": 1782911543638.4807
+                }
+              },
+              "right": {
+                "hash": "6262528a9edcfb08855d4b6467174700ffd7e2031cd3b7dbd1b3e5b47a151b94",
+                "file": {
+                  "path": "src\\pages\\BatteryInfoPage\\components\\CellVoltageCard\\index.tsx",
+                  "hash": "6262528a9edcfb08855d4b6467174700ffd7e2031cd3b7dbd1b3e5b47a151b94",
+                  "size": 1698,
+                  "modified": 1782878973176.664
+                }
+              }
+            }
+          },
+          "right": {
+            "hash": "429e23b334e080100d1d39cc112c082c4481142427df66c9eacc86e81670cc67",
+            "left": {
+              "hash": "53a12ddadbe11ecbfb2a13fd27ad967dbacf57b381cf8359c2860407fb8dd50a",
+              "left": {
+                "hash": "ed8a3a536c6c89367ba5621ffaf3141a85e16b7fd9f440e5f18b59d272529e00",
+                "file": {
+                  "path": "src\\pages\\BatteryInfoPage\\components\\DeviceInfoCard\\index.tsx",
+                  "hash": "ed8a3a536c6c89367ba5621ffaf3141a85e16b7fd9f440e5f18b59d272529e00",
+                  "size": 1651,
+                  "modified": 1782878973175.1575
+                }
+              },
+              "right": {
+                "hash": "b590e1f6541cd39f97cbaedc8ba2f2703999367ad5abe5ac894290c34ae975db",
+                "file": {
+                  "path": "src\\pages\\BatteryInfoPage\\components\\SocPackCard\\GaugeCanvas.tsx",
+                  "hash": "b590e1f6541cd39f97cbaedc8ba2f2703999367ad5abe5ac894290c34ae975db",
+                  "size": 480,
+                  "modified": 1782706557084.532
+                }
+              }
+            },
+            "right": {
+              "hash": "32e535e7ad790cec243ec0a4b6836a8e65fbceaa358108e0b45c27008a2af710",
+              "left": {
+                "hash": "6f1a03af133787a5a23c76f02355fa6d2da88c7ea5b1ff57c1ee2e31d178e7d1",
+                "file": {
+                  "path": "src\\pages\\BatteryInfoPage\\components\\SocPackCard\\index.tsx",
+                  "hash": "6f1a03af133787a5a23c76f02355fa6d2da88c7ea5b1ff57c1ee2e31d178e7d1",
+                  "size": 3772,
+                  "modified": 1782913307672.3604
+                }
+              },
+              "right": {
+                "hash": "6afd11a06645635dbea2b6c9abd285924696040054d8c47eda47ecbd2ec20083",
+                "file": {
+                  "path": "src\\pages\\BatteryInfoPage\\components\\SocPackCard\\useGaugeDraw.ts",
+                  "hash": "6afd11a06645635dbea2b6c9abd285924696040054d8c47eda47ecbd2ec20083",
+                  "size": 7824,
+                  "modified": 1782902420365.8274
+                }
+              }
+            }
+          }
+        },
+        "right": {
+          "hash": "e904dd18c1f47f8b32fc247894e1641fe7cb7c5fe2f4e48daa54b5e36434713d",
+          "left": {
+            "hash": "ef42f822028334331906877d43eec7947cdfec7204c39f0d8130e1af4a0dbfc2",
+            "left": {
+              "hash": "c7dd6abfa4a1a917a1d823f690aa562a18461d82fe8088fa6efa5defbe50aff7",
+              "left": {
+                "hash": "e8f5062a78a757924e79a842d33861fe0c3d396580e2278aa2bf8944eb2fba9e",
+                "file": {
+                  "path": "src\\pages\\BatteryInfoPage\\components\\StatusCard\\index.tsx",
+                  "hash": "e8f5062a78a757924e79a842d33861fe0c3d396580e2278aa2bf8944eb2fba9e",
+                  "size": 2386,
+                  "modified": 1782916627140.0278
+                }
+              },
+              "right": {
+                "hash": "8ce0f0b491d870c7623b0432a01771380427a8c86110650f9114998538de347a",
+                "file": {
+                  "path": "src\\pages\\BatteryInfoPage\\components\\TemperatureCard\\index.tsx",
+                  "hash": "8ce0f0b491d870c7623b0432a01771380427a8c86110650f9114998538de347a",
+                  "size": 1609,
+                  "modified": 1782878973189.8218
+                }
+              }
+            },
+            "right": {
+              "hash": "0bab88266ba7b24792e6f4ff85e8572eaa37a1e14e3d0987954593c9074b78bc",
+              "left": {
+                "hash": "2bd43bad2753913281b140e600709f78dacf8df3a054a2009851e028aa3d3f68",
+                "file": {
+                  "path": "src\\pages\\BatteryInfoPage\\components\\TemperatureCard\\TempBar.tsx",
+                  "hash": "2bd43bad2753913281b140e600709f78dacf8df3a054a2009851e028aa3d3f68",
+                  "size": 1473,
+                  "modified": 1782913307673.3645
+                }
+              },
+              "right": {
+                "hash": "3157e0d6d4b646a4f9945c7d32ad070e561cf9e64b3c7a62914a68fa7f1765a7",
+                "file": {
+                  "path": "src\\pages\\BatteryInfoPage\\components\\VoltageCurrentChart\\index.tsx",
+                  "hash": "3157e0d6d4b646a4f9945c7d32ad070e561cf9e64b3c7a62914a68fa7f1765a7",
+                  "size": 4841,
+                  "modified": 1782960544005.0996
+                }
+              }
+            }
+          },
+          "right": {
+            "hash": "ac8abd0beee1d09f192c36c47d825ae2a2dfd771f74b7081b632cadb9761fd2f",
+            "left": {
+              "hash": "6652672e2c4c481243a110243fbf119f9acd0e6179314a98701126d629c8d163",
+              "left": {
+                "hash": "7b60c949ad12aebcabb14635ba41b90473e6c231cdb50f6119b6231408201eb6",
+                "file": {
+                  "path": "src\\pages\\BatteryInfoPage\\components\\VoltageCurrentChart\\useChartOption.ts",
+                  "hash": "7b60c949ad12aebcabb14635ba41b90473e6c231cdb50f6119b6231408201eb6",
+                  "size": 2844,
+                  "modified": 1782960543993.9895
+                }
+              },
+              "right": {
+                "hash": "223b09715813b42b0b0cc03ef04dafa6af14b11df683ffd6a782870ee7be8ff3",
+                "file": {
+                  "path": "src\\pages\\BatteryInfoPage\\hooks\\useStatusItems.ts",
+                  "hash": "223b09715813b42b0b0cc03ef04dafa6af14b11df683ffd6a782870ee7be8ff3",
+                  "size": 3168,
+                  "modified": 1782907077634.767
+                }
+              }
+            },
+            "right": {
+              "hash": "8150d90f4c885741dd4eb883e0e8e21a15a856abb40439c777c5b1a6134c6b1a",
+              "left": {
+                "hash": "c434e7783c6889a2b208513164557dfb7549257eac2498aedbbc088c47139050",
+                "file": {
+                  "path": "src\\pages\\BatteryInfoPage\\index.tsx",
+                  "hash": "c434e7783c6889a2b208513164557dfb7549257eac2498aedbbc088c47139050",
+                  "size": 11368,
+                  "modified": 1782960543991.2866
+                }
+              },
+              "right": {
+                "hash": "ce1d0370b3ff4ef61db70c947f696cc316e4881716f3bf7200e92dc3276315ae",
+                "file": {
+                  "path": "src\\pages\\ExtendedCommandPage\\components\\ProtocolDbCard\\DynamicTable.tsx",
+                  "hash": "ce1d0370b3ff4ef61db70c947f696cc316e4881716f3bf7200e92dc3276315ae",
+                  "size": 4414,
+                  "modified": 1782706557107.35
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "right": {
+      "hash": "efe1f85fc20eb616fef04476cf3989132f898104500808c116540f47db66491e",
+      "left": {
+        "hash": "72b97929667f2be9c8b48a9c17210b83a2a71653b082cc29b0345c229cb3ec30",
+        "left": {
+          "hash": "27d59a8de72ef85c429cb45cf16014af76a815af3427918a65a9cfb70332c35f",
+          "left": {
+            "hash": "ebe76bd3677bce0df27c0026aab08b6ca80c72ef5ada90c612c121c63b9e5c44",
+            "left": {
+              "hash": "c5acd20828b646a4978d0588d2684054668ef8d5d15a7bf5e1f1ee9b8b778ada",
+              "left": {
+                "hash": "31c5bf34e8384518753138191374f21369ee5e62c4b96a0f43d3d331f77c4c5c",
+                "file": {
+                  "path": "src\\pages\\ExtendedCommandPage\\components\\ProtocolDbCard\\index.tsx",
+                  "hash": "31c5bf34e8384518753138191374f21369ee5e62c4b96a0f43d3d331f77c4c5c",
+                  "size": 1837,
+                  "modified": 1782706557108.7373
+                }
+              },
+              "right": {
+                "hash": "f282b8d387fac806a90a15ee1dfb3e2b7749a652f33c48c07d03a062f060f2e6",
+                "file": {
+                  "path": "src\\pages\\ExtendedCommandPage\\components\\SendFrameCard\\index.tsx",
+                  "hash": "f282b8d387fac806a90a15ee1dfb3e2b7749a652f33c48c07d03a062f060f2e6",
+                  "size": 2115,
+                  "modified": 1782706557114.16
+                }
+              }
+            },
+            "right": {
+              "hash": "d859b8e5ca4759b068d1d84f13c57a6e2b5efa43fbdfe500760b31b71acd538e",
+              "left": {
+                "hash": "cba671c8c2f01a335b351d999493adb6df78299e9ea7743b7584929b545910b5",
+                "file": {
+                  "path": "src\\pages\\ExtendedCommandPage\\index.tsx",
+                  "hash": "cba671c8c2f01a335b351d999493adb6df78299e9ea7743b7584929b545910b5",
+                  "size": 784,
+                  "modified": 1782960544022.1113
+                }
+              },
+              "right": {
+                "hash": "7cf2b9dda7a6e69c68bd6a52583400e7b13120a8c53c818979b8d25305a2079f",
+                "file": {
+                  "path": "src\\pages\\FaultRecordPage\\components\\FaultCard\\index.tsx",
+                  "hash": "7cf2b9dda7a6e69c68bd6a52583400e7b13120a8c53c818979b8d25305a2079f",
+                  "size": 768,
+                  "modified": 1782706557117.764
+                }
+              }
+            }
+          },
+          "right": {
+            "hash": "ee3e05bb97409a4fab3510a187446493e7023cba7167423512084af534c8bd68",
+            "left": {
+              "hash": "83e74cbaf3fb8c913617084618cb15b6001f7f9cce782d83cb38ea2e381ca92b",
+              "left": {
+                "hash": "e2dcba5b689a35a825bdd8968044d40a160c3388e63e48dcbc08e8987e2eb930",
+                "file": {
+                  "path": "src\\pages\\FaultRecordPage\\index.tsx",
+                  "hash": "e2dcba5b689a35a825bdd8968044d40a160c3388e63e48dcbc08e8987e2eb930",
+                  "size": 7263,
+                  "modified": 1782815231328.8025
+                }
+              },
+              "right": {
+                "hash": "f1d3df94a2acdacb4553e920af98a72e4f1709bed63523d0cda534b06aa07288",
+                "file": {
+                  "path": "src\\pages\\ParamConfigPage\\components\\ParamGroupCard\\index.tsx",
+                  "hash": "f1d3df94a2acdacb4553e920af98a72e4f1709bed63523d0cda534b06aa07288",
+                  "size": 2684,
+                  "modified": 1782960544005.0996
+                }
+              }
+            },
+            "right": {
+              "hash": "7801c6bc23d19fbc58049f3d614dab21708588f248525fce7d71d81237d1ea08",
+              "left": {
+                "hash": "fb86e3406e9f205deb389d6db8d10d3750504d78ac5cf93f3d493226081bbc70",
+                "file": {
+                  "path": "src\\pages\\ParamConfigPage\\components\\ParamGroupCard\\ParamInput.tsx",
+                  "hash": "fb86e3406e9f205deb389d6db8d10d3750504d78ac5cf93f3d493226081bbc70",
+                  "size": 4844,
+                  "modified": 1782781812920.5327
+                }
+              },
+              "right": {
+                "hash": "b33d5d838be261a0dc9fa62168809e974c18983f491952cf3640ac13425067b3",
+                "file": {
+                  "path": "src\\pages\\ParamConfigPage\\components\\ParamGroupCard\\ParamRow.tsx",
+                  "hash": "b33d5d838be261a0dc9fa62168809e974c18983f491952cf3640ac13425067b3",
+                  "size": 857,
+                  "modified": 1782781812913.0166
+                }
+              }
+            }
+          }
+        },
+        "right": {
+          "hash": "27f6042caee8e04a62e2a26c15cbd5e5ed130a5b8e17bb21d0c58988997180c8",
+          "left": {
+            "hash": "76e1025e6a1a30653b0a3bac448939b5be46b74cd4f77d39f509df59ccad1401",
+            "left": {
+              "hash": "680c05b2ba249fd16d576f0b2605e889cbfdc5a80419a537b3a630c13670fd8d",
+              "left": {
+                "hash": "2419a71494be2833286c35667ac52eca8982419f03ff63e2bad2c6b017d9f0da",
+                "file": {
+                  "path": "src\\pages\\ParamConfigPage\\components\\ParamToolbar\\index.tsx",
+                  "hash": "2419a71494be2833286c35667ac52eca8982419f03ff63e2bad2c6b017d9f0da",
+                  "size": 1447,
+                  "modified": 1782781812913.0166
+                }
+              },
+              "right": {
+                "hash": "2996737bdfba4a9459c838a19ce70c9bcf2539624afb28b5a9d4cdbfa5e41fc1",
+                "file": {
+                  "path": "src\\pages\\ParamConfigPage\\index.tsx",
+                  "hash": "2996737bdfba4a9459c838a19ce70c9bcf2539624afb28b5a9d4cdbfa5e41fc1",
+                  "size": 9501,
+                  "modified": 1782960544019.097
+                }
+              }
+            },
+            "right": {
+              "hash": "123587550b5e464d3f0ee3bc8f414619453b0778e464f605c43ac4048ca848b0",
+              "left": {
+                "hash": "3414a80ee83ca9956e0acfd85d85d9c9428e3ec5c7fa520eede21dbe764ad5a5",
+                "file": {
+                  "path": "src\\store\\context.ts",
+                  "hash": "3414a80ee83ca9956e0acfd85d85d9c9428e3ec5c7fa520eede21dbe764ad5a5",
+                  "size": 1413,
+                  "modified": 1782960544022.1113
+                }
+              },
+              "right": {
+                "hash": "9de177300f8dd42a96cdc442431dccbdbf8aa91691a2db62da23eb4c02523505",
+                "file": {
+                  "path": "src\\store\\provider.tsx",
+                  "hash": "9de177300f8dd42a96cdc442431dccbdbf8aa91691a2db62da23eb4c02523505",
+                  "size": 35107,
+                  "modified": 1782960544034.1006
+                }
+              }
+            }
+          },
+          "right": {
+            "hash": "8a7d9ecf78493f593c13678c24208212a9dd05667fe94b9071d3fbd0a260d2b5",
+            "left": {
+              "hash": "358aabecd3623439f36b09a9340fcce0f4df69053d96fb24a718b13305ba9cd0",
+              "left": {
+                "hash": "899eecf5ad57f24a0c11195ab3522e0ae2aa1cc35ba46f923b14565cce765124",
+                "file": {
+                  "path": "src\\types\\battery.ts",
+                  "hash": "899eecf5ad57f24a0c11195ab3522e0ae2aa1cc35ba46f923b14565cce765124",
+                  "size": 434,
+                  "modified": 1782706557138.8252
+                }
+              },
+              "right": {
+                "hash": "25b82c8bb01c77a821903654e76d191cfe7dfa5472e8c1bd29821cd18c93d30e",
+                "file": {
+                  "path": "src\\types\\bridge.ts",
+                  "hash": "25b82c8bb01c77a821903654e76d191cfe7dfa5472e8c1bd29821cd18c93d30e",
+                  "size": 1114,
+                  "modified": 1782782662300.3499
+                }
+              }
+            },
+            "right": {
+              "hash": "51484aea83471b85312aac50058ea5fb632e295d5724753bd63840fc29f63f07",
+              "left": {
+                "hash": "a0d6520a76765636abb7573f2a1e85fa7619a9efeb22bf969420019cff25625f",
+                "file": {
+                  "path": "src\\types\\device.ts",
+                  "hash": "a0d6520a76765636abb7573f2a1e85fa7619a9efeb22bf969420019cff25625f",
+                  "size": 190,
+                  "modified": 1782706557140.2456
+                }
+              },
+              "right": {
+                "hash": "50d3e4b1c554d3153df1d18547a249e66e8c9f1f2456b1b734b8ce86e6c76daa",
+                "file": {
+                  "path": "src\\types\\fault.ts",
+                  "hash": "50d3e4b1c554d3153df1d18547a249e66e8c9f1f2456b1b734b8ce86e6c76daa",
+                  "size": 190,
+                  "modified": 1782706557140.752
+                }
+              }
+            }
+          }
+        }
+      },
+      "right": {
+        "hash": "e9d1599350b7d824e57d933cdb7494f2b47af91cd7656d5f0bcf7e2141a8f02d",
+        "left": {
+          "hash": "385e6325c9d49f9c29776dbd8d85ec4f8a3f95c77bc80e0a669b55865aeae1d2",
+          "left": {
+            "hash": "9e68a6164fbd3705f3a8744ec9b22537ee107b7c74be7b07d1827c1c16739d94",
+            "left": {
+              "hash": "0e8e01627ff7f8789e5b7187ec354b5826465d4ed8b668b1598a97267c6963f6",
+              "left": {
+                "hash": "226e2e39281157063d567fbf954ef6620c2269f685471ff0fa4c243409f0d86a",
+                "file": {
+                  "path": "src\\types\\index.ts",
+                  "hash": "226e2e39281157063d567fbf954ef6620c2269f685471ff0fa4c243409f0d86a",
+                  "size": 810,
+                  "modified": 1782782662301.3496
+                }
+              },
+              "right": {
+                "hash": "11f0fe68a32a2e375b45f4cbc63636b005e9331b1fef521963ae9cf83d37cae8",
+                "file": {
+                  "path": "src\\types\\param.ts",
+                  "hash": "11f0fe68a32a2e375b45f4cbc63636b005e9331b1fef521963ae9cf83d37cae8",
+                  "size": 398,
+                  "modified": 1782781812913.0166
+                }
+              }
+            },
+            "right": {
+              "hash": "343bee8f5f7bd83c4a2756b04c9c78cac723458513564934e6eb95b477d7b898",
+              "left": {
+                "hash": "52d2a5be59f6656e64969af72c09dd1183f51d0a0b6ee2219a488a958702e5a8",
+                "file": {
+                  "path": "src\\types\\protocol.ts",
+                  "hash": "52d2a5be59f6656e64969af72c09dd1183f51d0a0b6ee2219a488a958702e5a8",
+                  "size": 769,
+                  "modified": 1782706557142.409
+                }
+              },
+              "right": {
+                "hash": "0a02fdd5c597dec4c31ec70a9be15179cdd6e0ba1a9dbd1da52687afba4be2fb",
+                "file": {
+                  "path": "src\\types\\status.ts",
+                  "hash": "0a02fdd5c597dec4c31ec70a9be15179cdd6e0ba1a9dbd1da52687afba4be2fb",
+                  "size": 227,
+                  "modified": 1782706557143.427
+                }
+              }
+            }
+          },
+          "right": {
+            "hash": "96b3144dd1d18c11ac2dd7cb369baec1d2c69a82ad3999c2a9045a2ae670b28f",
+            "left": {
+              "hash": "08f6556fab5700b5a9db6f6f90159d43c7d577a72bc9969cc3ac45fdd813dcb7",
+              "left": {
+                "hash": "cc47156a8bf89c2d0d4f33606883baf3a042e8345dc9e237e14ce38165ebdcc1",
+                "file": {
+                  "path": "src\\types\\wx.d.ts",
+                  "hash": "cc47156a8bf89c2d0d4f33606883baf3a042e8345dc9e237e14ce38165ebdcc1",
+                  "size": 314,
+                  "modified": 1782916893265.9043
+                }
+              },
+              "right": {
+                "hash": "7444491bd2157789e9e17f70cb1a29be42fde6edee1981cacc4c87fc9bacbadb",
+                "file": {
+                  "path": "src\\utils\\color.ts",
+                  "hash": "7444491bd2157789e9e17f70cb1a29be42fde6edee1981cacc4c87fc9bacbadb",
+                  "size": 491,
+                  "modified": 1782706557144.4275
+                }
+              }
+            },
+            "right": {
+              "hash": "80669be3975cd22d7af98c44c7b907907807e1208a2ec51adaf7947085727239",
+              "left": {
+                "hash": "fb7cafa35cfa05db0e21079a77e08c4e7cd1b48ea63c53e86c7dc4a304dbad6c",
+                "file": {
+                  "path": "src\\utils\\format.ts",
+                  "hash": "fb7cafa35cfa05db0e21079a77e08c4e7cd1b48ea63c53e86c7dc4a304dbad6c",
+                  "size": 489,
+                  "modified": 1782706557144.8264
+                }
+              },
+              "right": {
+                "hash": "b97995a8411a1c7dfab9684a034713643ea7fcc6fc3c070d1eb973f55fa4071c",
+                "file": {
+                  "path": "src\\utils\\i18n-field.ts",
+                  "hash": "b97995a8411a1c7dfab9684a034713643ea7fcc6fc3c070d1eb973f55fa4071c",
+                  "size": 407,
+                  "modified": 1782706557145.332
+                }
+              }
+            }
+          }
+        },
+        "right": {
+          "hash": "3ecac1d9a908191c9ad354d96963567a22b76d6f18211e569bf01264f11e70c3",
+          "left": {
+            "hash": "97bca1bb4b28f93c715d9b7b8b738f74d3342e73a509521e5a241845df0b5c52",
+            "left": {
+              "hash": "7e47b0ec4472375bb94af7b9712b36e25065468a0985d04012da731c44cf0e9e",
+              "left": {
+                "hash": "e73e8f9d9cf6ca7d117bb3785b1e4731f0f86ef86085ce853fba4c3979e2710c",
+                "file": {
+                  "path": "src\\utils\\modbus.ts",
+                  "hash": "e73e8f9d9cf6ca7d117bb3785b1e4731f0f86ef86085ce853fba4c3979e2710c",
+                  "size": 29449,
+                  "modified": 1782816547621.1616
+                }
+              },
+              "right": {
+                "hash": "e755bd5015fcc638ee688ac0bb65b5b22d16b9c8ef527b7d12aaf3fb9c810882",
+                "file": {
+                  "path": "src\\utils\\platform.ts",
+                  "hash": "e755bd5015fcc638ee688ac0bb65b5b22d16b9c8ef527b7d12aaf3fb9c810882",
+                  "size": 857,
+                  "modified": 1782916893243.8293
+                }
+              }
+            },
+            "right": {
+              "hash": "5c5d6f90930fa40840c35c78697e9a7f22fbca5811f4821ec86c59474cbc0455",
+              "left": {
+                "hash": "e7c7ea1a0f71385349312bdd8eb87491a035b5944e40177a8dedba3c455086db",
+                "file": {
+                  "path": "src\\utils\\protocol-cache.ts",
+                  "hash": "e7c7ea1a0f71385349312bdd8eb87491a035b5944e40177a8dedba3c455086db",
+                  "size": 2318,
+                  "modified": 1782916893264.9067
+                }
+              },
+              "right": {
+                "hash": "9265a78fef03aacc5fe9e3df62f9639046a755086f27094bdfc821522a94cf79",
+                "file": {
+                  "path": "src\\utils\\storage.ts",
+                  "hash": "9265a78fef03aacc5fe9e3df62f9639046a755086f27094bdfc821522a94cf79",
+                  "size": 776,
+                  "modified": 1782916893245.8276
+                }
+              }
+            }
+          },
+          "right": {
+            "hash": "5978a575d26b9d44f7118816593160ec3c836dedfa0b1d16dc5216687a8f79e5",
+            "left": {
+              "hash": "29f018542a200b2a51efcca93f30a4258771a66192a9922b45eda21dedff0c14",
+              "file": {
+                "path": "src\\vite-env.d.ts",
+                "hash": "29f018542a200b2a51efcca93f30a4258771a66192a9922b45eda21dedff0c14",
+                "size": 37,
+                "modified": 1782706557148.7449
+              }
+            },
+            "right": {
+              "hash": "993002197a317fccb8a2f0402640a279e1e4c7a4b6622bea1ce950294875cfbc",
+              "file": {
+                "path": "vite.config.ts",
+                "hash": "993002197a317fccb8a2f0402640a279e1e4c7a4b6622bea1ce950294875cfbc",
+                "size": 578,
+                "modified": 1782706557151.7776
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
