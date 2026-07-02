@@ -18,18 +18,18 @@ html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   height: 100%;
-  overflow: hidden;
+  overflow: auto;
 }
 
 body {
   background: var(--color-background);
   color: var(--color-foreground);
   height: 100%;
-  overflow: hidden;
+  overflow: auto;
   transition: background-color 0.2s, color 0.2s;
 }
 
 #root {
   height: 100%;
-  overflow: hidden;
+  overflow: auto;
 }
