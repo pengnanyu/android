@@ -1,9 +1,9 @@
 .shell {
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 6px;
-  transition: background-color 0.2s, border-color 0.2s;
+  background: linear-gradient(180deg, rgba(8, 16, 34, 0.95), rgba(14, 26, 50, 0.98));
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 20px;
+  padding: 18px;
+  transition: background-color 0.2s, border-color 0.2s, transform 0.2s ease;
   display: flex;
   flex-direction: column;
   min-height: 0;

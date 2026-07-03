@@ -24,9 +24,11 @@ function buildInitialOption(dataPoints: VoltageCurrentDataPoint[]) {
 
   return {
     animation: false,
-    grid: { left: 30, right: 30, top: 10, bottom: 40 },
+    grid: { left: 30, right: 30, top: 18, bottom: 48 },
     tooltip: {
       trigger: 'axis',
+      triggerOn: 'mousemove',
+      axisPointer: { type: 'cross', label: { backgroundColor: '#0f172a' } },
       formatter(params: unknown) {
         const ps = Array.isArray(params) ? params : [params];
         const p0 = ps[0] as { axisValue?: string; marker?: string; seriesName?: string; value?: unknown };
@@ -40,21 +42,25 @@ function buildInitialOption(dataPoints: VoltageCurrentDataPoint[]) {
     },
     xAxis: {
       type: 'time',
-      axisLabel: { fontSize: 10, formatter: '{mm}:{ss}' },
+      axisLabel: { fontSize: 10, color: '#cbd5e1', formatter: '{mm}:{ss}' },
+      axisLine: { lineStyle: { color: '#334155' } },
+      axisTick: { show: false },
     },
     yAxis: [
       {
         type: 'value',
         name: 'V',
-        nameTextStyle: { fontSize: 10 },
-        axisLabel: { fontSize: 10 },
-        splitLine: { lineStyle: { type: 'dashed' } },
+        nameTextStyle: { fontSize: 10, color: '#94a3b8' },
+        axisLabel: { fontSize: 10, color: '#cbd5e1' },
+        axisLine: { lineStyle: { color: '#334155' } },
+        splitLine: { lineStyle: { type: 'dashed', color: 'rgba(148,163,184,0.12)' } },
       },
       {
         type: 'value',
         name: 'A',
-        nameTextStyle: { fontSize: 10 },
-        axisLabel: { fontSize: 10 },
+        nameTextStyle: { fontSize: 10, color: '#94a3b8' },
+        axisLabel: { fontSize: 10, color: '#cbd5e1' },
+        axisLine: { lineStyle: { color: '#334155' } },
         splitLine: { show: false },
       },
     ],
@@ -62,24 +68,25 @@ function buildInitialOption(dataPoints: VoltageCurrentDataPoint[]) {
       {
         type: 'inside',
         xAxisIndex: 0,
-        startValue: startTime,
-        endValue: endTime,
+        start: 0,
+        end: 100,
         zoomOnMouseWheel: true,
-        moveOnMouseMove: true,
-        moveOnMouseWheel: false,
+        moveOnMouseMove: false,
+        preventDefaultMouseMove: true,
+        filterMode: 'none',
       },
       {
         type: 'slider',
         xAxisIndex: 0,
-        startValue: startTime,
-        endValue: endTime,
+        start: 0,
+        end: 100,
         height: 14,
-        bottom: 4,
+        bottom: 10,
         borderColor: 'transparent',
-        backgroundColor: 'var(--color-muted)',
-        fillerColor: 'var(--color-primary)',
-        handleStyle: { color: 'var(--color-primary)' },
-        textStyle: { fontSize: 10 },
+        backgroundColor: 'rgba(148,163,184,0.08)',
+        fillerColor: '#4ac9ee',
+        handleStyle: { color: '#4ac9ee' },
+        textStyle: { fontSize: 10, color: '#cbd5e1' },
       },
     ],
     series: [
@@ -109,12 +116,12 @@ function buildInitialOption(dataPoints: VoltageCurrentDataPoint[]) {
   };
 }
 
-function readZoomRange(chart: echarts.ECharts): { startValue: number; endValue: number } | null {
+function readZoomRange(chart: echarts.ECharts): { start: number; end: number } | null {
   try {
     const opt = chart.getOption();
-    const dz = opt.dataZoom as Array<{ startValue?: number; endValue?: number }> | undefined;
-    if (dz && dz[0] && dz[0].startValue !== undefined && dz[0].endValue !== undefined) {
-      return { startValue: dz[0].startValue as number, endValue: dz[0].endValue as number };
+    const dz = opt.dataZoom as Array<{ start?: number; end?: number }> | undefined;
+    if (dz && dz[0] && dz[0].start !== undefined && dz[0].end !== undefined) {
+      return { start: dz[0].start as number, end: dz[0].end as number };
     }
   } catch { /* ignore */ }
   return null;
@@ -175,31 +182,18 @@ export function VoltageCurrentChart({ history, cellVoltages, voltageMax, voltage
       return;
     }
 
-    const newCount = history.length - prevLenRef.current;
-    prevLenRef.current = history.length;
-    if (newCount <= 0) return;
-
     const vData = history.map(p => [p.timestamp, p.voltage]);
     const cData = history.map(p => [p.timestamp, p.current]);
+    const saved = hoveringRef.current ? readZoomRange(chart) : null;
+    const zoomOption = saved ? { start: saved.start, end: saved.end } : { start: 0, end: 100 };
 
-    if (hoveringRef.current) {
-      const saved = readZoomRange(chart);
-      chart.setOption({
-        series: [{ data: vData }, { data: cData }],
-        dataZoom: [
-          { type: 'inside', startValue: saved!.startValue, endValue: saved!.endValue },
-          { type: 'slider', startValue: saved!.startValue, endValue: saved!.endValue },
-        ],
-      });
-    } else {
-      chart.setOption({
-        series: [{ data: vData }, { data: cData }],
-        dataZoom: [
-          { type: 'inside', startValue: history[0]!.timestamp, endValue: history[history.length - 1]!.timestamp },
-          { type: 'slider', startValue: history[0]!.timestamp, endValue: history[history.length - 1]!.timestamp },
-        ],
-      });
-    }
+    chart.setOption({
+      series: [{ data: vData }, { data: cData }],
+      dataZoom: [
+        { type: 'inside', xAxisIndex: 0, ...zoomOption, zoomOnMouseWheel: true, moveOnMouseMove: false, preventDefaultMouseMove: true, filterMode: 'none' },
+        { type: 'slider', xAxisIndex: 0, ...zoomOption, height: 14, bottom: 10, borderColor: 'transparent', backgroundColor: 'rgba(148,163,184,0.08)', fillerColor: '#4ac9ee', handleStyle: { color: '#4ac9ee' }, textStyle: { fontSize: 10, color: '#cbd5e1' } },
+      ],
+    });
   }, [history]);
 
   useEffect(() => {
