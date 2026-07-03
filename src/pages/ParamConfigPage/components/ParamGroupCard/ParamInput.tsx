@@ -77,8 +77,16 @@ function sanitize(raw: string, dt: string): string {
 
 export function ParamInput({ param, onValueChange, onBlur, hasPendingDiff }: ParamInputProps) {
   const dt = param.dataType ?? '';
+
+  const formatImportValue = useCallback((val: number): string => {
+    if (isHexType(dt)) {
+      return val.toString(16).toUpperCase().padStart(param.byteLen === 1 ? 2 : 4, '0');
+    }
+    return String(val);
+  }, [dt, param.byteLen]);
+
   const [localValue, setLocalValue] = useState(() => {
-    if (param.pendingImportValue !== undefined) return String(param.pendingImportValue);
+    if (param.pendingImportValue !== undefined) return formatImportValue(param.pendingImportValue);
     return param.displayValue ?? String(param.value);
   });
   const inputRef = useRef<HTMLInputElement>(null);
@@ -88,12 +96,12 @@ export function ParamInput({ param, onValueChange, onBlur, hasPendingDiff }: Par
   useEffect(() => {
     if (inputRef.current !== document.activeElement) {
       if (param.pendingImportValue !== undefined) {
-        setLocalValue(String(param.pendingImportValue));
+        setLocalValue(formatImportValue(param.pendingImportValue));
       } else {
         setLocalValue(param.displayValue ?? String(param.value));
       }
     }
-  }, [param.displayValue, param.value, param.pendingImportValue]);
+  }, [param.displayValue, param.value, param.pendingImportValue, formatImportValue]);
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setLocalValue(sanitize(e.target.value, dt));
