@@ -776,6 +776,42 @@ export function parseDataFields(
   return results;
 }
 
+export function initDefaultFieldValues(parsed: ParsedProtocol): FieldValue[] {
+  const results: FieldValue[] = [];
+  for (let instrIdx = 0; instrIdx < parsed.instructions.length; instrIdx++) {
+    const inst = parsed.instructions[instrIdx]!;
+    const matched = parsed.dataFields.filter(f => f.parentInstructionIndex === instrIdx);
+    for (const field of matched) {
+      results.push({
+        name: field.name,
+        nameZh: field.nameZh,
+        rawValue: 0,
+        value: 0,
+        displayValue: '--',
+        unit: field.unit,
+        dataType: field.dataType,
+        configType: inst.configType,
+        configNameEn: inst.configNameEn,
+        configNameZh: inst.configNameZh,
+        rwType: field.rwType,
+        rowIndex: field.rowIndex,
+        absAddr: field.absAddr,
+        byteOffset: field.byteOffset,
+        regLen: field.regLen,
+        byteLen: field.byteLen,
+        operation: field.operation,
+        ratio: field.ratio,
+        parentInstructionIndex: field.parentInstructionIndex,
+        bitTag: field.bitTag,
+        bitDesc: field.bitDesc,
+        bitLabels: field.bitTag ? parseBitLabels(field.bitDesc, field.byteLen) : undefined,
+        graph: field.graph,
+      });
+    }
+  }
+  return results;
+}
+
 export function reverseOperation(value: number, operation: string, ratio: number): number {
   if (!operation || ratio === 0) return value;
   switch (operation) {

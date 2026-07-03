@@ -4,7 +4,7 @@ import type { BmsStore, DataMemeryGroup, Toast } from './context';
 import { BmsContext } from './context';
 import { useBridgeMessage } from '@/hooks/useBridgeMessage';
 import { isEmbedded } from '@/utils/platform';
-import { parseModbusResponse, appendCrc, bigEndianHex, parseProtocolRows, parseDataFields, buildFieldWriteFrame, buildBatchWriteFrames, verifyCrc, reverseOperation, parseCalendarGroups, parseCalendarRecord } from '@/utils/modbus';
+import { parseModbusResponse, appendCrc, bigEndianHex, parseProtocolRows, parseDataFields, buildFieldWriteFrame, buildBatchWriteFrames, verifyCrc, reverseOperation, parseCalendarGroups, parseCalendarRecord, initDefaultFieldValues } from '@/utils/modbus';
 import { getCachedProtocol, setCachedProtocol } from '@/utils/protocol-cache';
 import type { ParsedProtocol, FieldValue, CalendarGroup, CalendarRecord } from '@/utils/modbus';
 import i18n from '@/i18n';
@@ -421,6 +421,35 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     calendarGroupsRef.current = calGroups;
     setCalendarGroups(calGroups);
 
+    const defaultValues = initDefaultFieldValues(parsed);
+    const valuesMap = new Map<number, FieldValue>();
+    for (const fv of defaultValues) {
+      valuesMap.set(fv.rowIndex, fv);
+    }
+    parsedValuesMapRef.current = valuesMap;
+    setParsedValues(defaultValues);
+
+    const dmValues = defaultValues.filter(v => v.configType === 'Data Memery');
+    const groupMap = new Map<string, FieldValue[]>();
+    for (const v of dmValues) {
+      const key = v.configNameEn || v.configNameZh || 'Unknown';
+      const list = groupMap.get(key) ?? [];
+      list.push(v);
+      groupMap.set(key, list);
+    }
+    const dmGroups: DataMemeryGroup[] = [];
+    for (const [key, fields] of groupMap) {
+      fields.sort((a, b) => a.rowIndex - b.rowIndex);
+      const first = fields[0]!;
+      dmGroups.push({
+        configNameEn: first.configNameEn || key,
+        configNameZh: first.configNameZh || key,
+        fields,
+      });
+    }
+    dmGroups.sort((a, b) => a.fields[0]!.rowIndex - b.fields[0]!.rowIndex);
+    setDataMemeryGroups(dmGroups);
+
     if (allIndices.length === 0) {
       startPeriodicPoll();
       return;
@@ -780,9 +809,8 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     const parsed = parseModbusResponse(data);
 
     if (!parsed) {
-      if (isVerifyReadRef.current) {
-        addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `verify-read invalid response (skipped)`, rawHex });
-      }
+      addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `invalid frame (CRC/length error, skipped)`, rawHex });
+      advancePoll();
       return;
     }
 
