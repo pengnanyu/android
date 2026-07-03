@@ -51,7 +51,7 @@ export function ParamConfigPage() {
         group: groupName,
         dataType: field.dataType,
         byteLen: field.byteLen,
-        readonly: field.rwType === 'R' || field.rwType === 'r' || field.rwType === 'RO',
+        readonly: ['r', 'ro'].includes(field.rwType.toLowerCase()),
         pendingImportValue: pendingImport.get(field.rowIndex),
       }));
       const hasPendingDiff = group.fields.some(f => pendingImport.has(f.rowIndex));
@@ -79,7 +79,7 @@ export function ParamConfigPage() {
         group: g.configNameEn,
         groupZh: g.configNameZh,
         fields: g.fields
-          .filter(f => f.rwType !== 'R' && f.rwType !== 'r' && f.rwType !== 'RO')
+          .filter(f => !['r', 'ro'].includes(f.rwType.toLowerCase()))
           .map(f => ({
             name: f.name,
             nameZh: f.nameZh,
@@ -157,7 +157,7 @@ export function ParamConfigPage() {
             for (const f of group.fields) {
               const importAddr = typeof f.absAddr === 'string' ? parseInt(f.absAddr, 16) : f.absAddr;
               const fv = parsedValues.find(v => v.name === f.name && v.absAddr === importAddr);
-              if (fv && fv.rwType !== 'R' && fv.rwType !== 'r' && fv.rwType !== 'RO') {
+              if (fv && !['r', 'ro'].includes(fv.rwType.toLowerCase())) {
                 const importDisplayVal = String(f.displayValue);
                 if (fv.displayValue !== importDisplayVal) {
                   const numVal = fv.dataType === 'HEX' || fv.dataType === '2HEX'

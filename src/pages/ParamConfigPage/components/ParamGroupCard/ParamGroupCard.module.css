@@ -68,6 +68,12 @@
   flex-shrink: 0;
 }
 
+@media (max-width: 639px) {
+  .groupHeader {
+    flex-wrap: wrap-reverse;
+  }
+}
+
 .headerBtn {
   padding: 8px 16px;
   border-radius: 6px;

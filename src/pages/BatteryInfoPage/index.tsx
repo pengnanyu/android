@@ -51,7 +51,7 @@ export function BatteryInfoPage() {
 
   const { safetyItems } = useStatusItems(protocolDb, parsedProtocol, parsedValues);
 
-  const infoFields = useMemo(() => parsedValues.filter(f => f.configType === 'Info' || f.configType === 'Register'), [parsedValues]);
+  const infoFields = useMemo(() => parsedValues.filter(f => f.configType.toLowerCase() === 'info' || f.configType.toLowerCase() === 'register'), [parsedValues]);
 
   const soc = useMemo(() => {
     const socF = findField(infoFields, 'SOC');

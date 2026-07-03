@@ -407,6 +407,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
   }, [sendNextBatchFrame, stopAllTimers]);
 
   const startInitialPoll = useCallback(() => {
+    if (initPhaseRef.current !== 'protocol') return;
     const db = protocolDb;
     if (!db) return;
     const parsed = parseProtocolRows(db.rows);
@@ -416,11 +417,11 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     const allIndices: number[] = [];
     const regIndices: number[] = [];
     for (let i = 0; i < parsed.instructions.length; i++) {
-      const ct = parsed.instructions[i]!.configType;
-      if (ct !== 'Calendar') {
+      const ct = parsed.instructions[i]!.configType.toLowerCase();
+      if (ct !== 'calendar') {
         allIndices.push(i);
       }
-      if (ct === 'Register') {
+      if (ct === 'register') {
         regIndices.push(i);
       }
     }
@@ -439,7 +440,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     parsedValuesMapRef.current = valuesMap;
     setParsedValues(defaultValues);
 
-    const dmValues = defaultValues.filter(v => v.configType === 'Data Memery');
+    const dmValues = defaultValues.filter(v => v.configType.toLowerCase() === 'data memery');
     const groupMap = new Map<string, FieldValue[]>();
     for (const v of dmValues) {
       const key = v.configNameEn || v.configNameZh || 'Unknown';
@@ -609,7 +610,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     if (pendingDmUpdateRef.current) {
       const dmValues: FieldValue[] = [];
       for (const v of parsedValuesMapRef.current.values()) {
-        if (v.configType === 'Data Memery') dmValues.push(v);
+        if (v.configType.toLowerCase() === 'data memery') dmValues.push(v);
       }
       const groupMap = new Map<string, FieldValue[]>();
       for (const v of dmValues) {
@@ -869,7 +870,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       if (fieldValues.length > 0) {
         const map = parsedValuesMapRef.current;
         for (const fv of fieldValues) {
-          if (!pendingDmUpdateRef.current && fv.configType === 'Data Memery') {
+          if (!pendingDmUpdateRef.current && fv.configType.toLowerCase() === 'data memery') {
             pendingDmUpdateRef.current = true;
           }
           map.set(fv.rowIndex, fv);

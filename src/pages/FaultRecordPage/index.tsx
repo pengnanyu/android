@@ -168,8 +168,8 @@ function FaultGroupCard({ groupName, group, groupRecords, isZh, onRead, onExport
               </tr>
             </thead>
             <tbody>
-              {groupRecords.map((rec) => (
-                <tr key={rec.recordIdx} className={styles.tr}>
+              {groupRecords.map((rec, ri) => (
+                <tr key={rec.recordIdx} className={`${styles.tr} ${ri % 2 === 1 ? styles.trEven : ''}`}>
                   {rec.values.map((v, vi) => {
                     const isSticky = freezeIdx >= 0 && vi <= freezeIdx;
                     const isLastSticky = freezeIdx >= 0 && vi === freezeIdx;

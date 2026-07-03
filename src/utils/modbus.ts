@@ -235,7 +235,7 @@ export function parseCalendarGroups(parsed: ParsedProtocol): CalendarGroup[] {
   const groups: CalendarGroup[] = [];
   for (let i = 0; i < parsed.instructions.length; i++) {
     const inst = parsed.instructions[i]!;
-    if (inst.configType !== 'Calendar') continue;
+    if (inst.configType.toLowerCase() !== 'calendar') continue;
 
     const fields = parsed.dataFields
       .filter(f => f.parentInstructionIndex === i)
@@ -966,7 +966,7 @@ export function buildFieldWriteFrame(
   siblingFields: FieldValue[],
   getLeRegisterValue: (absAddr: number) => number
 ): number[] | null {
-  if (field.rwType === 'R' || field.rwType === 'r' || field.rwType === 'RO') return null;
+  if (['r', 'ro'].includes(field.rwType.toLowerCase())) return null;
 
   const rawValue = reverseOperation(newValue, field.operation, field.ratio);
 
@@ -1008,7 +1008,7 @@ export function buildBatchWriteFrames(
   const oneByteFields = new Map<number, { field: FieldValue; newValue: number }[]>();
 
   for (const { field, newValue } of fields) {
-    if (field.rwType === 'R' || field.rwType === 'r' || field.rwType === 'RO') continue;
+    if (['r', 'ro'].includes(field.rwType.toLowerCase())) continue;
     if (field.byteLen === 1) {
       const list = oneByteFields.get(field.absAddr) ?? [];
       list.push({ field, newValue });
