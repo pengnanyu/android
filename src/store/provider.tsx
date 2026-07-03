@@ -22,6 +22,35 @@ function registerToVersionHex(register: number): string {
   return bigEndianHex(register);
 }
 
+function areFieldValueListsEqual(a: FieldValue[], b: FieldValue[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    const left = a[i]!;
+    const right = b[i]!;
+    if (
+      left.rowIndex !== right.rowIndex ||
+      left.value !== right.value ||
+      left.displayValue !== right.displayValue ||
+      left.rawValue !== right.rawValue
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function areDataMemoryGroupsEqual(a: DataMemeryGroup[], b: DataMemeryGroup[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    const left = a[i]!;
+    const right = b[i]!;
+    if (left.configNameEn !== right.configNameEn || left.configNameZh !== right.configNameZh || !areFieldValueListsEqual(left.fields, right.fields)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export interface RegisterKey {
   slaveAddr: number;
   funcCode: number;
@@ -57,6 +86,58 @@ export function BmsProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   const parsedValuesMapRef = useRef<Map<number, FieldValue>>(new Map());
+
+  const setParsedFieldsIfChanged = useCallback((next: Map<string, number>) => {
+    setParsedFields(prev => {
+      if (prev.size === next.size) {
+        for (const [key, value] of next) {
+          if (prev.get(key) !== value) return next;
+        }
+        return prev;
+      }
+      return next;
+    });
+  }, []);
+
+  const setParsedValuesIfChanged = useCallback((next: FieldValue[]) => {
+    setParsedValues(prev => (areFieldValueListsEqual(prev, next) ? prev : next));
+  }, []);
+
+  const setDataMemeryGroupsIfChanged = useCallback((next: DataMemeryGroup[]) => {
+    setDataMemeryGroups(prev => (areDataMemoryGroupsEqual(prev, next) ? prev : next));
+  }, []);
+
+  const setCalendarGroupsIfChanged = useCallback((next: CalendarGroup[]) => {
+    setCalendarGroups(prev => {
+      if (prev.length === next.length) {
+        for (let i = 0; i < prev.length; i++) {
+          const left = prev[i]!;
+          const right = next[i]!;
+          if (left.configNameEn !== right.configNameEn || left.startAddr !== right.startAddr || left.recordCount !== right.recordCount) {
+            return next;
+          }
+        }
+        return prev;
+      }
+      return next;
+    });
+  }, []);
+
+  const setCalendarRecordsIfChanged = useCallback((next: CalendarRecord[]) => {
+    setCalendarRecords(prev => {
+      if (prev.length === next.length) {
+        for (let i = 0; i < prev.length; i++) {
+          const left = prev[i]!;
+          const right = next[i]!;
+          if (left.groupIdx !== right.groupIdx || left.recordIdx !== right.recordIdx || left.isEmpty !== right.isEmpty) {
+            return next;
+          }
+        }
+        return prev;
+      }
+      return next;
+    });
+  }, []);
   const calendarGroupsRef = useRef<CalendarGroup[]>([]);
   const calendarRecordsRef = useRef<CalendarRecord[]>([]);
   const calendarPollGroupIdxRef = useRef(0);
@@ -190,12 +271,12 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `communication-error, resetting to version query`, rawHex: '' });
     setDeviceVersion(null);
     setProtocolDb(null);
-    setParsedFields(new Map());
-    setParsedValues([]);
+    setParsedFieldsIfChanged(new Map());
+    setParsedValuesIfChanged([]);
     setParsedProtocol(null);
-    setDataMemeryGroups([]);
-    setCalendarGroups([]);
-    setCalendarRecords([]);
+    setDataMemeryGroupsIfChanged([]);
+    setCalendarGroupsIfChanged([]);
+    setCalendarRecordsIfChanged([]);
     parsedValuesMapRef.current = new Map();
 
     sendFrame(appendCrc([0x00, 0x03, 0x00, 0x00, 0x00, 0x01]));
@@ -430,7 +511,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
 
     const calGroups = parseCalendarGroups(parsed);
     calendarGroupsRef.current = calGroups;
-    setCalendarGroups(calGroups);
+    setCalendarGroupsIfChanged(calGroups);
 
     const defaultValues = initDefaultFieldValues(parsed);
     const valuesMap = new Map<number, FieldValue>();
@@ -438,7 +519,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       valuesMap.set(fv.rowIndex, fv);
     }
     parsedValuesMapRef.current = valuesMap;
-    setParsedValues(defaultValues);
+    setParsedValuesIfChanged(defaultValues);
 
     const dmValues = defaultValues.filter(v => v.configType.toLowerCase() === 'data memery');
     const groupMap = new Map<string, FieldValue[]>();
@@ -459,7 +540,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       });
     }
     dmGroups.sort((a, b) => a.fields[0]!.rowIndex - b.fields[0]!.rowIndex);
-    setDataMemeryGroups(dmGroups);
+    setDataMemeryGroupsIfChanged(dmGroups);
 
     if (allIndices.length === 0) {
       startPeriodicPoll();
@@ -520,7 +601,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     calendarPollingRef.current = true;
     calendarErrorCountRef.current = 0;
     calendarRecordsRef.current = [];
-    setCalendarRecords([]);
+    setCalendarRecordsIfChanged([]);
     sendCalendarRecordFrame(0, 0);
   }, [sendCalendarRecordFrame, stopAllTimers]);
 
@@ -600,11 +681,11 @@ export function BmsProvider({ children }: { children: ReactNode }) {
 
   const flushUpdates = useCallback(() => {
     if (pendingFieldsUpdateRef.current) {
-      setParsedFields(pendingFieldsUpdateRef.current);
+      setParsedFieldsIfChanged(pendingFieldsUpdateRef.current);
       pendingFieldsUpdateRef.current = null;
     }
     if (pendingValuesUpdateRef.current) {
-      setParsedValues(Array.from(parsedValuesMapRef.current.values()));
+      setParsedValuesIfChanged(Array.from(parsedValuesMapRef.current.values()));
       pendingValuesUpdateRef.current = false;
     }
     if (pendingDmUpdateRef.current) {
@@ -630,7 +711,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
         });
       }
       groups.sort((a, b) => a.fields[0]!.rowIndex - b.fields[0]!.rowIndex);
-      setDataMemeryGroups(groups);
+      setDataMemeryGroupsIfChanged(groups);
       pendingDmUpdateRef.current = false;
     }
   }, []);
@@ -989,10 +1070,10 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       rawBufRef.current = [];
       setDeviceVersion(null);
       setProtocolDb(null);
-      setParsedFields(new Map());
-      setParsedValues([]);
+      setParsedFieldsIfChanged(new Map());
+      setParsedValuesIfChanged([]);
       setParsedProtocol(null);
-      setDataMemeryGroups([]);
+      setDataMemeryGroupsIfChanged([]);
       parsedValuesMapRef.current = new Map();
 
     }

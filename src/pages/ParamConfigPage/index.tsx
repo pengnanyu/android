@@ -29,6 +29,13 @@ export function ParamConfigPage() {
   const [mobileView, setMobileView] = useState<'nav' | 'detail'>('nav');
   const [pendingImport, setPendingImport] = useState<Map<number, number>>(new Map());
   const prevBatchWritingRef = useRef(false);
+  const parsedValuesByRow = useMemo(() => {
+    const map = new Map<number, typeof parsedValues[number]>();
+    for (const value of parsedValues) {
+      map.set(value.rowIndex, value);
+    }
+    return map;
+  }, [parsedValues]);
 
   useEffect(() => {
     if (prevBatchWritingRef.current && !isBatchWriting && pendingImport.size > 0) {
@@ -64,10 +71,10 @@ export function ParamConfigPage() {
     if (isNaN(rowIndex)) return;
     const numVal = typeof newValue === 'string' ? Number(newValue) : newValue;
     if (isNaN(numVal)) return;
-    const fv = parsedValues.find(v => v.rowIndex === rowIndex);
+    const fv = parsedValuesByRow.get(rowIndex);
     if (fv && Math.abs(fv.value - numVal) < 1e-9) return;
     writeField(rowIndex, numVal);
-  }, [writeField, parsedValues]);
+  }, [parsedValuesByRow, writeField]);
 
   const handleBlur = useCallback((_key: string) => { }, []);
 
@@ -153,10 +160,11 @@ export function ParamConfigPage() {
             return;
           }
           const pending = new Map<number, number>();
+          const parsedValueEntries = Array.from(parsedValuesByRow.values());
           for (const group of data.params) {
             for (const f of group.fields) {
               const importAddr = typeof f.absAddr === 'string' ? parseInt(f.absAddr, 16) : f.absAddr;
-              const fv = parsedValues.find(v => v.name === f.name && v.absAddr === importAddr);
+              const fv = parsedValueEntries.find(v => v.name === f.name && v.absAddr === importAddr);
               if (fv && !['r', 'ro'].includes(fv.rwType.toLowerCase())) {
                 const importDisplayVal = String(f.displayValue);
                 if (fv.displayValue !== importDisplayVal) {
@@ -181,7 +189,7 @@ export function ParamConfigPage() {
       reader.readAsText(file);
     };
     input.click();
-  }, [deviceVersion, isZh, parsedValues, showToast]);
+  }, [deviceVersion, isZh, parsedValuesByRow, parsedValues, showToast]);
 
   const handleConfirmImport = useCallback(() => {
     const fields: { fieldRowIndex: number; newValue: number }[] = [];
