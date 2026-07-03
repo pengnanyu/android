@@ -11,7 +11,7 @@ import i18n from '@/i18n';
 
 const PROTOCOL_API_URL = 'https://sql.hzxhhc.com/api/data/';
 const VERSION_QUERY_INTERVAL = 1000;
-const RESPONSE_TIMEOUT = 2000;
+const RESPONSE_TIMEOUT = 5000;
 const POLL_INTERVAL = 1000;
 
 function fmtHex(bytes: number[]): string {
