@@ -699,43 +699,6 @@ export function BmsProvider({ children }: { children: ReactNode }) {
 
   const rawBufRef = useRef<number[]>([]);
 
-  const handleRawData = useCallback((payload: unknown) => {
-    const p = payload as { data: number[] };
-    if (!p.data || p.data.length === 0) return;
-
-    for (const b of p.data) rawBufRef.current.push(b);
-
-    let loopGuard = 0;
-    while (rawBufRef.current.length > 0 && loopGuard++ < 20) {
-      const buf = rawBufRef.current;
-      if (buf.length < 5) break;
-
-      const fc = buf[1]!;
-
-      if (fc & 0x80) {
-        processFrame(buf.slice(0, 5));
-        rawBufRef.current = buf.slice(5);
-        continue;
-      }
-
-      if (fc !== 0x10) {
-        const bc = buf[2] ?? 0;
-        const frameLen = 3 + bc + 2;
-        if (buf.length < frameLen) break;
-        processFrame(buf.slice(0, frameLen));
-        rawBufRef.current = buf.slice(frameLen);
-        continue;
-      }
-
-      if (fc === 0x10) {
-        processFrame(buf.slice(0, 5));
-        rawBufRef.current = buf.slice(5);
-        continue;
-      }
-
-      rawBufRef.current = buf.slice(1);
-    }
-  }, [parsedFields, addLog, stopVersionRetry, loadProtocolDb, advancePoll, resetToVersionQuery, sendFrame]);
 
   const processFrame = useCallback((data: number[]) => {
     if (data.length === 0) return;
@@ -826,6 +789,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       if (isVerifyReadRef.current) {
         addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `verify-read exception func=0x${parsed.funcCode.toString(16).padStart(2, '0')}`, rawHex });
       }
+      rawBufRef.current = [];
       advancePoll();
       return;
     }
@@ -866,6 +830,18 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    const instrIdx = currentSentInstrIdxRef.current;
+    const protocol = parsedProtocolRef.current;
+    if (protocol && instrIdx >= 0 && instrIdx < protocol.instructions.length) {
+      const expectedFc = protocol.instructions[instrIdx]!.funcCode;
+      const expectedRegs = protocol.instructions[instrIdx]!.quantity;
+      if (parsed.funcCode !== expectedFc || parsed.byteCount !== expectedRegs * 2) {
+        addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `stale response (fc=${parsed.funcCode.toString(16)} bc=${parsed.byteCount}, expected fc=${expectedFc.toString(16)} bc=${expectedRegs * 2}), discarded`, rawHex });
+        rawBufRef.current = [];
+        return;
+      }
+    }
+
     if (!pendingFieldsUpdateRef.current) {
       pendingFieldsUpdateRef.current = new Map(parsedFields);
     }
@@ -873,8 +849,6 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       pendingFieldsUpdateRef.current.set(makeRegisterKey(parsed.slaveAddr, parsed.funcCode, i), parsed.registers[i]!);
     }
 
-    const instrIdx = currentSentInstrIdxRef.current;
-    const protocol = parsedProtocolRef.current;
     if (protocol && instrIdx >= 0 && instrIdx < protocol.instructions.length) {
 
       const fieldValues = parseDataFields(parsed.registers, protocol.dataFields, instrIdx, protocol.instructions);
@@ -906,6 +880,49 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     errorCountRef.current = 0;
     advancePoll();
   }, [parsedFields, addLog, stopVersionRetry, loadProtocolDb, advancePoll, resetToVersionQuery, sendFrame]);
+
+  const handleRawData = useCallback((payload: unknown) => {
+    const p = payload as { data: number[] };
+    if (!p.data || p.data.length === 0) return;
+
+    for (const b of p.data) rawBufRef.current.push(b);
+
+    let loopGuard = 0;
+    while (rawBufRef.current.length > 0 && loopGuard++ < 20) {
+      const buf = rawBufRef.current;
+      if (buf.length < 5) break;
+
+      if (buf[0] !== 0x00) {
+        rawBufRef.current = buf.slice(1);
+        continue;
+      }
+
+      const fc = buf[1]!;
+
+      if (fc & 0x80) {
+        processFrame(buf.slice(0, 5));
+        rawBufRef.current = buf.slice(5);
+        continue;
+      }
+
+      if (fc !== 0x10) {
+        const bc = buf[2] ?? 0;
+        const frameLen = 3 + bc + 2;
+        if (buf.length < frameLen) break;
+        processFrame(buf.slice(0, frameLen));
+        rawBufRef.current = buf.slice(frameLen);
+        continue;
+      }
+
+      if (fc === 0x10) {
+        processFrame(buf.slice(0, 5));
+        rawBufRef.current = buf.slice(5);
+        continue;
+      }
+
+      rawBufRef.current = buf.slice(1);
+    }
+  }, [processFrame]);
 
 
   const handleConnectionStatus = useCallback((payload: unknown) => {
