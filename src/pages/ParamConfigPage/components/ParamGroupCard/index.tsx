@@ -40,9 +40,11 @@ export function ParamGroupCard({ groupName, params, onValueChange, onBlur, onBac
         <div className={styles.headerActions} onClick={(e) => e.stopPropagation()}>
           {hasPendingImport ? (
             <>
-              <button className={styles.headerBtnCancel} onClick={onCancelImport}>
-                {t('param.cancelImport')}
-              </button>
+              {!isBatchWriting && (
+                <button className={styles.headerBtnCancel} onClick={onCancelImport}>
+                  {t('param.cancelImport')}
+                </button>
+              )}
               <button className={styles.headerBtnConfirm} onClick={onConfirmImport} disabled={isBatchWriting}>
                 {isBatchWriting ? <span className={styles.spinner} /> : null}
                 {isBatchWriting ? t('param.writing') : t('param.confirmImport')}

@@ -28,8 +28,16 @@ export function ParamConfigPage() {
   const [activeGroupIdx, setActiveGroupIdx] = useState(0);
   const [mobileView, setMobileView] = useState<'nav' | 'detail'>('nav');
   const [pendingImport, setPendingImport] = useState<Map<number, number>>(new Map());
+  const prevBatchWritingRef = useRef(false);
 
-  const hasPendingImport = pendingImport.size > 0;
+  useEffect(() => {
+    if (prevBatchWritingRef.current && !isBatchWriting && pendingImport.size > 0) {
+      setPendingImport(new Map());
+    }
+    prevBatchWritingRef.current = isBatchWriting;
+  }, [isBatchWriting, pendingImport.size]);
+
+  const hasPendingImport = pendingImport.size > 0 || isBatchWriting;
 
   const paramGroups = useMemo(() => {
     return dataMemeryGroups.map(group => {
@@ -154,7 +162,7 @@ export function ParamConfigPage() {
     pendingImport.forEach((value, rowIndex) => {
       fields.push({ fieldRowIndex: rowIndex, newValue: value });
     });
-    setPendingImport(new Map());
+
     writeBatch(fields);
   }, [pendingImport, writeBatch]);
 

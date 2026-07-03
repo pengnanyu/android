@@ -970,15 +970,41 @@ export function buildBatchWriteFrames(
   getLeRegisterValue: (absAddr: number) => number
 ): number[][] {
   const regMap = new Map<number, number>();
+  const oneByteFields = new Map<number, { field: FieldValue; newValue: number }[]>();
+
   for (const { field, newValue } of fields) {
     if (field.rwType === 'R' || field.rwType === 'r' || field.rwType === 'RO') continue;
-    const rawValue = reverseOperation(newValue, field.operation, field.ratio);
     if (field.byteLen === 1) {
-      const byteVal = Math.round(rawValue) & 0xFF;
-      const sibling = siblingFields.find(
-        f => f.absAddr === field.absAddr && f.rowIndex !== field.rowIndex && f.byteLen === 1
-      );
-      let beCombined: number;
+      const list = oneByteFields.get(field.absAddr) ?? [];
+      list.push({ field, newValue });
+      oneByteFields.set(field.absAddr, list);
+    } else {
+      const rawValue = reverseOperation(newValue, field.operation, field.ratio);
+      const leRegs = valueToLittleEndianRegs(rawValue, field.dataType, field.byteLen);
+      for (let i = 0; i < leRegs.length; i++) {
+        regMap.set(field.absAddr + i, leRegs[i]!);
+      }
+    }
+  }
+
+  for (const [absAddr, items] of oneByteFields) {
+    const sibling = siblingFields.find(
+      f => f.absAddr === absAddr && f.rowIndex !== items[0]!.field.rowIndex && f.byteLen === 1
+    );
+    const paired = items.length === 2;
+    let beCombined: number;
+    if (paired) {
+      const a = items[0]!, b = items[1]!;
+      const byteA = Math.round(reverseOperation(a.newValue, a.field.operation, a.field.ratio)) & 0xFF;
+      const byteB = Math.round(reverseOperation(b.newValue, b.field.operation, b.field.ratio)) & 0xFF;
+      if (a.field.byteOffset === 0) {
+        beCombined = (byteB << 8) | byteA;
+      } else {
+        beCombined = (byteA << 8) | byteB;
+      }
+    } else {
+      const { field, newValue } = items[0]!;
+      const byteVal = Math.round(reverseOperation(newValue, field.operation, field.ratio)) & 0xFF;
       if (sibling) {
         const sibByte = sibling.rawValue & 0xFF;
         if (field.byteOffset === 0) {
@@ -987,7 +1013,7 @@ export function buildBatchWriteFrames(
           beCombined = (byteVal << 8) | sibByte;
         }
       } else {
-        const curLeReg = getLeRegisterValue(field.absAddr);
+        const curLeReg = getLeRegisterValue(absAddr);
         const curBeVal = leRegToValue(curLeReg);
         if (field.byteOffset === 0) {
           beCombined = (curBeVal & 0xFF00) | byteVal;
@@ -995,14 +1021,10 @@ export function buildBatchWriteFrames(
           beCombined = (byteVal << 8) | (curBeVal & 0xFF);
         }
       }
-      regMap.set(field.absAddr, swap16(beCombined));
-    } else {
-      const leRegs = valueToLittleEndianRegs(rawValue, field.dataType, field.byteLen);
-      for (let i = 0; i < leRegs.length; i++) {
-        regMap.set(field.absAddr + i, leRegs[i]!);
-      }
     }
+    regMap.set(absAddr, swap16(beCombined));
   }
+
   if (regMap.size === 0) return [];
   const addrs = Array.from(regMap.keys()).sort((a, b) => a - b);
   const frames: number[][] = [];

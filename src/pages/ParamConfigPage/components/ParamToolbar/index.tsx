@@ -20,9 +20,11 @@ export function ParamToolbar({ onImport, onExport, onPreset, hasPendingImport, i
         <>
           <span className={styles.pendingHint}>{t('param.pendingImportHint')}</span>
           <div className={styles.spacer} />
-          <button className={styles.btnCancel} onClick={onCancelImport}>
-            {t('param.cancelImport')}
-          </button>
+          {!isBatchWriting && (
+            <button className={styles.btnCancel} onClick={onCancelImport}>
+              {t('param.cancelImport')}
+            </button>
+          )}
           <button className={styles.btnConfirm} onClick={onConfirmImport} disabled={isBatchWriting}>
             {isBatchWriting ? <span className={styles.spinner} /> : null}
             {isBatchWriting ? t('param.writing') : t('param.confirmImport')}
