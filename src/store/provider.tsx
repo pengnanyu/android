@@ -12,7 +12,7 @@ import i18n from '@/i18n';
 const PROTOCOL_API_URL = 'https://sql.hzxhhc.com/api/data/';
 const VERSION_QUERY_INTERVAL = 1000;
 const RESPONSE_TIMEOUT = 5000;
-const POLL_INTERVAL = 1000;
+const TARGET_CYCLE_MS = 1000;
 
 function fmtHex(bytes: number[]): string {
   return '[' + bytes.map(b => b.toString(16).padStart(2, '0')).join(' ') + ']';
@@ -123,11 +123,13 @@ export function BmsProvider({ children }: { children: ReactNode }) {
 
   const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pollIdxRef = useRef(0);
+  const cycleStartRef = useRef(0);
   const waitingResponseRef = useRef(false);
   const responseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const parsedProtocolRef = useRef<ParsedProtocol | null>(null);
   const allInstrIndicesRef = useRef<number[]>([]);
   const registerInstrIndicesRef = useRef<number[]>([]);
+  const skippedInstrIndicesRef = useRef<number[]>([]);
   const currentSentInstrIdxRef = useRef(-1);
   const initPhaseRef = useRef<'idle' | 'version' | 'protocol' | 'initial-poll' | 'periodic'>('idle');
   const isWritingRef = useRef(false);
@@ -181,6 +183,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     isBatchWritingRef.current = false;
     batchWriteQueueRef.current = [];
     batchVerifyInstrIdxRef.current = -1;
+    skippedInstrIndicesRef.current = [];
     setIsBatchWriting(false);
 
     rawBufRef.current = [];
@@ -300,6 +303,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
         }
         if (initPhaseRef.current === 'initial-poll') {
           addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `initial-poll timeout, skipping instruction`, rawHex: '' });
+          skippedInstrIndicesRef.current.push(instrIdx);
           waitingResponseRef.current = false;
           advancePoll();
         } else {
@@ -573,8 +577,18 @@ export function BmsProvider({ children }: { children: ReactNode }) {
   }, [sendCalendarRecordFrame]);
 
   const startPeriodicPoll = useCallback(() => {
+    const skipped = skippedInstrIndicesRef.current;
+    if (skipped.length > 0) {
+      initPhaseRef.current = 'initial-poll';
+      pollIdxRef.current = 0;
+      skippedInstrIndicesRef.current = [];
+      allInstrIndicesRef.current = skipped;
+      sendInstructionFrame(skipped[0]!);
+      return;
+    }
     initPhaseRef.current = 'periodic';
     pollIdxRef.current = 0;
+    cycleStartRef.current = Date.now();
     const regIndices = registerInstrIndicesRef.current;
     if (regIndices.length === 0) return;
 
@@ -680,6 +694,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
         pollTimerRef.current = setTimeout(() => {
           pollTimerRef.current = null;
           pollIdxRef.current = 0;
+          cycleStartRef.current = Date.now();
           if (pendingCalendarReadRef.current) {
             pendingCalendarReadRef.current = false;
             startCalendarPoll();
@@ -691,7 +706,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
             return;
           }
           sendInstructionFrame(regIndices[0]!);
-        }, POLL_INTERVAL);
+        }, Math.max(0, TARGET_CYCLE_MS - (Date.now() - cycleStartRef.current)));
       }
     }
   }, [sendInstructionFrame, startPeriodicPoll, flushUpdates]);
@@ -834,9 +849,8 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     const protocol = parsedProtocolRef.current;
     if (protocol && instrIdx >= 0 && instrIdx < protocol.instructions.length) {
       const expectedFc = protocol.instructions[instrIdx]!.funcCode;
-      const expectedRegs = protocol.instructions[instrIdx]!.quantity;
-      if (parsed.funcCode !== expectedFc || parsed.byteCount !== expectedRegs * 2) {
-        addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `stale response (fc=${parsed.funcCode.toString(16)} bc=${parsed.byteCount}, expected fc=${expectedFc.toString(16)} bc=${expectedRegs * 2}), discarded`, rawHex });
+      if (parsed.funcCode !== expectedFc) {
+        addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `stale response (fc=0x${parsed.funcCode.toString(16)}, expected 0x${expectedFc.toString(16)}), discarded`, rawHex });
         rawBufRef.current = [];
         return;
       }

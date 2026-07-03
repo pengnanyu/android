@@ -59,10 +59,10 @@
 }
 
 .cellVoltage {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--color-foreground);
   font-variant-numeric: tabular-nums;
-  font-weight: 500;
+  font-weight: 700;
   line-height: 1.2;
 }
 
@@ -90,5 +90,5 @@
 }
 
 .cellCompact .cellVoltage {
-  font-size: 9px;
+  font-size: 10px;
 }

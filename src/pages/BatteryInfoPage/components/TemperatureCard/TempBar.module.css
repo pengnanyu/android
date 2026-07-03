@@ -7,7 +7,7 @@
 }
 
 .barLabel {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--color-muted-foreground);
   min-width: 60px;
   max-width: 80px;
@@ -41,9 +41,10 @@
 }
 
 .barValue {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--color-foreground);
   min-width: 50px;
   text-align: right;
   font-variant-numeric: tabular-nums;
+  font-weight: 700;
 }

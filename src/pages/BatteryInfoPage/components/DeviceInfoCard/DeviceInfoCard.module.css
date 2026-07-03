@@ -16,7 +16,7 @@
 }
 
 .fieldLabel {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--color-muted-foreground);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -25,9 +25,10 @@
 }
 
 .fieldValue {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--color-foreground);
   font-variant-numeric: tabular-nums;
+  font-weight: 700;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -35,7 +36,7 @@
 }
 
 .fieldUnit {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--color-muted-foreground);
   margin-left: 2px;
 }

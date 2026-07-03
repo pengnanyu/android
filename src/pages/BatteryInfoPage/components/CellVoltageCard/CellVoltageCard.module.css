@@ -7,7 +7,7 @@
 .headerInfo {
   display: flex;
   gap: 12px;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-muted-foreground);
   flex-shrink: 0;
 }
