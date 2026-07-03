@@ -29,12 +29,6 @@ html {
   display: none;
 }
 
-body {
-  background: var(--color-background);
-  color: var(--color-foreground);
-  transition: background-color 0.2s, color: 0.2s;
-}
-
 html::-webkit-scrollbar {
   display: none;
 }
@@ -42,5 +36,5 @@ html::-webkit-scrollbar {
 body {
   background: var(--color-background);
   color: var(--color-foreground);
-  transition: background-color 0.2s, color 0.2s;
+  transition: background-color 0.2s, color: 0.2s;
 }

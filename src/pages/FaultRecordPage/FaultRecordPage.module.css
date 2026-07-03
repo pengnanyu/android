@@ -84,10 +84,14 @@
 
 .tableWrap {
   overflow: auto;
-
+  scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
   flex: 1;
   min-height: 0;
+}
+
+.tableWrap::-webkit-scrollbar {
+  display: none;
 }
 
 .table {
