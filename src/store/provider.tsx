@@ -112,11 +112,12 @@ export function BmsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const [isBatchWriting, setIsBatchWriting] = useState(false);
-  const batchWriteQueueRef = useRef<number[][]>([]);
+  const batchWriteQueueRef = useRef<{ frame: number[]; instrIdx: number }[]>([]);
   const batchWriteTotalRef = useRef(0);
   const batchWriteDoneRef = useRef(0);
   const batchWriteErrorRef = useRef(false);
   const isBatchWritingRef = useRef(false);
+  const batchVerifyInstrIdxRef = useRef(-1);
   const sendNextBatchFrameRef = useRef<() => void>(() => { });
 
   const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -178,6 +179,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     calendarErrorCountRef.current = 0;
     isBatchWritingRef.current = false;
     batchWriteQueueRef.current = [];
+    batchVerifyInstrIdxRef.current = -1;
     setIsBatchWriting(false);
 
     rawBufRef.current = [];
@@ -314,6 +316,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       } else {
         showToast(i18n.language === 'zh' ? `${total}帧批量写入成功` : `${total} frames batch written OK`, 'success');
       }
+      flushUpdates();
       const regIndices = registerInstrIndicesRef.current;
       if (regIndices.length > 0) {
         pollIdxRef.current = 0;
@@ -321,18 +324,19 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       }
       return;
     }
-    const frame = batchWriteQueueRef.current.shift()!;
+    const item = batchWriteQueueRef.current.shift()!;
     isWritingRef.current = true;
     errorCountRef.current = 0;
-    sendFrame(frame);
-    addLog({ timestamp: Date.now(), direction: 'TX', parsedInfo: `batch-write frame ${batchWriteDoneRef.current + 1}/${batchWriteTotalRef.current}`, rawHex: fmtHex(frame) });
+    batchVerifyInstrIdxRef.current = item.instrIdx;
+    sendFrame(item.frame);
+    addLog({ timestamp: Date.now(), direction: 'TX', parsedInfo: `batch-write frame ${batchWriteDoneRef.current + 1}/${batchWriteTotalRef.current}`, rawHex: fmtHex(item.frame) });
     responseTimerRef.current = setTimeout(() => {
       if (!isWritingRef.current) return;
       errorCountRef.current++;
       if (errorCountRef.current < 3) {
         isWritingRef.current = false;
         waitingResponseRef.current = false;
-        batchWriteQueueRef.current.unshift(frame);
+        batchWriteQueueRef.current.unshift(item);
         sendNextBatchFrameRef.current();
       } else {
         isWritingRef.current = false;
@@ -342,7 +346,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
         sendNextBatchFrameRef.current();
       }
     }, RESPONSE_TIMEOUT);
-  }, [sendFrame, addLog, showToast, sendInstructionFrame]);
+  }, [sendFrame, addLog, showToast, sendInstructionFrame, flushUpdates]);
 
   sendNextBatchFrameRef.current = sendNextBatchFrame;
 
@@ -369,21 +373,23 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       groupMap.set(gk, list);
     }
 
-    const allFrames: number[][] = [];
+    const allItems: { frame: number[]; instrIdx: number }[] = [];
     for (const [, groupFields] of groupMap) {
       const firstInstrIdx = groupFields[0]!.field.parentInstructionIndex;
       const getLe = (absAddr: number) => getLeRegisterValue(absAddr, firstInstrIdx);
       const frames = buildBatchWriteFrames(groupFields, siblingFields, getLe);
-      allFrames.push(...frames);
+      for (const frame of frames) {
+        allItems.push({ frame, instrIdx: firstInstrIdx });
+      }
     }
-    if (allFrames.length === 0) return;
+    if (allItems.length === 0) return;
 
     stopAllTimers();
     waitingResponseRef.current = false;
     isBatchWritingRef.current = true;
     setIsBatchWriting(true);
-    batchWriteQueueRef.current = [...allFrames];
-    batchWriteTotalRef.current = allFrames.length;
+    batchWriteQueueRef.current = [...allItems];
+    batchWriteTotalRef.current = allItems.length;
     batchWriteDoneRef.current = 0;
     batchWriteErrorRef.current = false;
     sendNextBatchFrameRef.current();
@@ -587,6 +593,13 @@ export function BmsProvider({ children }: { children: ReactNode }) {
 
     if (isVerifyReadRef.current) {
       isVerifyReadRef.current = false;
+      if (isBatchWritingRef.current) {
+        batchWriteDoneRef.current++;
+        addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `batch-write verify OK`, rawHex: '' });
+        flushUpdates();
+        sendNextBatchFrameRef.current();
+        return;
+      }
       addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `write OK`, rawHex: '' });
       showToast(i18n.language === 'zh' ? `${writeFieldNameRef.current} 写入成功` : `${writeFieldNameRef.current} write OK`, 'success');
       flushUpdates();
@@ -720,8 +733,21 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       }
       addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `write-response addr=${addr} func=10 crc=OK`, rawHex });
       if (isBatchWritingRef.current) {
-        batchWriteDoneRef.current++;
-        sendNextBatchFrameRef.current();
+        const verifyIdx = batchVerifyInstrIdxRef.current;
+        if (verifyIdx >= 0) {
+          isVerifyReadRef.current = true;
+          writeInstrIdxRef.current = verifyIdx;
+          const protocol = parsedProtocolRef.current;
+          if (protocol && verifyIdx < protocol.instructions.length) {
+            const inst = protocol.instructions[verifyIdx]!;
+            const start = '0x' + inst.startAddr.toString(16).padStart(4, '0');
+            addLog({ timestamp: Date.now(), direction: 'TX', parsedInfo: `batch-verify-read addr=00 func=${inst.funcCode.toString(16).padStart(2, '0')} start=${start} regs=${inst.quantity}`, rawHex: '' });
+          }
+          sendInstructionFrame(verifyIdx);
+        } else {
+          batchWriteDoneRef.current++;
+          sendNextBatchFrameRef.current();
+        }
         return;
       }
       const writeInstrIdx = writeInstrIdxRef.current;
