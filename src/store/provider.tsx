@@ -298,7 +298,13 @@ export function BmsProvider({ children }: { children: ReactNode }) {
         if (isVerifyReadRef.current) {
           addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `verify-read timeout, max retries`, rawHex: '' });
         }
-        resetToVersionQuery();
+        if (initPhaseRef.current === 'initial-poll') {
+          addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `initial-poll timeout, skipping instruction`, rawHex: '' });
+          waitingResponseRef.current = false;
+          advancePoll();
+        } else {
+          resetToVersionQuery();
+        }
       }
     }, RESPONSE_TIMEOUT);
   }, [sendFrame, addLog, resetToVersionQuery]);
