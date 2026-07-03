@@ -37,6 +37,15 @@ export function ParamConfigPage() {
     return map;
   }, [parsedValues]);
 
+  // 通过名称+地址构建索引，避免导入时对整个参数列表做线性查找。
+  const parsedValuesByNameAndAddr = useMemo(() => {
+    const map = new Map<string, typeof parsedValues[number]>();
+    for (const value of parsedValues) {
+      map.set(`${value.name}::${value.absAddr}`, value);
+    }
+    return map;
+  }, [parsedValues]);
+
   useEffect(() => {
     if (prevBatchWritingRef.current && !isBatchWriting && pendingImport.size > 0) {
       setPendingImport(new Map());
@@ -160,11 +169,10 @@ export function ParamConfigPage() {
             return;
           }
           const pending = new Map<number, number>();
-          const parsedValueEntries = Array.from(parsedValuesByRow.values());
           for (const group of data.params) {
             for (const f of group.fields) {
               const importAddr = typeof f.absAddr === 'string' ? parseInt(f.absAddr, 16) : f.absAddr;
-              const fv = parsedValueEntries.find(v => v.name === f.name && v.absAddr === importAddr);
+              const fv = parsedValuesByNameAndAddr.get(`${f.name}::${importAddr}`);
               if (fv && !['r', 'ro'].includes(fv.rwType.toLowerCase())) {
                 const importDisplayVal = String(f.displayValue);
                 if (fv.displayValue !== importDisplayVal) {
@@ -189,7 +197,7 @@ export function ParamConfigPage() {
       reader.readAsText(file);
     };
     input.click();
-  }, [deviceVersion, isZh, parsedValuesByRow, parsedValues, showToast]);
+  }, [deviceVersion, isZh, parsedValuesByNameAndAddr, showToast]);
 
   const handleConfirmImport = useCallback(() => {
     const fields: { fieldRowIndex: number; newValue: number }[] = [];

@@ -8,6 +8,7 @@ import { parseModbusResponse, appendCrc, bigEndianHex, parseProtocolRows, parseD
 import { getCachedProtocol, setCachedProtocol } from '@/utils/protocol-cache';
 import type { ParsedProtocol, FieldValue, CalendarGroup, CalendarRecord } from '@/utils/modbus';
 import i18n from '@/i18n';
+import { buildDataMemoryGroups, buildFieldValueMap } from './helpers';
 
 const PROTOCOL_API_URL = 'https://sql.hzxhhc.com/api/data/';
 const VERSION_QUERY_INTERVAL = 1000;
@@ -154,30 +155,8 @@ export function BmsProvider({ children }: { children: ReactNode }) {
   const versionRetryRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const toastIdRef = useRef(0);
-  const batchWritingRef = useRef(false);
-  const batchTotalRef = useRef(0);
-  const batchDoneRef = useRef(0);
-  const batchErrorRef = useRef(false);
 
-  const showToast = useCallback((message: string, type: 'success' | 'error') => {
-    if (batchWritingRef.current) {
-      if (type === 'error') batchErrorRef.current = true;
-      batchDoneRef.current++;
-      if (batchDoneRef.current >= batchTotalRef.current) {
-        const total = batchTotalRef.current;
-        const err = batchErrorRef.current;
-        batchWritingRef.current = false;
-        batchTotalRef.current = 0;
-        batchDoneRef.current = 0;
-        batchErrorRef.current = false;
-        if (err) {
-          showToast(i18n.language === 'zh' ? `批量写入完成（部分失败）` : `Batch write done (some failed)`, 'error');
-        } else {
-          showToast(i18n.language === 'zh' ? `${total}项参数写入成功` : `${total} params written OK`, 'success');
-        }
-      }
-      return;
-    }
+  const emitToast = useCallback((message: string, type: 'success' | 'error') => {
     const id = `t${toastIdRef.current++}`;
     setToasts(prev => [...prev, { id, message, type }]);
     setTimeout(() => {
@@ -185,11 +164,38 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     }, 3000);
   }, []);
 
+  const showToast = useCallback((message: string, type: 'success' | 'error') => {
+    // 批量写入期间，把所有子步骤的结果先累计，最后只显示一条汇总提示。
+    if (isBatchWritingRef.current) {
+      if (type === 'error') batchWriteErrorRef.current = true;
+      batchWriteDoneRef.current += 1;
+      if (batchWriteDoneRef.current >= batchWriteTotalRef.current) {
+        const total = batchWriteTotalRef.current;
+        const err = batchWriteErrorRef.current;
+        isBatchWritingRef.current = false;
+        setIsBatchWriting(false);
+        batchWriteTotalRef.current = 0;
+        batchWriteDoneRef.current = 0;
+        batchWriteErrorRef.current = false;
+        emitToast(
+          err
+            ? (i18n.language === 'zh' ? '批量写入完成（部分失败）' : 'Batch write done (some failed)')
+            : (i18n.language === 'zh' ? `${total}项参数写入成功` : `${total} params written OK`),
+          err ? 'error' : 'success'
+        );
+      }
+      return;
+    }
+    emitToast(message, type);
+  }, [emitToast]);
+
   const startBatchWrite = useCallback((count: number) => {
-    batchWritingRef.current = true;
-    batchTotalRef.current = count;
-    batchDoneRef.current = 0;
-    batchErrorRef.current = false;
+    if (!count) return;
+    isBatchWritingRef.current = true;
+    setIsBatchWriting(true);
+    batchWriteTotalRef.current = count;
+    batchWriteDoneRef.current = 0;
+    batchWriteErrorRef.current = false;
   }, []);
 
   const [isBatchWriting, setIsBatchWriting] = useState(false);
@@ -514,33 +520,12 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     setCalendarGroupsIfChanged(calGroups);
 
     const defaultValues = initDefaultFieldValues(parsed);
-    const valuesMap = new Map<number, FieldValue>();
-    for (const fv of defaultValues) {
-      valuesMap.set(fv.rowIndex, fv);
-    }
-    parsedValuesMapRef.current = valuesMap;
+    // 统一从一个辅助函数生成字段索引，避免在多个地方重复构建 Map。
+    parsedValuesMapRef.current = buildFieldValueMap(defaultValues);
     setParsedValuesIfChanged(defaultValues);
 
     const dmValues = defaultValues.filter(v => v.configType.toLowerCase() === 'data memery');
-    const groupMap = new Map<string, FieldValue[]>();
-    for (const v of dmValues) {
-      const key = v.configNameEn || v.configNameZh || 'Unknown';
-      const list = groupMap.get(key) ?? [];
-      list.push(v);
-      groupMap.set(key, list);
-    }
-    const dmGroups: DataMemeryGroup[] = [];
-    for (const [key, fields] of groupMap) {
-      fields.sort((a, b) => a.rowIndex - b.rowIndex);
-      const first = fields[0]!;
-      dmGroups.push({
-        configNameEn: first.configNameEn || key,
-        configNameZh: first.configNameZh || key,
-        fields,
-      });
-    }
-    dmGroups.sort((a, b) => a.fields[0]!.rowIndex - b.fields[0]!.rowIndex);
-    setDataMemeryGroupsIfChanged(dmGroups);
+    setDataMemeryGroupsIfChanged(buildDataMemoryGroups(dmValues));
 
     if (allIndices.length === 0) {
       startPeriodicPoll();
@@ -689,29 +674,9 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       pendingValuesUpdateRef.current = false;
     }
     if (pendingDmUpdateRef.current) {
-      const dmValues: FieldValue[] = [];
-      for (const v of parsedValuesMapRef.current.values()) {
-        if (v.configType.toLowerCase() === 'data memery') dmValues.push(v);
-      }
-      const groupMap = new Map<string, FieldValue[]>();
-      for (const v of dmValues) {
-        const key = v.configNameEn || v.configNameZh || 'Unknown';
-        const list = groupMap.get(key) ?? [];
-        list.push(v);
-        groupMap.set(key, list);
-      }
-      const groups: DataMemeryGroup[] = [];
-      for (const [key, fields] of groupMap) {
-        fields.sort((a, b) => a.rowIndex - b.rowIndex);
-        const first = fields[0]!;
-        groups.push({
-          configNameEn: first.configNameEn || key,
-          configNameZh: first.configNameZh || key,
-          fields,
-        });
-      }
-      groups.sort((a, b) => a.fields[0]!.rowIndex - b.fields[0]!.rowIndex);
-      setDataMemeryGroupsIfChanged(groups);
+      // 只在真正需要刷新 Data Memory 分组时重新构建分组，避免重复计算。
+      const dmValues = Array.from(parsedValuesMapRef.current.values()).filter(v => v.configType.toLowerCase() === 'data memery');
+      setDataMemeryGroupsIfChanged(buildDataMemoryGroups(dmValues));
       pendingDmUpdateRef.current = false;
     }
   }, []);
