@@ -20,7 +20,7 @@ function useIsNarrow(breakpoint: number): boolean {
 }
 
 export function ParamConfigPage() {
-  const { dataMemeryGroups, parsedValues, deviceVersion, toasts, writeField, showToast, startBatchWrite } = useBmsStore();
+  const { dataMemeryGroups, parsedValues, deviceVersion, toasts, writeField, showToast, writeBatch, isBatchWriting } = useBmsStore();
   const { i18n, t } = useTranslation();
   const isZh = i18n.language === 'zh';
   const isNarrow = useIsNarrow(NARROW_BREAKPOINT);
@@ -150,12 +150,13 @@ export function ParamConfigPage() {
   }, [deviceVersion, isZh, parsedValues, showToast]);
 
   const handleConfirmImport = useCallback(() => {
-    startBatchWrite(pendingImport.size);
+    const fields: { fieldRowIndex: number; newValue: number }[] = [];
     pendingImport.forEach((value, rowIndex) => {
-      writeField(rowIndex, value);
+      fields.push({ fieldRowIndex: rowIndex, newValue: value });
     });
     setPendingImport(new Map());
-  }, [pendingImport, writeField, startBatchWrite]);
+    writeBatch(fields);
+  }, [pendingImport, writeBatch]);
 
   const handleCancelImport = useCallback(() => {
     setPendingImport(new Map());
@@ -246,6 +247,7 @@ export function ParamConfigPage() {
                   onExport={handleExport}
                   onPreset={(_id: string) => { }}
                   hasPendingImport={hasPendingImport}
+                  isBatchWriting={isBatchWriting}
                   onConfirmImport={handleConfirmImport}
                   onCancelImport={handleCancelImport}
                 />

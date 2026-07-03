@@ -13,11 +13,12 @@ interface ParamGroupCardProps {
   onExport?: () => void;
   onPreset?: (presetId: string) => void;
   hasPendingImport?: boolean;
+  isBatchWriting?: boolean;
   onConfirmImport?: () => void;
   onCancelImport?: () => void;
 }
 
-export function ParamGroupCard({ groupName, params, onValueChange, onBlur, onBack, onImport, onExport, onPreset, hasPendingImport, onConfirmImport, onCancelImport }: ParamGroupCardProps) {
+export function ParamGroupCard({ groupName, params, onValueChange, onBlur, onBack, onImport, onExport, onPreset, hasPendingImport, isBatchWriting, onConfirmImport, onCancelImport }: ParamGroupCardProps) {
   const { t } = useTranslation();
 
   return (
@@ -42,8 +43,9 @@ export function ParamGroupCard({ groupName, params, onValueChange, onBlur, onBac
               <button className={styles.headerBtnCancel} onClick={onCancelImport}>
                 {t('param.cancelImport')}
               </button>
-              <button className={styles.headerBtnConfirm} onClick={onConfirmImport}>
-                {t('param.confirmImport')}
+              <button className={styles.headerBtnConfirm} onClick={onConfirmImport} disabled={isBatchWriting}>
+                {isBatchWriting ? <span className={styles.spinner} /> : null}
+                {isBatchWriting ? t('param.writing') : t('param.confirmImport')}
               </button>
             </>
           ) : (

@@ -51,6 +51,7 @@
     "writeVerifyFailed": "Write verification failed",
     "pendingImportHint": "Config imported, review differences then confirm",
     "confirmImport": "Confirm Write",
+    "writing": "Writing...",
     "cancelImport": "Cancel",
     "noParamData": "No parameter data"
   },

@@ -4,7 +4,7 @@ import type { BmsStore, DataMemeryGroup, Toast } from './context';
 import { BmsContext } from './context';
 import { useBridgeMessage } from '@/hooks/useBridgeMessage';
 import { isEmbedded } from '@/utils/platform';
-import { parseModbusResponse, appendCrc, bigEndianHex, parseProtocolRows, parseDataFields, buildFieldWriteFrame, verifyCrc, reverseOperation, parseCalendarGroups, parseCalendarRecord } from '@/utils/modbus';
+import { parseModbusResponse, appendCrc, bigEndianHex, parseProtocolRows, parseDataFields, buildFieldWriteFrame, buildBatchWriteFrames, verifyCrc, reverseOperation, parseCalendarGroups, parseCalendarRecord } from '@/utils/modbus';
 import { getCachedProtocol, setCachedProtocol } from '@/utils/protocol-cache';
 import type { ParsedProtocol, FieldValue, CalendarGroup, CalendarRecord } from '@/utils/modbus';
 import i18n from '@/i18n';
@@ -110,6 +110,104 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     batchDoneRef.current = 0;
     batchErrorRef.current = false;
   }, []);
+  const startBatchWrite = useCallback((count: number) => {
+    batchWritingRef.current = true;
+    batchTotalRef.current = count;
+    batchDoneRef.current = 0;
+    batchErrorRef.current = false;
+  }, []);
+
+  const [isBatchWriting, setIsBatchWriting] = useState(false);
+  const batchWriteQueueRef = useRef<number[][]>([]);
+  const batchWriteTotalRef = useRef(0);
+  const batchWriteDoneRef = useRef(0);
+  const batchWriteErrorRef = useRef(false);
+  const isBatchWritingRef = useRef(false);
+  const sendNextBatchFrameRef = useRef<() => void>(() => { });
+
+  const sendNextBatchFrame = useCallback(() => {
+    if (batchWriteQueueRef.current.length === 0) {
+      isBatchWritingRef.current = false;
+      setIsBatchWriting(false);
+      const total = batchWriteTotalRef.current;
+      const err = batchWriteErrorRef.current;
+      batchWriteTotalRef.current = 0;
+      batchWriteDoneRef.current = 0;
+      batchWriteErrorRef.current = false;
+      if (err) {
+        showToast(i18n.language === 'zh' ? `批量写入完成（部分失败）` : `Batch write done (some failed)`, 'error');
+      } else {
+        showToast(i18n.language === 'zh' ? `${total}帧批量写入成功` : `${total} frames batch written OK`, 'success');
+      }
+      const regIndices = registerInstrIndicesRef.current;
+      if (regIndices.length > 0) {
+        pollIdxRef.current = 0;
+        sendInstructionFrameRef.current(regIndices[0]!);
+      }
+      return;
+    }
+    const frame = batchWriteQueueRef.current.shift()!;
+    isWritingRef.current = true;
+    errorCountRef.current = 0;
+    sendFrame(frame);
+    addLog({ timestamp: Date.now(), direction: 'TX', parsedInfo: `batch-write frame ${batchWriteDoneRef.current + 1}/${batchWriteTotalRef.current}`, rawHex: fmtHex(frame) });
+    responseTimerRef.current = setTimeout(() => {
+      if (!isWritingRef.current) return;
+      errorCountRef.current++;
+      if (errorCountRef.current < 3) {
+        isWritingRef.current = false;
+        waitingResponseRef.current = false;
+        batchWriteQueueRef.current.unshift(frame);
+        sendNextBatchFrameRef.current();
+      } else {
+        isWritingRef.current = false;
+        batchWriteErrorRef.current = true;
+        batchWriteDoneRef.current++;
+        addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: 'batch-write timeout, max retries', rawHex: '' });
+        sendNextBatchFrameRef.current();
+      }
+    }, RESPONSE_TIMEOUT);
+  }, [sendFrame, addLog, showToast]);
+
+  sendNextBatchFrameRef.current = sendNextBatchFrame;
+
+  const writeBatch = useCallback((fields: { fieldRowIndex: number; newValue: number }[]) => {
+    const protocol = parsedProtocolRef.current;
+    if (!protocol) return;
+    const siblingFields = Array.from(parsedValuesMapRef.current.values());
+    const getLeRegisterValue = (absAddr: number): number => {
+      for (const { fieldRowIndex } of fields) {
+        const fv = parsedValuesMapRef.current.get(fieldRowIndex);
+        if (!fv) continue;
+        const instrIdx = fv.parentInstructionIndex;
+        const p = parsedProtocolRef.current;
+        if (!p || instrIdx >= p.instructions.length) continue;
+        const inst = p.instructions[instrIdx]!;
+        const offsetInInstr = absAddr - inst.startAddr;
+        const key = makeRegisterKey(inst.slaveAddr, inst.funcCode, offsetInInstr);
+        return parsedFields.get(key) ?? 0;
+      }
+      return 0;
+    };
+    const fieldValues: { field: FieldValue; newValue: number }[] = [];
+    for (const { fieldRowIndex, newValue } of fields) {
+      const fv = parsedValuesMapRef.current.get(fieldRowIndex);
+      if (fv) fieldValues.push({ field: fv, newValue });
+    }
+    const frames = buildBatchWriteFrames(fieldValues, siblingFields, getLeRegisterValue);
+    if (frames.length === 0) return;
+
+    stopAllTimers();
+    waitingResponseRef.current = false;
+    isBatchWritingRef.current = true;
+    setIsBatchWriting(true);
+    batchWriteQueueRef.current = [...frames];
+    batchWriteTotalRef.current = frames.length;
+    batchWriteDoneRef.current = 0;
+    batchWriteErrorRef.current = false;
+    sendNextBatchFrameRef.current();
+  }, [sendNextBatchFrame, stopAllTimers]);
+
   const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pollIdxRef = useRef(0);
   const waitingResponseRef = useRef(false);
@@ -167,6 +265,9 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     pendingCalendarReadRef.current = false;
     errorCountRef.current = 0;
     calendarErrorCountRef.current = 0;
+    isBatchWritingRef.current = false;
+    batchWriteQueueRef.current = [];
+    setIsBatchWriting(false);
 
     rawBufRef.current = [];
     addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `communication-error, resetting to version query`, rawHex: '' });
@@ -463,6 +564,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       }
       const groups: DataMemeryGroup[] = [];
       for (const [key, fields] of groupMap) {
+        fields.sort((a, b) => a.rowIndex - b.rowIndex);
         const first = fields[0]!;
         groups.push({
           configNameEn: first.configNameEn || key,
@@ -470,6 +572,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
           fields,
         });
       }
+      groups.sort((a, b) => a.fields[0]!.rowIndex - b.fields[0]!.rowIndex);
       setDataMemeryGroups(groups);
       pendingDmUpdateRef.current = false;
     }
@@ -605,11 +708,22 @@ export function BmsProvider({ children }: { children: ReactNode }) {
       const addr = (data[0] ?? 0).toString(16).padStart(2, '0');
       if (fc & 0x80) {
         addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `write-response addr=${addr} func=${fc.toString(16).padStart(2, '0')} FAILED`, rawHex });
+        if (isBatchWritingRef.current) {
+          batchWriteErrorRef.current = true;
+          batchWriteDoneRef.current++;
+          sendNextBatchFrameRef.current();
+          return;
+        }
         showToast(i18n.language === 'zh' ? `${writeFieldNameRef.current} 写入失败` : `${writeFieldNameRef.current} write failed`, 'error');
         executePendingWriteOrPollRef.current();
         return;
       }
       addLog({ timestamp: Date.now(), direction: 'RX', parsedInfo: `write-response addr=${addr} func=10 crc=OK`, rawHex });
+      if (isBatchWritingRef.current) {
+        batchWriteDoneRef.current++;
+        sendNextBatchFrameRef.current();
+        return;
+      }
       const writeInstrIdx = writeInstrIdxRef.current;
       if (writeInstrIdx >= 0) {
         isVerifyReadRef.current = true;
@@ -911,13 +1025,15 @@ export function BmsProvider({ children }: { children: ReactNode }) {
     calendarGroups,
     calendarRecords,
     toasts,
+    isBatchWriting,
     sendFrame,
     autoRead,
     writeField,
     showToast,
     startBatchWrite,
     readCalendar,
-  }), [connectionStatus, protocolDb, protocolLoading, deviceVersion, parsedFields, parsedValues, parsedProtocol, dataMemeryGroups, calendarGroups, calendarRecords, toasts, sendFrame, autoRead, writeField, showToast, startBatchWrite, readCalendar]);
+    writeBatch,
+  }), [connectionStatus, protocolDb, protocolLoading, deviceVersion, parsedFields, parsedValues, parsedProtocol, dataMemeryGroups, calendarGroups, calendarRecords, toasts, isBatchWriting, sendFrame, autoRead, writeField, showToast, startBatchWrite, readCalendar, writeBatch]);
 
   return (
     <BmsContext.Provider value={store}>

@@ -6,11 +6,12 @@ interface ParamToolbarProps {
   onExport: () => void;
   onPreset: (presetId: string) => void;
   hasPendingImport?: boolean;
+  isBatchWriting?: boolean;
   onConfirmImport?: () => void;
   onCancelImport?: () => void;
 }
 
-export function ParamToolbar({ onImport, onExport, onPreset, hasPendingImport, onConfirmImport, onCancelImport }: ParamToolbarProps) {
+export function ParamToolbar({ onImport, onExport, onPreset, hasPendingImport, isBatchWriting, onConfirmImport, onCancelImport }: ParamToolbarProps) {
   const { t } = useTranslation();
 
   return (
@@ -22,8 +23,9 @@ export function ParamToolbar({ onImport, onExport, onPreset, hasPendingImport, o
           <button className={styles.btnCancel} onClick={onCancelImport}>
             {t('param.cancelImport')}
           </button>
-          <button className={styles.btnConfirm} onClick={onConfirmImport}>
-            {t('param.confirmImport')}
+          <button className={styles.btnConfirm} onClick={onConfirmImport} disabled={isBatchWriting}>
+            {isBatchWriting ? <span className={styles.spinner} /> : null}
+            {isBatchWriting ? t('param.writing') : t('param.confirmImport')}
           </button>
         </>
       ) : (

@@ -963,3 +963,61 @@ export function buildFieldWriteFrame(
   const leRegs = valueToLittleEndianRegs(rawValue, field.dataType, field.byteLen);
   return buildWriteFrame(0x00, field.absAddr, leRegs);
 }
+
+export function buildBatchWriteFrames(
+  fields: { field: FieldValue; newValue: number }[],
+  siblingFields: FieldValue[],
+  getLeRegisterValue: (absAddr: number) => number
+): number[][] {
+  const regMap = new Map<number, number>();
+  for (const { field, newValue } of fields) {
+    if (field.rwType === 'R' || field.rwType === 'r' || field.rwType === 'RO') continue;
+    const rawValue = reverseOperation(newValue, field.operation, field.ratio);
+    if (field.byteLen === 1) {
+      const byteVal = Math.round(rawValue) & 0xFF;
+      const sibling = siblingFields.find(
+        f => f.absAddr === field.absAddr && f.rowIndex !== field.rowIndex && f.byteLen === 1
+      );
+      let beCombined: number;
+      if (sibling) {
+        const sibByte = sibling.rawValue & 0xFF;
+        if (field.byteOffset === 0) {
+          beCombined = (sibByte << 8) | byteVal;
+        } else {
+          beCombined = (byteVal << 8) | sibByte;
+        }
+      } else {
+        const curLeReg = getLeRegisterValue(field.absAddr);
+        const curBeVal = leRegToValue(curLeReg);
+        if (field.byteOffset === 0) {
+          beCombined = (curBeVal & 0xFF00) | byteVal;
+        } else {
+          beCombined = (byteVal << 8) | (curBeVal & 0xFF);
+        }
+      }
+      regMap.set(field.absAddr, swap16(beCombined));
+    } else {
+      const leRegs = valueToLittleEndianRegs(rawValue, field.dataType, field.byteLen);
+      for (let i = 0; i < leRegs.length; i++) {
+        regMap.set(field.absAddr + i, leRegs[i]!);
+      }
+    }
+  }
+  if (regMap.size === 0) return [];
+  const addrs = Array.from(regMap.keys()).sort((a, b) => a - b);
+  const frames: number[][] = [];
+  let segStart = addrs[0]!;
+  let segRegs: number[] = [regMap.get(segStart)!];
+  for (let i = 1; i < addrs.length; i++) {
+    const addr = addrs[i]!;
+    if (addr === segStart + segRegs.length) {
+      segRegs.push(regMap.get(addr)!);
+    } else {
+      frames.push(buildWriteFrame(0x00, segStart, segRegs));
+      segStart = addr;
+      segRegs = [regMap.get(addr)!];
+    }
+  }
+  frames.push(buildWriteFrame(0x00, segStart, segRegs));
+  return frames;
+}

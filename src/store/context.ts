@@ -26,6 +26,7 @@ export interface BmsState {
   calendarGroups: CalendarGroup[];
   calendarRecords: CalendarRecord[];
   toasts: Toast[];
+  isBatchWriting: boolean;
 }
 
 export interface BmsActions {
@@ -35,6 +36,7 @@ export interface BmsActions {
   showToast: (message: string, type: 'success' | 'error') => void;
   startBatchWrite: (count: number) => void;
   readCalendar: () => void;
+  writeBatch: (fields: { fieldRowIndex: number; newValue: number }[]) => void;
 }
 
 export type BmsStore = BmsState & BmsActions;

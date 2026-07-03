@@ -51,6 +51,7 @@
     "writeVerifyFailed": "写入验证失败",
     "pendingImportHint": "已导入配置，请确认差异后写入",
     "confirmImport": "确认写入",
+    "writing": "写入中...",
     "cancelImport": "取消",
     "noParamData": "暂无参数数据"
   },
