@@ -11,7 +11,9 @@ import android.os.Build
 import android.view.WindowManager
 import android.view.WindowInsetsController
 import android.os.Bundle
+import android.util.Log
 import android.webkit.WebView
+import android.util.Log
 import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -117,7 +119,8 @@ fun hasBlePermissions(context: Context): Boolean {
 
 fun pushToUi(webView: MutableState<WebView?>, type: String, payloadJson: String) {
     val wv = webView.value ?: return
-    val js = "if(window.__APP_BRIDGE__&&window.__APP_BRIDGE__._handler){window.__APP_BRIDGE__._handler({type:'" + type + "',payload:" + payloadJson + "})}"
+    Log.d("BMS_UI", "pushToUi: type=$type payload=${payloadJson.take(100)}")
+    val js = "if(window.__APP_BRIDGE__&&window.__APP_BRIDGE__._handler){window.__APP_BRIDGE__._handler({type:'" + type + "',payload:" + payloadJson + "})}else{console.log('BRIDGE:_handler_not_ready')}"
     wv.post { wv.evaluateJavascript(js, null) }
 }
 
@@ -332,15 +335,20 @@ class BleManager {
     private val scanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult) {
             val name = result.device.name ?: return
+            if (!name.startsWith(NAME_PREFIX)) return
 
             var soc = 0; var voltage = 0; var current = 0; var safety = 0
             val scanRecord = result.scanRecord
             if (scanRecord != null) {
                 val bytes = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) scanRecord.bytes else getScanRecordBytes(scanRecord)
                 if (bytes != null) {
+                    Log.d("BMS_BLE", "ScanRecord bytes for $name: ${bytes.joinToString(",") { "%02x".format(it) }}")
                     val parsed = parseAdData(bytes)
                     if (parsed != null) {
                         soc = parsed[0]; voltage = parsed[1]; current = parsed[2]; safety = parsed[3]
+                        Log.d("BMS_BLE", "Parsed: soc=$soc voltage=$voltage current=$current safety=$safety")
+                    } else {
+                        Log.d("BMS_BLE", "parseAdData returned null")
                     }
                 }
             }
@@ -485,6 +493,7 @@ fun BmsApp(
             settings.mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_NEVER_ALLOW
             webViewClient = object : WebViewClient() {
                 override fun onPageFinished(view: WebView?, url: String?) {
+                    Log.d("BMS_UI", "Page finished: $url")
                     super.onPageFinished(view, url)
                     view?.evaluateJavascript("localStorage.setItem('bms-theme','$themeStr')", null)
                     val shim = """
@@ -509,6 +518,12 @@ fun BmsApp(
                         };
                     """
                     view?.evaluateJavascript(shim, null)
+                }
+            }
+            webChromeClient = object : android.webkit.WebChromeClient() {
+                override fun onConsoleMessage(consoleMessage: android.webkit.ConsoleMessage): Boolean {
+                    Log.d("BMS_JS", "${consoleMessage.message()} -- ${consoleMessage.sourceId()}:${consoleMessage.lineNumber()}")
+                    return true
                 }
             }
             addJavascriptInterface(object {
@@ -702,19 +717,27 @@ fun BmsApp(
                         pushToUi = { type, payload -> pushToUi(webView, type, payload) },
                     )
                     if (!showBottomBar) {
-                        IconButton(
-                            onClick = { selectedTab = 0 },
+                        Row(
                             modifier = Modifier
-                                .align(Alignment.TopStart)
-                                .padding(8.dp)
-                                .size(36.dp)
-                                .background(colors.surface.copy(alpha = 0.7f), RoundedCornerShape(18.dp))
+                                .fillMaxWidth()
+                                .height(40.dp)
+                                .background(colors.bg.copy(alpha = 0.85f))
+                                .clickable { selectedTab = 0 }
+                                .padding(horizontal = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Icon(
                                 Icons.Default.BluetoothConnected,
-                                contentDescription = "返回蓝牙",
+                                contentDescription = null,
                                 tint = colors.primary,
-                                modifier = Modifier.size(20.dp),
+                                modifier = Modifier.size(16.dp),
+                            )
+                            Spacer(Modifier.width(6.dp))
+                            Text(
+                                bleManager.connectedDevice.value?.name ?: "BMS",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = colors.fg,
                             )
                         }
                     }

@@ -1,3 +1,4 @@
+import android.util.Log
 package com.dcsf.bms
 
 import android.bluetooth.BluetoothDevice
@@ -86,6 +87,7 @@ class BleConnection(
 
             fun handleCharacteristicChange(value: ByteArray) {
                 if (!commandSent) return
+                Log.d("BMS_BLE", "Received ${value.size} bytes: ${value.joinToString(",") { "%02x".format(it) }}")
                 synchronized(idleBuffer) {
                     for (b in value) idleBuffer.add(b)
                 }
@@ -128,6 +130,7 @@ class BleConnection(
     fun write(data: ByteArray): Boolean {
         val char = writeChar ?: return false
         val g = gatt ?: return false
+        Log.d("BMS_BLE", "Writing ${data.size} bytes: ${data.joinToString(",") { "%02x".format(it) }}")
         if (!commandSent) {
             commandSent = true
             synchronized(idleBuffer) { idleBuffer.clear() }
