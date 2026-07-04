@@ -138,25 +138,24 @@ class MainActivity : ComponentActivity() {
                 activity?.window?.navigationBarColor = c.navBg.toArgb()
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     activity?.window?.insetsController?.let { controller ->
-                        if (darkTheme) {
-                            controller.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-                        } else {
-                            controller.systemBarsBehavior = WindowInsetsController.BEHAVIOR_DEFAULT
-                        }
+                        controller.isAppearanceLightStatusBars = !darkTheme
+                        controller.isAppearanceLightNavigationBars = !darkTheme
                     }
-                }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                } else {
+                    val decorView = activity?.window?.decorView
+                    var flags = decorView?.systemUiVisibility ?: 0
                     if (!darkTheme) {
-                        val decorView = activity?.window?.decorView
-                        decorView?.systemUiVisibility = decorView?.systemUiVisibility?.or(
-                            android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-                        ) ?: 0
+                        flags = flags or android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            decorView?.systemUiVisibility = decorView?.systemUiVisibility?.or(
-                                android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
-                            ) ?: 0
+                            flags = flags or android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+                        }
+                    } else {
+                        flags = flags and android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            flags = flags and android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR.inv()
                         }
                     }
+                    decorView?.systemUiVisibility = flags
                 }
             }
 
@@ -690,36 +689,24 @@ fun BmsApp(
                         webView = webView,
                         darkTheme = darkTheme,
                         modifier = Modifier.fillMaxSize(),
+                        createWebView = createWebView,
+                        pushToUi = ::pushToUi,
                     )
                     if (!showBottomBar) {
-                        Row(
+                        IconButton(
+                            onClick = { selectedTab = 0 },
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .height(44.dp)
-                                .background(colors.surface.copy(alpha = 0.92f))
-                                .padding(horizontal = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
+                                .align(Alignment.TopStart)
+                                .padding(8.dp)
+                                .size(36.dp)
+                                .background(colors.surface.copy(alpha = 0.7f), RoundedCornerShape(18.dp))
                         ) {
-                            IconButton(
-                                onClick = { selectedTab = 0 },
-                                modifier = Modifier.size(36.dp)
-                            ) {
-                                Icon(
-                                    Icons.Default.BluetoothConnected,
-                                    contentDescription = "返回蓝牙",
-                                    tint = colors.primary,
-                                    modifier = Modifier.size(20.dp),
-                                )
-                            }
-                            Text(
-                                bleManager.connectedDevice.value?.name ?: "BMS 控制台",
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = colors.fg,
-                                modifier = Modifier.weight(1f),
-                                textAlign = TextAlign.Center,
+                            Icon(
+                                Icons.Default.BluetoothConnected,
+                                contentDescription = "返回蓝牙",
+                                tint = colors.primary,
+                                modifier = Modifier.size(20.dp),
                             )
-                            Spacer(Modifier.width(36.dp))
                         }
                     }
                 }
@@ -1136,6 +1123,8 @@ fun UiPage(
     webView: MutableState<WebView?>,
     darkTheme: Boolean = false,
     modifier: Modifier = Modifier,
+    createWebView: (android.content.Context) -> WebView,
+    pushToUi: (String, String) -> Unit,
 ) {
     if (!bleManager.connected.value) {
         Box(
@@ -1152,33 +1141,7 @@ fun UiPage(
     }
 
     AndroidView(
-        factory = { ctx ->
-            WebView(ctx).apply {
-                settings.javaScriptEnabled = true
-                settings.domStorageEnabled = true
-                settings.allowFileAccess = true
-                settings.databaseEnabled = true
-                webViewClient = WebViewClient()
-
-                addJavascriptInterface(object {
-                    @android.webkit.JavascriptInterface
-                    fun sendFrame(json: String) {
-                        val nums = json.trim('[', ']').split(',').mapNotNull { it.trim().toIntOrNull() }
-                        val frame = ByteArray(nums.size) { nums[it].toByte() }
-                        bleManager.send(frame)
-                    }
-
-                    @android.webkit.JavascriptInterface
-                    fun getPlatform(): String {
-                        return """{"platform":"app","version":"1.0.0","bluetoothSupported":true,"serialSupported":false}"""
-                    }
-                }, "__APP_BRIDGE__")
-                val themeStr = if (darkTheme) "dark" else "light"
-                evaluateJavascript("localStorage.setItem('bms-theme','" + themeStr + "')", null)
-                loadUrl("https://ui.bms.pub")
-                webView.value = this
-            }
-        },
+        factory = createWebView,
         modifier = modifier.fillMaxSize(),
     )
 }
