@@ -139,12 +139,21 @@ fun pushToUi(webView: MutableState<WebView?>, type: String, payloadJson: String)
     val wv = webView.value ?: return
     Log.d("BMS_UI", "pushToUi: type=$type payload=${payloadJson.take(100)}")
     LogCollector.log("UI", "push $type ${payloadJson.take(60)}")
-    val js = "if(window.__APP_BRIDGE__&&window.__APP_BRIDGE__._handler){window.__APP_BRIDGE__._handler({type:'" + type + "',payload:" + payloadJson + "})}else{console.log('BRIDGE:_handler_not_ready')}"
+    val js = "if(window.__APP_BRIDGE__&&window.__APP_BRIDGE__._handler){window.__APP_BRIDGE__._handler({type:'" + type + "',payload:" + payloadJson + "});'ok'}else{'retry'}"
     wv.post {
         wv.evaluateJavascript(js, object : android.webkit.ValueCallback<String> {
             override fun onReceiveValue(result: String?) {
-                if (result == null || result == "null") {
-                    LogCollector.log("UI", "push $type -> handler not ready")
+                if (result == "retry") {
+                    LogCollector.log("UI", "push $type -> retry in 500ms")
+                    wv.postDelayed({
+                        wv.evaluateJavascript(js, object : android.webkit.ValueCallback<String> {
+                            override fun onReceiveValue(result2: String?) {
+                                if (result2 == "retry") {
+                                    LogCollector.log("UI", "push $type -> handler still not ready")
+                                }
+                            }
+                        })
+                    }, 500)
                 }
             }
         })
@@ -308,20 +317,26 @@ object SafetyBits {
 fun getScanRecordBytes(record: android.bluetooth.le.ScanRecord): ByteArray? = record.getBytes()
 
 fun parseAdData(bytes: ByteArray): IntArray? {
+    val hex = bytes.joinToString("") { "%02x".format(it) }
+    LogCollector.log("BLE", "Adv raw: $hex")
     var i = 0
     while (i < bytes.size - 3) {
         val len = bytes[i].toInt() and 0xFF
         if (len == 0 || i + len >= bytes.size) break
         val type = bytes[i + 1].toInt() and 0xFF
-        if (type == 0xFF && len >= 12) {
+        if (type == 0xFF) {
             val mfgId = ((bytes[i + 3].toInt() and 0xFF) shl 8) or (bytes[i + 2].toInt() and 0xFF)
+            LogCollector.log("BLE", "0xFF mfg=%04x len=%d".format(mfgId, len))
             if (mfgId == 0xFF0A) {
-                val off = i + 4
-                val soc = bytes[off + 2].toInt() and 0xFF
-                val voltage = ((bytes[off + 4].toInt() and 0xFF) shl 8) or (bytes[off + 3].toInt() and 0xFF)
-                val current = ((bytes[off + 6].toInt() and 0xFF) shl 8) or (bytes[off + 5].toInt() and 0xFF)
-                val safety = ((bytes[off + 8].toInt() and 0xFF) shl 8) or (bytes[off + 7].toInt() and 0xFF)
-                return intArrayOf(soc, voltage, current, safety)
+                val dataLen = len - 3
+                if (dataLen >= 7) {
+                    val off = i + 4
+                    val soc = bytes[off + 2].toInt() and 0xFF
+                    val voltage = ((bytes[off + 4].toInt() and 0xFF) shl 8) or (bytes[off + 3].toInt() and 0xFF)
+                    val current = ((bytes[off + 6].toInt() and 0xFF) shl 8) or (bytes[off + 5].toInt() and 0xFF)
+                    val safety = if (dataLen >= 9) ((bytes[off + 8].toInt() and 0xFF) shl 8) or (bytes[off + 7].toInt() and 0xFF) else 0
+                    return intArrayOf(soc, voltage, current, safety)
+                }
             }
         }
         i += len + 1
