@@ -13,7 +13,7 @@ import android.view.WindowInsetsController
 import android.os.Bundle
 import android.util.Log
 import android.webkit.WebView
-import android.util.Log
+
 import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent

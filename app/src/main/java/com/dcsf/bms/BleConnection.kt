@@ -1,4 +1,3 @@
-import android.util.Log
 package com.dcsf.bms
 
 import android.bluetooth.BluetoothDevice
@@ -11,6 +10,7 @@ import android.bluetooth.BluetoothGattDescriptor
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import java.util.UUID
 
 @Suppress("DEPRECATION")
