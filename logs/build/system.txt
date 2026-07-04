@@ -1,8 +1,0 @@
-2026-07-04T10:33:36.4300000Z Requested labels: ubuntu-latest
-2026-07-04T10:33:36.4300000Z Job defined at: pengnanyu/android/.github/workflows/build.yml@refs/heads/main
-2026-07-04T10:33:36.4300000Z Waiting for a runner to pick up this job...
-2026-07-04T10:33:36.4300000Z Evaluating build.if
-2026-07-04T10:33:36.4300000Z Evaluating: success()
-2026-07-04T10:33:36.4300000Z Result: true
-2026-07-04T10:33:36.9080000Z Job is about to start running on the hosted runner: GitHub Actions 1000000791
-2026-07-04T10:33:36.9060000Z Job is waiting for a hosted runner to come online.

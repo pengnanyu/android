@@ -11,4 +11,9 @@ local.properties
 app/build
 out/
 fix_preview.py
+fix_all.py
+fetch_log.py
+build_log.txt
+logs.zip
+logs/
 .codeartsdoer
