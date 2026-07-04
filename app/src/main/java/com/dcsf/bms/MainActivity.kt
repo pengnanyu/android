@@ -612,55 +612,56 @@ fun BmsApp(
 
     Box(modifier = Modifier.fillMaxSize()) {
         if (isWideScreen) {
-                Row(
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(colors.bg)
+            ) {
+                Box(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .background(colors.bg)
+                        .width(360.dp)
+                        .fillMaxHeight()
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .width(360.dp)
-                            .fillMaxHeight()
-                    ) {
-                        BluetoothPage(
-                            bleManager = bleManager,
-                            colors = colors,
-                            onRequestPermissions = onRequestPermissions,
-                            onConnectDevice = onConnectDevice,
-                            onDisconnect = onDisconnect,
-                            onConnectedClick = { selectedTab = 1 },
+                    BluetoothPage(
+                        bleManager = bleManager,
+                        colors = colors,
+                        onRequestPermissions = onRequestPermissions,
+                        onConnectDevice = onConnectDevice,
+                        onDisconnect = onDisconnect,
+                        onConnectedClick = { selectedTab = 1 },
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .width(1.dp)
+                        .fillMaxHeight()
+                        .background(colors.border)
+                )
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                ) {
+                    if (bleManager.connected.value) {
+                        AndroidView(
+                            factory = createWebView,
                             modifier = Modifier.fillMaxSize(),
                         )
-                    }
-                    Box(
-                        modifier = Modifier
-                            .width(1.dp)
-                            .fillMaxHeight()
-                            .background(colors.border)
-                    )
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                    ) {
-                        if (bleManager.connected.value) {
-                            AndroidView(
-                                factory = createWebView,
-                                modifier = Modifier.fillMaxSize(),
-                            )
-                        } else {
-                            Box(
-                                modifier = Modifier.fillMaxSize().background(colors.bg),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Icon(Icons.Default.BluetoothDisabled, contentDescription = null, modifier = Modifier.size(48.dp), tint = colors.fg3)
-                                    Spacer(Modifier.height(8.dp))
-                                    Text("请先连接蓝牙设备", color = colors.fg3, fontSize = 14.sp)
-                                }
+                    } else {
+                        Box(
+                            modifier = Modifier.fillMaxSize().background(colors.bg),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(Icons.Default.BluetoothDisabled, contentDescription = null, modifier = Modifier.size(48.dp), tint = colors.fg3)
+                                Spacer(Modifier.height(8.dp))
+                                Text("请先连接蓝牙设备", color = colors.fg3, fontSize = 14.sp)
                             }
                         }
                     }
+                }
+            }
         } else {
             val showBottomBar = !(bleManager.connected.value && selectedTab == 1)
             Scaffold(
@@ -785,7 +786,6 @@ fun BmsApp(
                         )
                     }
                 }
-            }
             }
         }
         DebugLogPanel(colors = colors)
