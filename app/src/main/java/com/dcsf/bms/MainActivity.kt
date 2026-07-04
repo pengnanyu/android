@@ -144,7 +144,7 @@ fun pushToUi(webView: MutableState<WebView?>, type: String, payloadJson: String)
         wv.evaluateJavascript(js, object : android.webkit.ValueCallback<String> {
             override fun onReceiveValue(result: String?) {
                 if (result == null || result == "null") {
-                    LogCollector.log("UI", "push $type → handler not ready")
+                    LogCollector.log("UI", "push $type -> handler not ready")
                 }
             }
         })
@@ -514,7 +514,7 @@ fun BmsApp(
     LaunchedEffect(Unit) {
         bleManager.setOnDataReceived { data ->
             val hex = data.joinToString("") { "%02x".format(it) }
-            LogCollector.log("BLE", "→UI ${data.size}B: $hex")
+            LogCollector.log("BLE", "->UI ${data.size}B: $hex")
             val dataJson = data.toList().toString()
             pushToUi(webView, "bms:raw-data", """{"data":$dataJson}""")
         }
