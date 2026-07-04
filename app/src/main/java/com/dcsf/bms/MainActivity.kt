@@ -8,6 +8,8 @@ import android.bluetooth.le.ScanResult
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import android.view.WindowManager
+import android.view.WindowInsetsController
 import android.os.Bundle
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -41,6 +43,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -105,6 +108,13 @@ data class AppColors(
 }
 
 class MainActivity : ComponentActivity() {
+    private fun hasBlePermissions(context: Context): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED
+        } else {
+            ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        }
+    }
     private val bleManager = BleManager()
 
     private val permissionLauncher = registerForActivityResult(
@@ -119,6 +129,35 @@ class MainActivity : ComponentActivity() {
         setContent {
             val darkTheme = isSystemInDarkTheme()
             val c = if (darkTheme) AppColors.Dark else AppColors.Light
+
+            val view = LocalContext.current
+            val activity = view as? ComponentActivity
+            LaunchedEffect(darkTheme) {
+                activity?.window?.statusBarColor = c.bg.toArgb()
+                activity?.window?.navigationBarColor = c.navBg.toArgb()
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    activity?.window?.insetsController?.let { controller ->
+                        if (darkTheme) {
+                            controller.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                        } else {
+                            controller.systemBarsBehavior = WindowInsetsController.BEHAVIOR_DEFAULT
+                        }
+                    }
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    if (!darkTheme) {
+                        val decorView = activity?.window?.decorView
+                        decorView?.systemUiVisibility = decorView?.systemUiVisibility?.or(
+                            android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+                        ) ?: 0
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            decorView?.systemUiVisibility = decorView?.systemUiVisibility?.or(
+                                android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+                            ) ?: 0
+                        }
+                    }
+                }
+            }
 
             MaterialTheme(
                 colorScheme = if (darkTheme) darkColorScheme(
@@ -311,11 +350,20 @@ class BleManager {
     fun startScan(context: Context) {
         val bm = context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
         bluetoothAdapter = bm?.adapter
-        if (bluetoothAdapter?.isEnabled != true) return
+        if (bluetoothAdapter?.isEnabled != true) {
+            scanning.value = false
+            return
+        }
 
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_SCAN)
-            != PackageManager.PERMISSION_GRANTED
-        ) return
+        val hasPerm = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED
+        } else {
+            ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        }
+        if (!hasPerm) {
+            scanning.value = false
+            return
+        }
 
         devices.clear()
         scanning.value = true
@@ -636,8 +684,11 @@ fun BluetoothPage(
                 if (bleManager.scanning.value) {
                     bleManager.stopScan()
                 } else {
-                    onRequestPermissions()
-                    bleManager.startScan(context)
+                    if (hasBlePermissions(context)) {
+                        bleManager.startScan(context)
+                    } else {
+                        onRequestPermissions()
+                    }
                 }
             }) {
                 Icon(
@@ -674,8 +725,11 @@ fun BluetoothPage(
                     Spacer(Modifier.height(16.dp))
                     Button(
                         onClick = {
-                            onRequestPermissions()
-                            bleManager.startScan(context)
+                            if (hasBlePermissions(context)) {
+                                bleManager.startScan(context)
+                            } else {
+                                onRequestPermissions()
+                            }
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = colors.primary),
                         shape = RoundedCornerShape(8.dp),
