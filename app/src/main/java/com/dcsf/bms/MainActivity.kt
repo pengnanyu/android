@@ -140,7 +140,13 @@ fun pushToUi(webView: MutableState<WebView?>, type: String, payloadJson: String)
     Log.d("BMS_UI", "pushToUi: type=$type payload=${payloadJson.take(100)}")
     LogCollector.log("UI", "push $type ${payloadJson.take(60)}")
     val js = "if(window.__APP_BRIDGE__&&window.__APP_BRIDGE__._handler){window.__APP_BRIDGE__._handler({type:'" + type + "',payload:" + payloadJson + "})}else{console.log('BRIDGE:_handler_not_ready')}"
-    wv.post { wv.evaluateJavascript(js, null) }
+    wv.post {
+        wv.evaluateJavascript(js) { result ->
+            if (result == null || result == "null") {
+                LogCollector.log("UI", "push $type → handler not ready")
+            }
+        }
+    }
 }
 
 class MainActivity : ComponentActivity() {
@@ -505,6 +511,8 @@ fun BmsApp(
 
     LaunchedEffect(Unit) {
         bleManager.setOnDataReceived { data ->
+            val hex = data.joinToString("") { "%02x".format(it) }
+            LogCollector.log("BLE", "→UI ${data.size}B: $hex")
             val dataJson = data.toList().toString()
             pushToUi(webView, "bms:raw-data", """{"data":$dataJson}""")
         }
@@ -521,6 +529,7 @@ fun BmsApp(
             webViewClient = object : WebViewClient() {
                 override fun onPageFinished(view: WebView?, url: String?) {
                     Log.d("BMS_UI", "Page finished: $url")
+                    LogCollector.log("UI", "Page loaded: ${url?.take(40)}")
                     super.onPageFinished(view, url)
                     view?.evaluateJavascript("localStorage.setItem('bms-theme','$themeStr')", null)
 
@@ -546,6 +555,7 @@ fun BmsApp(
                         };
                     """
                     view?.evaluateJavascript(shim, null)
+                    LogCollector.log("UI", "Bridge shim injected")
                 }
             }
             webChromeClient = object : android.webkit.WebChromeClient() {
@@ -598,7 +608,8 @@ fun BmsApp(
 
 
 
-    if (isWideScreen) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        if (isWideScreen) {
         Row(
             modifier = Modifier
                 .fillMaxSize()
@@ -644,10 +655,12 @@ fun BmsApp(
                             Icon(Icons.Default.BluetoothDisabled, contentDescription = null, modifier = Modifier.size(48.dp), tint = colors.fg3)
                             Spacer(Modifier.height(8.dp))
                             Text("请先连接蓝牙设备", color = colors.fg3, fontSize = 14.sp)
-                        }
-                    }
                 }
             }
+        }
+        DebugLogPanel(colors = colors)
+    }
+}
         }
     } else {
         val showBottomBar = !(bleManager.connected.value && selectedTab == 1)
@@ -939,84 +952,93 @@ fun BluetoothPage(
             }
         }
 
-        DebugLogPanel(colors)
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DebugLogPanel(colors: AppColors) {
-    var expanded by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState()
+    var showSheet by remember { mutableStateOf(false) }
     val logs = LogCollector.logs
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 8.dp),
+            .padding(bottom = 8.dp),
+        contentAlignment = Alignment.BottomCenter,
     ) {
-        Row(
+        IconButton(
+            onClick = { showSheet = true },
             modifier = Modifier
-                .fillMaxWidth()
-                .clickable { expanded = !expanded }
-                .padding(vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
+                .size(36.dp)
+                .background(colors.surface.copy(alpha = 0.8f), RoundedCornerShape(18.dp)),
         ) {
             Icon(
                 Icons.Default.Terminal,
-                contentDescription = null,
+                contentDescription = "调试",
                 tint = colors.fg2,
-                modifier = Modifier.size(16.dp),
+                modifier = Modifier.size(18.dp),
             )
-            Spacer(Modifier.width(6.dp))
-            Text(
-                if (expanded) "调试日志 ▼" else "调试日志 ▶",
-                fontSize = 12.sp,
-                color = colors.fg2,
-                fontWeight = FontWeight.Medium,
-            )
-            Spacer(Modifier.weight(1f))
-            if (expanded && logs.isNotEmpty()) {
-                TextButton(onClick = { LogCollector.clear() }) {
-                    Text("清除", fontSize = 11.sp, color = colors.danger)
-                }
-            }
         }
+    }
 
-        if (expanded) {
-            Card(
-                shape = RoundedCornerShape(8.dp),
-                colors = CardDefaults.cardColors(containerColor = colors.surface),
-                modifier = Modifier.fillMaxWidth().heightIn(max = 200.dp),
+    if (showSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showSheet = false },
+            sheetState = sheetState,
+            containerColor = colors.surface,
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                if (logs.isEmpty()) {
-                    Box(
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text("暂无日志", fontSize = 12.sp, color = colors.fg3)
-                    }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxWidth().padding(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(2.dp),
-                    ) {
-                        items(logs.toList()) { log ->
-                            val tagColor = when {
-                                log.contains(" BLE ") -> Color(0xFF60A5FA)
-                                log.contains(" JS ") -> Color(0xFFA78BFA)
-                                log.contains(" UI ") -> Color(0xFF34D399)
-                                else -> colors.fg3
-                            }
-                            Text(
-                                log,
-                                fontSize = 10.sp,
-                                fontFamily = FontFamily.Monospace,
-                                color = tagColor,
-                                lineHeight = 14.sp,
-                            )
-                        }
+                Text(
+                    "调试日志",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = colors.fg,
+                )
+                Spacer(Modifier.weight(1f))
+                if (logs.isNotEmpty()) {
+                    TextButton(onClick = { LogCollector.clear() }) {
+                        Text("清除", fontSize = 12.sp, color = colors.danger)
                     }
                 }
             }
+            if (logs.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxWidth().padding(32.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text("暂无日志", fontSize = 13.sp, color = colors.fg3)
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 400.dp)
+                        .padding(horizontal = 12.dp, vertical = 4.dp),
+                    verticalArrangement = Arrangement.spacedBy(1.dp),
+                ) {
+                    items(logs.toList()) { log ->
+                        val tagColor = when {
+                            log.contains(" BLE ") -> Color(0xFF60A5FA)
+                            log.contains(" JS ") -> Color(0xFFA78BFA)
+                            log.contains(" UI ") -> Color(0xFF34D399)
+                            else -> colors.fg3
+                        }
+                        Text(
+                            log,
+                            fontSize = 10.sp,
+                            fontFamily = FontFamily.Monospace,
+                            color = tagColor,
+                            lineHeight = 14.sp,
+                        )
+                    }
+                }
+            }
+            Spacer(Modifier.height(16.dp))
         }
     }
 }
