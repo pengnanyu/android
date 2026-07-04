@@ -291,6 +291,7 @@ class BleManager {
     val connectedDevice = mutableStateOf<BleDevice?>(null)
     val connectionError = mutableStateOf(false)
     val rememberedAddresses = mutableStateListOf<String>()
+    val scanStatus = mutableStateOf("")
 
     private var bluetoothAdapter: BluetoothAdapter? = null
     private var bleConnection: BleConnection? = null
@@ -318,7 +319,6 @@ class BleManager {
     private val scanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult) {
             val name = result.device.name ?: return
-            if (!name.startsWith(NAME_PREFIX)) return
 
             var soc = 0; var voltage = 0; var current = 0; var safety = 0
             val scanRecord = result.scanRecord
@@ -344,13 +344,21 @@ class BleManager {
 
         override fun onScanFailed(errorCode: Int) {
             scanning.value = false
+            scanStatus.value = "Scan failed: $errorCode"
         }
     }
 
     fun startScan(context: Context) {
         val bm = context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
         bluetoothAdapter = bm?.adapter
+
+        if (bluetoothAdapter == null) {
+            scanStatus.value = "No Bluetooth adapter"
+            scanning.value = false
+            return
+        }
         if (bluetoothAdapter?.isEnabled != true) {
+            scanStatus.value = "Bluetooth is off"
             scanning.value = false
             return
         }
@@ -361,17 +369,30 @@ class BleManager {
             ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
         }
         if (!hasPerm) {
+            scanStatus.value = "No BLE permission"
+            scanning.value = false
+            return
+        }
+
+        val scanner = bluetoothAdapter?.bluetoothLeScanner
+        if (scanner == null) {
+            scanStatus.value = "No BLE scanner"
             scanning.value = false
             return
         }
 
         devices.clear()
         scanning.value = true
-        val scanner = bluetoothAdapter?.bluetoothLeScanner ?: return
+        scanStatus.value = "Scanning..."
         val settings = android.bluetooth.le.ScanSettings.Builder()
             .setScanMode(android.bluetooth.le.ScanSettings.SCAN_MODE_LOW_LATENCY)
             .build()
-        scanner.startScan(null, settings, scanCallback)
+        try {
+            scanner.startScan(null, settings, scanCallback)
+        } catch (e: SecurityException) {
+            scanStatus.value = "SecurityException: ${e.message}"
+            scanning.value = false
+        }
     }
 
     fun stopScan() {
@@ -707,6 +728,14 @@ fun BluetoothPage(
                 color = colors.primary,
             )
         }
+        if (bleManager.scanStatus.value.isNotEmpty()) {
+            Text(
+                bleManager.scanStatus.value,
+                color = colors.fg2,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(vertical = 4.dp),
+            )
+        }
 
         if (bleManager.devices.isEmpty() && !bleManager.scanning.value) {
             Box(
@@ -721,7 +750,7 @@ fun BluetoothPage(
                         tint = colors.fg3,
                     )
                     Spacer(Modifier.height(8.dp))
-                    Text("未发现设备", color = colors.fg3, fontSize = 14.sp)
+                    Text(if (bleManager.scanStatus.value.isNotEmpty()) bleManager.scanStatus.value else "未发现设备", color = colors.fg3, fontSize = 14.sp)
                     Spacer(Modifier.height(16.dp))
                     Button(
                         onClick = {
