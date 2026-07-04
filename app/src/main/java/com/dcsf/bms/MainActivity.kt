@@ -9,7 +9,6 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.os.ParcelUuid
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
@@ -155,7 +154,6 @@ class MainActivity : ComponentActivity() {
             arrayOf(
                 Manifest.permission.BLUETOOTH_SCAN,
                 Manifest.permission.BLUETOOTH_CONNECT,
-                Manifest.permission.ACCESS_FINE_LOCATION,
             )
         } else {
             arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
@@ -322,13 +320,10 @@ class BleManager {
         devices.clear()
         scanning.value = true
         val scanner = bluetoothAdapter?.bluetoothLeScanner ?: return
-        val filter = android.bluetooth.le.ScanFilter.Builder()
-            .setServiceUuid(ParcelUuid.fromString(SERVICE_UUID))
-            .build()
         val settings = android.bluetooth.le.ScanSettings.Builder()
             .setScanMode(android.bluetooth.le.ScanSettings.SCAN_MODE_LOW_LATENCY)
             .build()
-        scanner.startScan(listOf(filter), settings, scanCallback)
+        scanner.startScan(null, settings, scanCallback)
     }
 
     fun stopScan() {
