@@ -37,17 +37,21 @@ class BleConnection(
         gatt = device.connectGatt(context, false, object : BluetoothGattCallback() {
             override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
                 if (newState == BluetoothProfile.STATE_CONNECTED) {
+                    LogCollector.log("BLE", "GATT connected, requesting MTU")
                     gatt.requestMtu(256)
                 } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                    LogCollector.log("BLE", "GATT disconnected status=$status")
                     handler.post { onResult(false) }
                 }
             }
 
             override fun onMtuChanged(gatt: BluetoothGatt, mtu: Int, status: Int) {
+                LogCollector.log("BLE", "MTU negotiated: $mtu status=$status")
                 gatt.discoverServices()
             }
 
             override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
+                LogCollector.log("BLE", "Services discovered status=$status")
                 if (status != BluetoothGatt.GATT_SUCCESS) {
                     handler.post { onResult(false) }
                     return
@@ -69,6 +73,7 @@ class BleConnection(
 
                 if (notifyChar != null) {
                     gatt.setCharacteristicNotification(notifyChar, true)
+                    LogCollector.log("BLE", "Notify char set, writing descriptor")
                     val desc = notifyChar!!.descriptors.firstOrNull()
                     if (desc != null) {
                         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
@@ -83,11 +88,13 @@ class BleConnection(
                 }
 
                 handler.post { onResult(true) }
+                LogCollector.log("BLE", "BLE ready, notifications enabled")
             }
 
             fun handleCharacteristicChange(value: ByteArray) {
                 if (!commandSent) return
                 Log.d("BMS_BLE", "Received ${value.size} bytes: ${value.joinToString(",") { "%02x".format(it) }}")
+                LogCollector.log("BLE", "RX ${value.size}B: ${value.joinToString("") { "%02x".format(it) }.take(40)}")
                 synchronized(idleBuffer) {
                     for (b in value) idleBuffer.add(b)
                 }
@@ -131,6 +138,7 @@ class BleConnection(
         val char = writeChar ?: return false
         val g = gatt ?: return false
         Log.d("BMS_BLE", "Writing ${data.size} bytes: ${data.joinToString(",") { "%02x".format(it) }}")
+        LogCollector.log("BLE", "TX ${data.size}B: ${data.joinToString("") { "%02x".format(it) }.take(40)}")
         if (!commandSent) {
             commandSent = true
             synchronized(idleBuffer) { idleBuffer.clear() }
