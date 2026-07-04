@@ -141,11 +141,13 @@ fun pushToUi(webView: MutableState<WebView?>, type: String, payloadJson: String)
     LogCollector.log("UI", "push $type ${payloadJson.take(60)}")
     val js = "if(window.__APP_BRIDGE__&&window.__APP_BRIDGE__._handler){window.__APP_BRIDGE__._handler({type:'" + type + "',payload:" + payloadJson + "})}else{console.log('BRIDGE:_handler_not_ready')}"
     wv.post {
-        wv.evaluateJavascript(js) { result ->
-            if (result == null || result == "null") {
-                LogCollector.log("UI", "push $type → handler not ready")
+        wv.evaluateJavascript(js, object : android.webkit.ValueCallback<String> {
+            override fun onReceiveValue(result: String?) {
+                if (result == null || result == "null") {
+                    LogCollector.log("UI", "push $type → handler not ready")
+                }
             }
-        }
+        })
     }
 }
 
@@ -655,14 +657,11 @@ fun BmsApp(
                             Icon(Icons.Default.BluetoothDisabled, contentDescription = null, modifier = Modifier.size(48.dp), tint = colors.fg3)
                             Spacer(Modifier.height(8.dp))
                             Text("请先连接蓝牙设备", color = colors.fg3, fontSize = 14.sp)
+                        }
+                    }
                 }
             }
-        }
-        DebugLogPanel(colors = colors)
-    }
-}
-        }
-    } else {
+        } else {
         val showBottomBar = !(bleManager.connected.value && selectedTab == 1)
         Scaffold(
             containerColor = colors.bg,
@@ -787,6 +786,9 @@ fun BmsApp(
                 }
             }
         }
+    }
+        }
+        DebugLogPanel(colors = colors)
     }
 }
 
