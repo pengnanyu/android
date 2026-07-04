@@ -20,7 +20,7 @@ function useIsNarrow(breakpoint: number): boolean {
 }
 
 export function ParamConfigPage() {
-  const { dataMemeryGroups, parsedValues, deviceVersion, toasts, writeField, showToast, writeBatch, isBatchWriting } = useBmsStore();
+  const { dataMemeryGroups, parsedValues, deviceVersion, writeField, showToast, writeBatch, isBatchWriting } = useBmsStore();
   const { i18n, t } = useTranslation();
   const isZh = i18n.language === 'zh';
   const isNarrow = useIsNarrow(NARROW_BREAKPOINT);
@@ -255,15 +255,7 @@ export function ParamConfigPage() {
 
   return (
     <>
-      {toasts.length > 0 && (
-        <div className={styles.toastBar}>
-          {toasts.map(t => (
-            <span key={t.id} className={`${styles.toastItem} ${t.type === 'success' ? styles.toastSuccess : styles.toastError}`}>
-              {t.message}
-            </span>
-          ))}
-        </div>
-      )}
+
       <div
         className={styles.container}
         onTouchStart={handleTouchStart}

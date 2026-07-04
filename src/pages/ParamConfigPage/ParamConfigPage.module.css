@@ -22,38 +22,7 @@
   }
 }
 
-.toastBar {
-  position: fixed;
-  top: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 9999;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  pointer-events: none;
-}
 
-.toastItem {
-  padding: 6px 16px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  white-space: nowrap;
-  box-shadow: 0 2px 8px oklch(0 0 0 / 0.12);
-  animation: toastIn 0.25s ease-out;
-}
-
-.toastSuccess {
-  background: oklch(0.95 0.08 145);
-  color: oklch(0.3 0.12 145);
-}
-
-.toastError {
-  background: oklch(0.95 0.06 25);
-  color: oklch(0.35 0.15 25);
-}
 
 @keyframes toastIn {
   from {
