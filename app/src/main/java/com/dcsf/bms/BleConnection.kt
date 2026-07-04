@@ -75,16 +75,28 @@ class BleConnection(
                 handler.post { onResult(true) }
             }
 
-            override fun onCharacteristicChanged(
-                gatt: BluetoothGatt,
-                characteristic: BluetoothGattCharacteristic,
-                value: ByteArray,
-            ) {
+            private fun handleCharacteristicChange(value: ByteArray) {
                 if (!commandSent) return
                 synchronized(idleBuffer) {
                     for (b in value) idleBuffer.add(b)
                 }
                 scheduleIdleFlush()
+            }
+
+            override fun onCharacteristicChanged(
+                gatt: BluetoothGatt,
+                characteristic: BluetoothGattCharacteristic,
+                value: ByteArray,
+            ) {
+                handleCharacteristicChange(value)
+            }
+
+            @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
+            override fun onCharacteristicChanged(
+                gatt: BluetoothGatt,
+                characteristic: BluetoothGattCharacteristic,
+            ) {
+                handleCharacteristicChange(characteristic.value ?: return)
             }
         })
     }
