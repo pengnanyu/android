@@ -17,7 +17,7 @@ function dispatchBridgeMessage(data: unknown, handlers: Partial<Record<BridgeMes
   handlers[data.type]?.(data.payload);
 }
 
-function setupAppBridge(handlersRef: React.RefObject<Partial<Record<BridgeMessageType, MessageHandler>> | null>): () => void {
+function setupAppBridge(handlersRef: { current: Partial<Record<BridgeMessageType, MessageHandler>> | null | undefined }): () => void {
   const bridge = (window as unknown as Record<string, unknown>).__APP_BRIDGE__;
   if (bridge && typeof bridge === 'object') {
     const onMessage = (bridge as Record<string, unknown>).onMessage;
