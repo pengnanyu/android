@@ -9,5 +9,6 @@
 .cxx
 local.properties
 app/build
+out/
 fix_preview.py
 .codeartsdoer

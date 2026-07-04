@@ -29,17 +29,21 @@ jobs:
       - name: Build Debug APK
         run: ./gradlew assembleDebug
 
-      - name: Upload Debug APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: bms-debug-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
-
       - name: Build Release APK
         run: ./gradlew assembleRelease
 
-      - name: Upload Release APK
+      - name: Copy APKs to out/
+        run: |
+          mkdir -p out
+          cp app/build/outputs/apk/debug/app-debug.apk out/bms-debug.apk
+          cp app/build/outputs/apk/release/app-release-unsigned.apk out/bms-release.apk
+          echo "## Build Output" >> $GITHUB_STEP_SUMMARY
+          echo "| File | Size |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|------|" >> $GITHUB_STEP_SUMMARY
+          for f in out/*.apk; do echo "| $(basename $f) | $(du -h $f | cut -f1) |" >> $GITHUB_STEP_SUMMARY; done
+
+      - name: Upload APKs
         uses: actions/upload-artifact@v4
         with:
-          name: bms-release-apk
-          path: app/build/outputs/apk/release/app-release-unsigned.apk
+          name: bms-apk
+          path: out/*.apk
