@@ -205,6 +205,9 @@ object SafetyBits {
     }
 }
 
+@Suppress("DEPRECATION")
+fun getScanRecordBytes(record: android.bluetooth.le.ScanRecord): ByteArray? = record.getBytes()
+
 fun parseAdData(bytes: ByteArray): IntArray? {
     var i = 0
     while (i < bytes.size - 3) {
@@ -266,7 +269,7 @@ class BleManager {
             var soc = 0; var voltage = 0; var current = 0; var safety = 0
             val scanRecord = result.scanRecord
             if (scanRecord != null) {
-                val bytes = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) scanRecord.bytes else @Suppress("DEPRECATION") scanRecord.getBytes()
+                val bytes = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) scanRecord.bytes else getScanRecordBytes(scanRecord)
                 if (bytes != null) {
                     val parsed = parseAdData(bytes)
                     if (parsed != null) {

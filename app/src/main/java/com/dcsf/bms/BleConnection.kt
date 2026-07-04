@@ -12,6 +12,9 @@ import android.os.Handler
 import android.os.Looper
 import java.util.UUID
 
+@Suppress("DEPRECATION")
+fun getCharValue(c: BluetoothGattCharacteristic): ByteArray? = c.value
+
 class BleConnection(
     private val device: BluetoothDevice,
     private val serviceUuid: String,
@@ -102,7 +105,7 @@ class BleConnection(
                 gatt: BluetoothGatt,
                 characteristic: BluetoothGattCharacteristic,
             ) {
-                handleCharacteristicChange(if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) characteristic.value ?: return else @Suppress("DEPRECATION") characteristic.value ?: return)
+                handleCharacteristicChange(if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) characteristic.value ?: return else getCharValue(characteristic) ?: return)
             }
         })
     }
