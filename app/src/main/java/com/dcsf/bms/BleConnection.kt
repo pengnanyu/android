@@ -67,15 +67,21 @@ class BleConnection(
                     gatt.setCharacteristicNotification(notifyChar, true)
                     val desc = notifyChar!!.descriptors.firstOrNull()
                     if (desc != null) {
-                        desc.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-                        gatt.writeDescriptor(desc)
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                            gatt.writeDescriptor(desc, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)
+                        } else {
+                            @Suppress("DEPRECATION")
+                            desc.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+                            @Suppress("DEPRECATION")
+                            gatt.writeDescriptor(desc)
+                        }
                     }
                 }
 
                 handler.post { onResult(true) }
             }
 
-            private fun handleCharacteristicChange(value: ByteArray) {
+            fun handleCharacteristicChange(value: ByteArray) {
                 if (!commandSent) return
                 synchronized(idleBuffer) {
                     for (b in value) idleBuffer.add(b)
@@ -96,7 +102,7 @@ class BleConnection(
                 gatt: BluetoothGatt,
                 characteristic: BluetoothGattCharacteristic,
             ) {
-                handleCharacteristicChange(characteristic.value ?: return)
+                handleCharacteristicChange(if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) characteristic.value ?: return else @Suppress("DEPRECATION") characteristic.value ?: return)
             }
         })
     }
@@ -123,9 +129,16 @@ class BleConnection(
             commandSent = true
             synchronized(idleBuffer) { idleBuffer.clear() }
         }
-        char.value = data
-        char.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
-        return g.writeCharacteristic(char)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            return g.writeCharacteristic(char, data, BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE)
+        } else {
+            @Suppress("DEPRECATION")
+            char.value = data
+            @Suppress("DEPRECATION")
+            char.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
+            @Suppress("DEPRECATION")
+            return g.writeCharacteristic(char)
+        }
     }
 
     fun disconnect() {
