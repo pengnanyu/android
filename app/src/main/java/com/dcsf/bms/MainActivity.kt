@@ -449,6 +449,8 @@ fun BmsApp(
     val themeStr = if (darkTheme) "dark" else "light"
 
     LaunchedEffect(bleManager.connected.value) {
+        val status = if (bleManager.connected.value) "connected" else "disconnected"
+        pushToUi("bms:connection-status", """{"status":"$status"}""")
         if (bleManager.connected.value) {
             selectedTab = 1
         }
@@ -456,11 +458,8 @@ fun BmsApp(
 
     LaunchedEffect(Unit) {
         bleManager.setOnDataReceived { data ->
-            webView.value?.post {
-                val js = "if(window.__APP_BRIDGE__&&window.__APP_BRIDGE__.onData)" +
-                    "{window.__APP_BRIDGE__.onData(${data.toList()})}"
-                webView.value?.evaluateJavascript(js, null)
-            }
+            val dataJson = data.toList().toString()
+            pushToUi("bms:raw-data", """{"data":$dataJson}""")
         }
     }
 
@@ -470,23 +469,80 @@ fun BmsApp(
             settings.domStorageEnabled = true
             settings.allowFileAccess = true
             settings.databaseEnabled = true
-            webViewClient = WebViewClient()
+            settings.mediaPlaybackRequiresUserGesture = false
+            settings.mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_NEVER_ALLOW
+            webViewClient = object : WebViewClient() {
+                override fun onPageFinished(view: WebView?, url: String?) {
+                    super.onPageFinished(view, url)
+                    view?.evaluateJavascript("localStorage.setItem('bms-theme','$themeStr')", null)
+                    val shim = """
+                        window.__APP_BRIDGE__ = {
+                            _handler: null,
+                            onMessage: function(cb) { this._handler = cb; },
+                            postMessage: function(msg) {
+                                if(window.__NativeBridge__ && window.__NativeBridge__.postMessage) {
+                                    window.__NativeBridge__.postMessage(JSON.stringify(msg));
+                                }
+                            },
+                            sendFrame: function(json) {
+                                if(window.__NativeBridge__ && window.__NativeBridge__.sendFrame) {
+                                    window.__NativeBridge__.sendFrame(json);
+                                }
+                            },
+                            getPlatform: function() {
+                                if(window.__NativeBridge__ && window.__NativeBridge__.getPlatform) {
+                                    return window.__NativeBridge__.getPlatform();
+                                }
+                            }
+                        };
+                    """
+                    view?.evaluateJavascript(shim, null)
+                }
+            }
             addJavascriptInterface(object {
+                @android.webkit.JavascriptInterface
+                fun postMessage(json: String) {
+                    try {
+                        val msg = org.json.JSONObject(json)
+                        val type = msg.optString("type", "")
+                        val payload = msg.optJSONObject("payload")
+                        when (type) {
+                            "bms:frame-send" -> {
+                                val frameArr = payload?.optJSONArray("frame")
+                                if (frameArr != null) {
+                                    val frame = ByteArray(frameArr.length()) { frameArr.getInt(it).toByte() }
+                                    bleManager.send(frame)
+                                }
+                            }
+                            "bms:request-status" -> {
+                                val status = if (bleManager.connected.value) "connected" else "disconnected"
+                                pushToUi("bms:connection-status", """{"status":"$status"}""")
+                            }
+                        }
+                    } catch (_: Exception) {}
+                }
+
                 @android.webkit.JavascriptInterface
                 fun sendFrame(json: String) {
                     val nums = json.trim('[', ']').split(',').mapNotNull { it.trim().toIntOrNull() }
                     val frame = ByteArray(nums.size) { nums[it].toByte() }
                     bleManager.send(frame)
                 }
+
                 @android.webkit.JavascriptInterface
                 fun getPlatform(): String {
                     return """{"platform":"app","version":"1.0.0","bluetoothSupported":true,"serialSupported":false}"""
                 }
-            }, "__APP_BRIDGE__")
-            evaluateJavascript("localStorage.setItem('bms-theme','$themeStr')", null)
+            }, "__NativeBridge__")
             loadUrl("https://ui.bms.pub")
             webView.value = this
         }
+    }
+
+    private fun pushToUi(type: String, payloadJson: String) {
+        val wv = webView.value ?: return
+        val js = "if(window.__APP_BRIDGE__&&window.__APP_BRIDGE__._handler){window.__APP_BRIDGE__._handler({type:'$type',payload:$payloadJson})}"
+        wv.post { wv.evaluateJavascript(js, null) }
     }
 
     if (isWideScreen) {
