@@ -671,11 +671,11 @@ fun BluetoothPage(
                 }
             }
         } else {
+            val connAddr = bleManager.connectedDevice.value?.address
             val remembered = bleManager.devices.filter { bleManager.isRemembered(it.address) }
                 .sortedByDescending { it.address == connAddr }
             val newDevs = bleManager.devices.filter { !bleManager.isRemembered(it.address) }
                 .sortedByDescending { it.address == connAddr }
-            val connAddr = bleManager.connectedDevice.value?.address
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),

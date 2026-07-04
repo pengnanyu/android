@@ -78,18 +78,6 @@ class BleConnection(
             override fun onCharacteristicChanged(
                 gatt: BluetoothGatt,
                 characteristic: BluetoothGattCharacteristic,
-            ) {
-                if (!commandSent) return
-                val value = characteristic.value ?: return
-                synchronized(idleBuffer) {
-                    for (b in value) idleBuffer.add(b)
-                }
-                scheduleIdleFlush()
-            }
-
-            override fun onCharacteristicChanged(
-                gatt: BluetoothGatt,
-                characteristic: BluetoothGattCharacteristic,
                 value: ByteArray,
             ) {
                 if (!commandSent) return
