@@ -1,0 +1,33 @@
+﻿2026-07-04T10:33:42.9552136Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-04T10:33:42.9553504Z ##[group]Run gradle/actions/setup-gradle@v4
+2026-07-04T10:33:42.9553786Z with:
+2026-07-04T10:33:42.9553979Z   cache-disabled: false
+2026-07-04T10:33:42.9554206Z   cache-read-only: true
+2026-07-04T10:33:42.9554428Z   cache-write-only: false
+2026-07-04T10:33:42.9554675Z   cache-overwrite-existing: false
+2026-07-04T10:33:42.9554937Z   cache-cleanup: on-success
+2026-07-04T10:33:42.9555225Z   gradle-home-cache-includes: caches
+notifications
+
+2026-07-04T10:33:42.9555558Z   add-job-summary: always
+2026-07-04T10:33:42.9555814Z   add-job-summary-as-pr-comment: never
+2026-07-04T10:33:42.9556113Z   dependency-graph: disabled
+2026-07-04T10:33:42.9556422Z   dependency-graph-report-dir: dependency-graph-reports
+2026-07-04T10:33:42.9556841Z   dependency-graph-continue-on-failure: true
+2026-07-04T10:33:42.9557152Z   build-scan-publish: false
+2026-07-04T10:33:42.9557404Z   validate-wrappers: true
+2026-07-04T10:33:42.9557653Z   allow-snapshot-wrappers: false
+2026-07-04T10:33:42.9557930Z   gradle-home-cache-strict-match: false
+2026-07-04T10:33:42.9558217Z   workflow-job-context: null
+2026-07-04T10:33:42.9560862Z   github-token: ***
+2026-07-04T10:33:42.9561094Z env:
+2026-07-04T10:33:42.9561391Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.19-10/x64
+2026-07-04T10:33:42.9561894Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.19-10/x64
+2026-07-04T10:33:42.9562283Z ##[endgroup]
+2026-07-04T10:33:43.5424314Z Merged default JDK locations into /home/runner/.m2/toolchains.xml
+2026-07-04T10:33:43.5447251Z ##[group]Restore Gradle state from cache
+2026-07-04T10:33:43.8034351Z Gradle User Home cache not found. Will initialize empty.
+2026-07-04T10:33:43.8035783Z ##[endgroup]
+2026-07-04T10:33:43.8036781Z ##[group]All Gradle Wrapper jars are valid
+2026-07-04T10:33:43.8038215Z 
+2026-07-04T10:33:43.8039130Z ##[endgroup]

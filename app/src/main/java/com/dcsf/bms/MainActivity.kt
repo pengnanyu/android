@@ -19,6 +19,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -52,39 +53,55 @@ import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 
-object AppColors {
-    object Light {
-        val bg = Color(0xFFF5F7FA)
-        val surface = Color.White
-        val surfaceConn = Color(0xFFECFDF5)
-        val surfaceConnBorder = Color(0xFFA7F3D0)
-        val fg = Color(0xFF1A1A2E)
-        val fg2 = Color(0xFF6B7280)
-        val fg3 = Color(0xFF9CA3AF)
-        val border = Color(0xFFE5E7EB)
-        val primary = Color(0xFF3B82F6)
-        val primaryFg = Color.White
-        val track = Color(0xFFE5E7EB)
-        val navBg = Color.White
-        val danger = Color(0xFFEF4444)
-        val swipeBg = Color(0xFFEF4444)
-    }
-
-    object Dark {
-        val bg = Color(0xFF1A1B2E)
-        val surface = Color(0xFF252640)
-        val surfaceConn = Color(0xFF0D2818)
-        val surfaceConnBorder = Color(0xFF166534)
-        val fg = Color(0xFFE5E5E5)
-        val fg2 = Color(0xFF9CA3AF)
-        val fg3 = Color(0xFF6B7280)
-        val border = Color(0xFF333450)
-        val primary = Color(0xFF60A5FA)
-        val primaryFg = Color.White
-        val track = Color(0xFF333450)
-        val navBg = Color(0xFF1E1F36)
-        val danger = Color(0xFFF87171)
-        val swipeBg = Color(0xFFDC2626)
+data class AppColors(
+    val bg: Color,
+    val surface: Color,
+    val surfaceConn: Color,
+    val surfaceConnBorder: Color,
+    val fg: Color,
+    val fg2: Color,
+    val fg3: Color,
+    val border: Color,
+    val primary: Color,
+    val primaryFg: Color,
+    val track: Color,
+    val navBg: Color,
+    val danger: Color,
+    val swipeBg: Color,
+) {
+    companion object {
+        val Light = AppColors(
+            bg = Color(0xFFF5F7FA),
+            surface = Color.White,
+            surfaceConn = Color(0xFFECFDF5),
+            surfaceConnBorder = Color(0xFFA7F3D0),
+            fg = Color(0xFF1A1A2E),
+            fg2 = Color(0xFF6B7280),
+            fg3 = Color(0xFF9CA3AF),
+            border = Color(0xFFE5E7EB),
+            primary = Color(0xFF3B82F6),
+            primaryFg = Color.White,
+            track = Color(0xFFE5E7EB),
+            navBg = Color.White,
+            danger = Color(0xFFEF4444),
+            swipeBg = Color(0xFFEF4444),
+        )
+        val Dark = AppColors(
+            bg = Color(0xFF1A1B2E),
+            surface = Color(0xFF252640),
+            surfaceConn = Color(0xFF0D2818),
+            surfaceConnBorder = Color(0xFF166534),
+            fg = Color(0xFFE5E5E5),
+            fg2 = Color(0xFF9CA3AF),
+            fg3 = Color(0xFF6B7280),
+            border = Color(0xFF333450),
+            primary = Color(0xFF60A5FA),
+            primaryFg = Color.White,
+            track = Color(0xFF333450),
+            navBg = Color(0xFF1E1F36),
+            danger = Color(0xFFF87171),
+            swipeBg = Color(0xFFDC2626),
+        )
     }
 }
 
@@ -354,7 +371,7 @@ class BleManager {
 @Composable
 fun BmsApp(
     bleManager: BleManager,
-    colors: AppColors.Light,
+    colors: AppColors,
     darkTheme: Boolean,
     onRequestPermissions: () -> Unit,
     onConnectDevice: (BleDevice) -> Unit,
@@ -594,7 +611,7 @@ fun BmsApp(
 @Composable
 fun BluetoothPage(
     bleManager: BleManager,
-    colors: AppColors.Light,
+    colors: AppColors,
     onRequestPermissions: () -> Unit,
     onConnectDevice: (BleDevice) -> Unit,
     onDisconnect: () -> Unit,
@@ -746,7 +763,7 @@ fun SwipeDeviceCard(
     device: BleDevice,
     isConn: Boolean,
     isRemembered: Boolean,
-    colors: AppColors.Light,
+    colors: AppColors,
     onClick: () -> Unit,
     onForget: () -> Unit,
     onSaveRemember: () -> Unit,
@@ -813,7 +830,7 @@ fun SwipeDeviceCard(
 }
 
 @Composable
-fun ConnectedCard(device: BleDevice, colors: AppColors.Light, onDisconnect: () -> Unit, onClick: () -> Unit = {}) {
+fun ConnectedCard(device: BleDevice, colors: AppColors, onDisconnect: () -> Unit, onClick: () -> Unit = {}) {
     Card(
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = colors.surfaceConn, contentColor = colors.fg),
@@ -852,7 +869,7 @@ fun ConnectedCard(device: BleDevice, colors: AppColors.Light, onDisconnect: () -
 }
 
 @Composable
-fun DeviceCard(device: BleDevice, colors: AppColors.Light, onClick: () -> Unit) {
+fun DeviceCard(device: BleDevice, colors: AppColors, onClick: () -> Unit) {
     Card(
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = colors.surface),
@@ -886,7 +903,7 @@ fun DeviceCard(device: BleDevice, colors: AppColors.Light, onClick: () -> Unit) 
 }
 
 @Composable
-fun SafetyFlagRow(safety: Int, colors: AppColors.Light) {
+fun SafetyFlagRow(safety: Int, colors: AppColors) {
     val flags = SafetyBits.activeFlags(safety)
     if (flags.isNotEmpty()) {
         Spacer(Modifier.height(3.dp))
@@ -980,7 +997,7 @@ fun SocCircle(soc: Int, isGlowing: Boolean, trackColor: Color = Color(0xFFE5E7EB
 @Composable
 fun UiPage(
     bleManager: BleManager,
-    colors: AppColors.Light,
+    colors: AppColors,
     webView: MutableState<WebView?>,
     darkTheme: Boolean = false,
     modifier: Modifier = Modifier,

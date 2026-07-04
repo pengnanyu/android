@@ -133,7 +133,8 @@ class BleConnection(
             synchronized(idleBuffer) { idleBuffer.clear() }
         }
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            return g.writeCharacteristic(char, data, BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE)
+            val result = g.writeCharacteristic(char, data, BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE)
+            return result == android.bluetooth.BluetoothGatt.GATT_SUCCESS
         } else {
             @Suppress("DEPRECATION")
             char.value = data
