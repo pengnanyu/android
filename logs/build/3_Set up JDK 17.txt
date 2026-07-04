@@ -1,0 +1,30 @@
+﻿2026-07-04T10:33:42.6571954Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-04T10:33:42.6573979Z ##[group]Run actions/setup-java@v4
+2026-07-04T10:33:42.6574258Z with:
+2026-07-04T10:33:42.6574460Z   java-version: 17
+2026-07-04T10:33:42.6574679Z   distribution: temurin
+2026-07-04T10:33:42.6574903Z   java-package: jdk
+2026-07-04T10:33:42.6575131Z   check-latest: false
+2026-07-04T10:33:42.6575355Z   server-id: github
+2026-07-04T10:33:42.6575580Z   server-username: GITHUB_ACTOR
+2026-07-04T10:33:42.6575845Z   server-password: GITHUB_TOKEN
+2026-07-04T10:33:42.6576103Z   overwrite-settings: true
+2026-07-04T10:33:42.6576345Z   job-status: success
+2026-07-04T10:33:42.6578779Z   token: ***
+2026-07-04T10:33:42.6579005Z ##[endgroup]
+2026-07-04T10:33:42.8672659Z (node:2065) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-07-04T10:33:42.8674268Z ##[group]Installed distributions
+2026-07-04T10:33:42.8675191Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-07-04T10:33:42.9167802Z Resolved Java 17.0.19+10 from tool-cache
+2026-07-04T10:33:42.9168475Z Setting Java 17.0.19+10 as the default
+2026-07-04T10:33:42.9169041Z Creating toolchains.xml for JDK version 17 from temurin
+2026-07-04T10:33:42.9169638Z Writing to /home/runner/.m2/toolchains.xml
+2026-07-04T10:33:42.9169973Z 
+2026-07-04T10:33:42.9170129Z Java configuration:
+2026-07-04T10:33:42.9170495Z   Distribution: temurin
+2026-07-04T10:33:42.9171125Z   Version: 17.0.19+10
+2026-07-04T10:33:42.9171695Z   Path: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.19-10/x64
+2026-07-04T10:33:42.9172192Z 
+2026-07-04T10:33:42.9172607Z ##[endgroup]
+2026-07-04T10:33:42.9207857Z Creating settings.xml with server-id: github
+2026-07-04T10:33:42.9208508Z Writing to /home/runner/.m2/settings.xml

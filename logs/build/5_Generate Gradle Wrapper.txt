@@ -1,0 +1,39 @@
+﻿2026-07-04T10:33:43.8100363Z ##[group]Run gradle wrapper --gradle-version 8.5
+2026-07-04T10:33:43.8101233Z [36;1mgradle wrapper --gradle-version 8.5[0m
+2026-07-04T10:33:43.8304723Z shell: /usr/bin/bash -e {0}
+2026-07-04T10:33:43.8305011Z env:
+2026-07-04T10:33:43.8305330Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.19-10/x64
+2026-07-04T10:33:43.8305854Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.19-10/x64
+2026-07-04T10:33:43.8306282Z   GRADLE_ACTION_ID: gradle/actions/setup-gradle
+2026-07-04T10:33:43.8306589Z   GRADLE_USER_HOME: /home/runner/.gradle
+2026-07-04T10:33:43.8306890Z   GRADLE_BUILD_ACTION_SETUP_COMPLETED: true
+2026-07-04T10:33:43.8307187Z   GRADLE_BUILD_ACTION_CACHE_RESTORED: true
+2026-07-04T10:33:43.8307643Z   DEVELOCITY_INJECTION_INIT_SCRIPT_NAME: gradle-actions.inject-develocity.init.gradle
+2026-07-04T10:33:43.8308120Z   DEVELOCITY_INJECTION_CUSTOM_VALUE: gradle-actions
+2026-07-04T10:33:43.8308435Z   GITHUB_DEPENDENCY_GRAPH_ENABLED: false
+2026-07-04T10:33:43.8308694Z ##[endgroup]
+2026-07-04T10:33:45.1373176Z 
+2026-07-04T10:33:45.1402711Z Welcome to Gradle 9.6.1!
+2026-07-04T10:33:45.1403506Z 
+2026-07-04T10:33:45.1404002Z Here are the highlights of this release:
+2026-07-04T10:33:45.1413716Z  - Improved Configuration Cache hit rates
+2026-07-04T10:33:45.1414635Z  - Additional CLI rendering options
+2026-07-04T10:33:45.1415419Z  - Important project hierarchy lookup deprecations
+2026-07-04T10:33:45.1416103Z 
+2026-07-04T10:33:45.1417785Z For more details see https://docs.gradle.org/9.6.1/release-notes.html
+2026-07-04T10:33:45.1418630Z 
+2026-07-04T10:33:45.4371911Z Starting a Gradle Daemon (subsequent builds will be faster)
+2026-07-04T10:35:12.7372148Z > Task :wrapper
+2026-07-04T10:35:12.8372413Z gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run-1783161233305.json
+2026-07-04T10:35:12.9399703Z 
+2026-07-04T10:35:12.9425850Z [Incubating] Problems report is available at: file:///home/runner/work/android/android/build/reports/problems/problems-report.html
+2026-07-04T10:35:12.9441571Z 
+2026-07-04T10:35:12.9457780Z Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+2026-07-04T10:35:12.9463329Z 
+2026-07-04T10:35:12.9473511Z You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+2026-07-04T10:35:12.9474591Z 
+2026-07-04T10:35:12.9475632Z For more on this, please refer to https://docs.gradle.org/9.6.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+2026-07-04T10:35:12.9479665Z 
+2026-07-04T10:35:12.9480039Z BUILD SUCCESSFUL in 1m 28s
+2026-07-04T10:35:12.9480626Z 1 actionable task: 1 executed
+2026-07-04T10:35:12.9482125Z Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.1/userguide/configuration_cache_enabling.html
