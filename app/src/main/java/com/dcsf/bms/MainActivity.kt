@@ -388,8 +388,8 @@ fun BmsApp(
             addJavascriptInterface(object {
                 @android.webkit.JavascriptInterface
                 fun sendFrame(json: String) {
-                    val frame = json.trim('[', ']').split(',').mapNotNull { it.trim().toIntOrNull() }
-                        .toByteArray()
+                    val nums = json.trim('[', ']').split(',').mapNotNull { it.trim().toIntOrNull() }
+                    val frame = ByteArray(nums.size) { nums[it].toByte() }
                     bleManager.send(frame)
                 }
                 @android.webkit.JavascriptInterface
@@ -1007,8 +1007,8 @@ fun UiPage(
                 addJavascriptInterface(object {
                     @android.webkit.JavascriptInterface
                     fun sendFrame(json: String) {
-                        val frame = json.trim('[', ']').split(',').mapNotNull { it.trim().toIntOrNull() }
-                            .toByteArray()
+                        val nums = json.trim('[', ']').split(',').mapNotNull { it.trim().toIntOrNull() }
+                        val frame = ByteArray(nums.size) { nums[it].toByte() }
                         bleManager.send(frame)
                     }
 
