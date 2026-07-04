@@ -115,6 +115,12 @@ fun hasBlePermissions(context: Context): Boolean {
     }
 }
 
+fun pushToUi(webView: MutableState<WebView?>, type: String, payloadJson: String) {
+    val wv = webView.value ?: return
+    val js = "if(window.__APP_BRIDGE__&&window.__APP_BRIDGE__._handler){window.__APP_BRIDGE__._handler({type:'" + type + "',payload:" + payloadJson + "})}"
+    wv.post { wv.evaluateJavascript(js, null) }
+}
+
 class MainActivity : ComponentActivity() {
     private val bleManager = BleManager()
 
@@ -137,9 +143,16 @@ class MainActivity : ComponentActivity() {
                 activity?.window?.statusBarColor = c.bg.toArgb()
                 activity?.window?.navigationBarColor = c.navBg.toArgb()
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    activity?.window?.insetsController?.let { controller ->
-                        controller.isAppearanceLightStatusBars = !darkTheme
-                        controller.isAppearanceLightNavigationBars = !darkTheme
+                    val controller = activity?.window?.insetsController
+                    if (controller != null) {
+                        controller.setSystemBarsAppearance(
+                            if (!darkTheme) android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS else 0,
+                            android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                        )
+                        controller.setSystemBarsAppearance(
+                            if (!darkTheme) android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS else 0,
+                            android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
+                        )
                     }
                 } else {
                     val decorView = activity?.window?.decorView
@@ -449,7 +462,7 @@ fun BmsApp(
 
     LaunchedEffect(bleManager.connected.value) {
         val status = if (bleManager.connected.value) "connected" else "disconnected"
-        pushToUi("bms:connection-status", """{"status":"$status"}""")
+        pushToUi(webView, "bms:connection-status", """{"status":"$status"}""")
         if (bleManager.connected.value) {
             selectedTab = 1
         }
@@ -458,7 +471,7 @@ fun BmsApp(
     LaunchedEffect(Unit) {
         bleManager.setOnDataReceived { data ->
             val dataJson = data.toList().toString()
-            pushToUi("bms:raw-data", """{"data":$dataJson}""")
+            pushToUi(webView, "bms:raw-data", """{"data":$dataJson}""")
         }
     }
 
@@ -515,7 +528,7 @@ fun BmsApp(
                             }
                             "bms:request-status" -> {
                                 val status = if (bleManager.connected.value) "connected" else "disconnected"
-                                pushToUi("bms:connection-status", """{"status":"$status"}""")
+                                pushToUi(webView, "bms:connection-status", """{"status":"$status"}""")
                             }
                         }
                     } catch (_: Exception) {}
@@ -538,11 +551,7 @@ fun BmsApp(
         }
     }
 
-    private fun pushToUi(type: String, payloadJson: String) {
-        val wv = webView.value ?: return
-        val js = "if(window.__APP_BRIDGE__&&window.__APP_BRIDGE__._handler){window.__APP_BRIDGE__._handler({type:'$type',payload:$payloadJson})}"
-        wv.post { wv.evaluateJavascript(js, null) }
-    }
+
 
     if (isWideScreen) {
         Row(
@@ -690,7 +699,7 @@ fun BmsApp(
                         darkTheme = darkTheme,
                         modifier = Modifier.fillMaxSize(),
                         createWebView = createWebView,
-                        pushToUi = ::pushToUi,
+                        pushToUi = { type, payload -> pushToUi(webView, type, payload) },
                     )
                     if (!showBottomBar) {
                         IconButton(
