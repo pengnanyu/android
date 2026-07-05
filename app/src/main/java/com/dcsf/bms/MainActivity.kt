@@ -581,8 +581,8 @@ fun BmsApp(
         bleManager.setOnDataReceived { data ->
             val hex = data.joinToString("") { "%02x".format(it) }
             LogCollector.log("BLE", "->UI ${data.size}B: $hex")
-            val dataJson = data.map { it.toInt() and 0xFF }.toString()
-            pushToUi(webView, "bms:raw-data", """{"data":$dataJson}""")
+            val dataHex = data.joinToString("") { "%02x".format(it) }
+            pushToUi(webView, "bms:raw-data", """{"data":"$dataHex"}""")
         }
     }
 
@@ -649,9 +649,9 @@ fun BmsApp(
                         LogCollector.log("JS", "msg $type")
                         when (type) {
                             "bms:frame-send" -> {
-                                val frameArr = payload?.optJSONArray("frame")
-                                if (frameArr != null) {
-                                    val frame = ByteArray(frameArr.length()) { frameArr.getInt(it).toByte() }
+                                val frameHex = payload?.optString("frame", "") ?: ""
+                                if (frameHex.isNotEmpty()) {
+                                    val frame = ByteArray(frameHex.length / 2) { frameHex.substring(it * 2, it * 2 + 2).toInt(16).toByte() }
                                     bleManager.send(frame)
                                 }
                             }
