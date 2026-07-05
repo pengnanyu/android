@@ -46,6 +46,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.graphics.toArgb
@@ -602,10 +603,13 @@ fun BmsApp(
                     val shim = """
                         window.__APP_BRIDGE__ = {
                             _handler: null,
-                            onMessage: function(cb) { this._handler = cb; },
+                            onMessage: function(cb) { this._handler = cb; console.log('BRIDGE:handler_registered'); },
                             postMessage: function(msg) {
+                                console.log('BRIDGE:postMessage type=' + (msg&&msg.type));
                                 if(window.__NativeBridge__ && window.__NativeBridge__.postMessage) {
                                     window.__NativeBridge__.postMessage(JSON.stringify(msg));
+                                } else {
+                                    console.log('BRIDGE:__NativeBridge__ not found');
                                 }
                             },
                             sendFrame: function(json) {
@@ -652,11 +656,14 @@ fun BmsApp(
                                 pushToUi(webView, "bms:connection-status", """{"status":"$status"}""")
                             }
                         }
-                    } catch (_: Exception) {}
+                    } catch (e: Exception) {
+                        LogCollector.log("JS", "postMessage error: ${e.message}")
+                    }
                 }
 
                 @android.webkit.JavascriptInterface
                 fun sendFrame(json: String) {
+                    LogCollector.log("JS", "sendFrame: ${json.take(40)}")
                     val nums = json.trim('[', ']').split(',').mapNotNull { it.trim().toIntOrNull() }
                     val frame = ByteArray(nums.size) { nums[it].toByte() }
                     bleManager.send(frame)
@@ -667,7 +674,7 @@ fun BmsApp(
                     return """{"platform":"app","version":"1.0.0","bluetoothSupported":true,"serialSupported":false}"""
                 }
             }, "__NativeBridge__")
-            loadUrl("https://ui.bms.pub")
+            loadUrl("https://ui.bms.pub/?theme=$themeStr")
             webView.value = this
         }
     }
@@ -815,17 +822,20 @@ fun BmsApp(
                     }
                 }
             ) { padding ->
-                when (selectedTab) {
-                    0 -> BluetoothPage(
+                Box(modifier = Modifier.fillMaxSize()) {
+                    BluetoothPage(
                         bleManager = bleManager,
                         colors = colors,
                         onRequestPermissions = onRequestPermissions,
                         onConnectDevice = onConnectDevice,
                         onDisconnect = onDisconnect,
                         onConnectedClick = { selectedTab = 1 },
-                        modifier = Modifier.padding(padding),
+                        modifier = Modifier
+                            .padding(padding)
+                            .then(if (selectedTab == 0) Modifier.fillMaxSize() else Modifier.fillMaxSize().alpha(0f)),
                     )
-                    1 -> Column(modifier = Modifier.fillMaxSize().padding(if (showBottomBar) padding else PaddingValues())) {
+                    if (selectedTab == 1) {
+                        Column(modifier = Modifier.fillMaxSize().padding(if (showBottomBar) padding else PaddingValues())) {
                         if (!showBottomBar) {
                             Row(
                                 modifier = Modifier
