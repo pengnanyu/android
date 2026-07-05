@@ -564,10 +564,10 @@ fun BmsApp(
     val themeStr = if (darkTheme) "dark" else "light"
 
     LaunchedEffect(bleManager.connected.value) {
-        val status = if (bleManager.connected.value) "connected" else "disconnected"
-        pushToUi(webView, "bms:connection-status", """{"status":"$status"}""")
         if (bleManager.connected.value) {
             selectedTab = 1
+        } else {
+            pushToUi(webView, "bms:connection-status", """{"status":"disconnected"}""")
         }
     }
 
@@ -651,8 +651,9 @@ fun BmsApp(
                                     bleManager.send(frame)
                                 }
                             }
-                            "bms:request-status" -> {
+                            "bms:request-status", "bms:ui-ready" -> {
                                 val status = if (bleManager.connected.value) "connected" else "disconnected"
+                                LogCollector.log("JS", "ui-ready/request-status -> push $status")
                                 pushToUi(webView, "bms:connection-status", """{"status":"$status"}""")
                             }
                         }
@@ -715,10 +716,10 @@ fun BmsApp(
                         .fillMaxHeight()
                 ) {
                     Box(modifier = Modifier.fillMaxSize()) {
+                        key(bleManager.connected.value) {
                         AndroidView(
                             factory = createWebView,
                             modifier = Modifier.fillMaxSize(),
-                            key = bleManager.connected.value,
                         )
                         if (!bleManager.connected.value) {
                             Box(
@@ -731,6 +732,7 @@ fun BmsApp(
                                     Text("请先连接蓝牙设备", color = colors.fg3, fontSize = 14.sp)
                                 }
                             }
+                        }
                         }
                     }
                 }
@@ -870,6 +872,7 @@ fun BmsApp(
                             createWebView = createWebView,
                             pushToUi = { type, payload -> pushToUi(webView, type, payload) },
                         )
+                        }
                     }
                 }
             }
@@ -1380,11 +1383,12 @@ fun UiPage(
 ) {
     val connectedKey = bleManager.connected.value
     Box(modifier = modifier) {
+        key(connectedKey) {
         AndroidView(
             factory = createWebView,
             modifier = Modifier.fillMaxSize(),
-            key = connectedKey,
         )
+        }
         if (!bleManager.connected.value) {
             Box(
                 modifier = Modifier.fillMaxSize().background(colors.bg),
