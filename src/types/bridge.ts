@@ -10,7 +10,8 @@ export type AppToIframeMessageType =
 export type IframeToAppMessageType =
   | 'bms:frame-send'
   | 'bms:request-status'
-  | 'bms:download-file';
+  | 'bms:download-file'
+  | 'bms:ui-ready';
 
 export type BridgeMessageType = AppToIframeMessageType | IframeToAppMessageType;
 

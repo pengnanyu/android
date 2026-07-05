@@ -53,6 +53,12 @@ export function useBridgeMessage(options: UseBridgeMessageOptions = {}) {
     const trySetupApp = () => {
       if (isApp()) {
         appUnsub = setupAppBridge(handlersRef);
+        if (appUnsub) {
+          const bridge = (window as unknown as Record<string, unknown>).__APP_BRIDGE__;
+          if (bridge && typeof (bridge as Record<string, unknown>).postMessage === 'function') {
+            try { ((bridge as Record<string, unknown>).postMessage as (m: BridgeMessage) => void)({ type: 'bms:ui-ready', payload: {} }); } catch (_e) { /* ignore */ }
+          }
+        }
         return true;
       }
       return false;

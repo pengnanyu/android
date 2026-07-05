@@ -9,6 +9,12 @@ interface UseThemeReturn {
 
 function getStoredTheme(): Theme | null {
   try {
+    const params = new URLSearchParams(window.location.search);
+    const urlTheme = params.get('theme');
+    if (urlTheme === 'light' || urlTheme === 'dark') {
+      localStorage.setItem('bms-theme', urlTheme);
+      return urlTheme;
+    }
     const stored = localStorage.getItem('bms-theme');
     if (stored === 'light' || stored === 'dark') return stored;
   } catch (_e) { }
