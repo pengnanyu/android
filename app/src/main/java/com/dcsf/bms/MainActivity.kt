@@ -141,7 +141,7 @@ fun pushToUi(webView: MutableState<WebView?>, type: String, payloadJson: String)
     val wv = webView.value ?: return
     Log.d("BMS_UI", "pushToUi: type=$type payload=${payloadJson.take(100)}")
     LogCollector.log("UI", "push $type ${payloadJson.take(60)}")
-    val js = "if(window.__APP_BRIDGE__&&window.__APP_BRIDGE__._handler){window.__APP_BRIDGE__._handler({type:'" + type + "',payload:" + payloadJson + "});'ok'}else{'retry'}"
+    val js = "window.postMessage({type:'" + type + "',payload:" + payloadJson + "},'*');'ok'"
     wv.post {
         wv.evaluateJavascript(js, object : android.webkit.ValueCallback<String> {
             override fun onReceiveValue(result: String?) {
