@@ -31,6 +31,7 @@ class BleConnection(
     private val idleBuffer = mutableListOf<Byte>()
     private var idleTimer: Runnable? = null
     private var idleMs = 20L
+    private val MAX_BUFFER_BEFORE_FLUSH = 512
 
     fun connect(context: Context, onResult: (Boolean) -> Unit) {
         gatt = device.connectGatt(context, false, object : BluetoothGattCallback() {
@@ -90,9 +91,11 @@ class BleConnection(
                 LogCollector.log("BLE", "BLE ready, notifications enabled")
             }
 
+            private var rxLogCounter = 0
             fun handleCharacteristicChange(value: ByteArray) {
-                Log.d("BMS_BLE", "Received ${value.size} bytes: ${value.joinToString(",") { "%02x".format(it) }}")
-                LogCollector.log("BLE", "RX ${value.size}B: ${value.joinToString("") { "%02x".format(it) }.take(40)}")
+                if (rxLogCounter++ % 10 == 0) {
+                    LogCollector.log("BLE", "RX ${value.size}B: ${value.joinToString("") { "%02x".format(it) }.take(40)}")
+                }
                 synchronized(idleBuffer) {
                     for (b in value) idleBuffer.add(b)
                 }
@@ -118,6 +121,17 @@ class BleConnection(
     }
 
     private fun scheduleIdleFlush() {
+        // If buffer is large enough, flush immediately without waiting for idle
+        synchronized(idleBuffer) {
+            if (idleBuffer.size >= MAX_BUFFER_BEFORE_FLUSH) {
+                val chunk = idleBuffer.toByteArray()
+                idleBuffer.clear()
+                handler.post { onDataReceived?.invoke(chunk) }
+                idleTimer?.let { handler.removeCallbacks(it) }
+                idleTimer = null
+                return
+            }
+        }
         idleTimer?.let { handler.removeCallbacks(it) }
         val runnable = Runnable {
             val chunk: ByteArray
@@ -132,11 +146,13 @@ class BleConnection(
         handler.postDelayed(runnable, idleMs)
     }
 
+    private var txLogCounter = 0
     fun write(data: ByteArray): Boolean {
         val char = writeChar ?: return false
         val g = gatt ?: return false
-        Log.d("BMS_BLE", "Writing ${data.size} bytes: ${data.joinToString(",") { "%02x".format(it) }}")
-        LogCollector.log("BLE", "TX ${data.size}B: ${data.joinToString("") { "%02x".format(it) }.take(40)}")
+        if (txLogCounter++ % 10 == 0) {
+            LogCollector.log("BLE", "TX ${data.size}B: ${data.joinToString("") { "%02x".format(it) }.take(40)}")
+        }
         synchronized(idleBuffer) { idleBuffer.clear() }
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
             val result = g.writeCharacteristic(char, data, BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE)

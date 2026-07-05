@@ -27,6 +27,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -61,18 +62,35 @@ import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 
 object LogCollector {
+    private val _buffer = ArrayDeque<String>()
     private val _logs = mutableStateListOf<String>()
     val logs: List<String> get() = _logs
     private const val MAX = 200
+    private const val FLUSH_INTERVAL_MS = 500L
+    private var lastFlush = 0L
+    private val dateFormat = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.US)
 
     fun log(tag: String, msg: String) {
-        val ts = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.US).format(java.util.Date())
+        val ts = dateFormat.format(java.util.Date())
         val entry = "$ts $tag $msg"
-        _logs.add(entry)
-        if (_logs.size > MAX) _logs.removeAt(0)
+        synchronized(_buffer) {
+            _buffer.addLast(entry)
+            if (_buffer.size > MAX) _buffer.removeFirst()
+        }
+        val now = System.currentTimeMillis()
+        if (now - lastFlush > FLUSH_INTERVAL_MS) {
+            lastFlush = now
+            synchronized(_buffer) {
+                _logs.clear()
+                _logs.addAll(_buffer)
+            }
+        }
     }
 
-    fun clear() { _logs.clear() }
+    fun clear() {
+        synchronized(_buffer) { _buffer.clear() }
+        _logs.clear()
+    }
 }
 
 data class AppColors(
@@ -135,10 +153,14 @@ fun hasBlePermissions(context: Context): Boolean {
     }
 }
 
+private var pushLogCounter = 0
+
 fun pushToUi(webView: MutableState<WebView?>, type: String, payloadJson: String) {
     val wv = webView.value ?: return
-    Log.d("BMS_UI", "pushToUi: type=$type payload=${payloadJson.take(100)}")
-    LogCollector.log("UI", "push $type ${payloadJson.take(60)}")
+    // Only log every 10th raw-data push to avoid flooding
+    if (type != "bms:raw-data" || pushLogCounter++ % 10 == 0) {
+        LogCollector.log("UI", "push $type ${payloadJson.take(60)}")
+    }
     try {
         val escapedType = type.replace("'", "\\'")
         val js = "try{if(window.__APP_BRIDGE__&&window.__APP_BRIDGE__._handler){window.__APP_BRIDGE__._handler({type:'" + escapedType + "',payload:" + payloadJson + "})}}catch(e){console.log('BRIDGE:push_error:'+e.message)}"
@@ -578,7 +600,6 @@ fun BmsApp(
         bleManager.setOnDataReceived { data ->
             if (!uiReady.value) return@setOnDataReceived
             val hexStr = data.joinToString("") { "%02x".format(it) }
-            LogCollector.log("BLE", "Data→UI: ${data.size}B ${hexStr.take(40)}")
             pushToUi(webView, "bms:raw-data", """{"data":"$hexStr"}""")
         }
     }
@@ -879,6 +900,14 @@ fun BmsApp(
     // 浮动调试面板
     var showDebug by remember { mutableStateOf(false) }
     if (showDebug) {
+        val logListState = rememberLazyListState()
+        val logsList = LogCollector.logs
+        // Auto-scroll to bottom when new logs arrive
+        LaunchedEffect(logsList.size) {
+            if (logsList.isNotEmpty()) {
+                logListState.animateScrollToItem(logsList.lastIndex)
+            }
+        }
         Card(
             shape = RoundedCornerShape(8.dp),
             colors = CardDefaults.cardColors(containerColor = colors.surface),
@@ -886,7 +915,7 @@ fun BmsApp(
                 .align(Alignment.BottomEnd)
                 .padding(8.dp)
                 .fillMaxWidth(0.92f)
-                .heightIn(max = 280.dp),
+                .heightIn(max = 350.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
         ) {
             Column {
@@ -896,22 +925,23 @@ fun BmsApp(
                 ) {
                     Icon(Icons.Default.Terminal, contentDescription = null, tint = colors.fg2, modifier = Modifier.size(14.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("调试日志", fontSize = 12.sp, color = colors.fg2, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
+                    Text("调试日志 (${logsList.size})", fontSize = 12.sp, color = colors.fg2, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
                     TextButton(onClick = { LogCollector.clear() }) { Text("清除", fontSize = 11.sp, color = colors.danger) }
                     IconButton(onClick = { showDebug = false }, modifier = Modifier.size(24.dp)) {
                         Text("✕", fontSize = 14.sp, color = colors.fg2)
                     }
                 }
-                if (LogCollector.logs.isEmpty()) {
+                if (logsList.isEmpty()) {
                     Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
                         Text("暂无日志", fontSize = 12.sp, color = colors.fg3)
                     }
                 } else {
                     LazyColumn(
+                        state = logListState,
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp).padding(bottom = 8.dp),
                         verticalArrangement = Arrangement.spacedBy(2.dp),
                     ) {
-                        items(LogCollector.logs.toList()) { log ->
+                        items(logsList.toList()) { log ->
                             val tagColor = when {
                                 log.contains(" BLE ") -> Color(0xFF60A5FA)
                                 log.contains(" JS ") -> Color(0xFFA78BFA)
@@ -1113,6 +1143,13 @@ fun BluetoothPage(
 fun DebugLogPanel(colors: AppColors) {
     var expanded by remember { mutableStateOf(false) }
     val logs = LogCollector.logs
+    val logListState = rememberLazyListState()
+    // Auto-scroll to bottom when new logs arrive
+    LaunchedEffect(logs.size) {
+        if (logs.isNotEmpty()) {
+            logListState.animateScrollToItem(logs.lastIndex)
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -1134,7 +1171,7 @@ fun DebugLogPanel(colors: AppColors) {
             )
             Spacer(Modifier.width(6.dp))
             Text(
-                if (expanded) "调试日志 ▼" else "调试日志 ▶",
+                if (expanded) "调试日志 (${logs.size}) ▼" else "调试日志 ▶",
                 fontSize = 12.sp,
                 color = colors.fg2,
                 fontWeight = FontWeight.Medium,
@@ -1151,7 +1188,7 @@ fun DebugLogPanel(colors: AppColors) {
             Card(
                 shape = RoundedCornerShape(8.dp),
                 colors = CardDefaults.cardColors(containerColor = colors.surface),
-                modifier = Modifier.fillMaxWidth().heightIn(max = 200.dp),
+                modifier = Modifier.fillMaxWidth().heightIn(max = 300.dp),
             ) {
                 if (logs.isEmpty()) {
                     Box(
@@ -1162,6 +1199,7 @@ fun DebugLogPanel(colors: AppColors) {
                     }
                 } else {
                     LazyColumn(
+                        state = logListState,
                         modifier = Modifier.fillMaxWidth().padding(8.dp),
                         verticalArrangement = Arrangement.spacedBy(2.dp),
                     ) {
