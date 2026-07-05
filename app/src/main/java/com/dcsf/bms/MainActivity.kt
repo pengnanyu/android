@@ -516,12 +516,15 @@ class BleManager {
         }
     }
 
+    private var dataReceivedCallback: ((ByteArray) -> Unit)? = null
+
     fun connect(context: Context, device: BleDevice, onResult: (Boolean) -> Unit) {
         stopScan()
         val adapter = bluetoothAdapter ?: return onResult(false)
         val btDevice = adapter.getRemoteDevice(device.address) ?: return onResult(false)
 
         bleConnection = BleConnection(btDevice, SERVICE_UUID, NOTIFY_UUID, WRITE_UUID)
+        bleConnection?.onDataReceived = dataReceivedCallback
         bleConnection?.connect(context) { success ->
             if (success) {
                 connectedDevice.value = device
@@ -543,6 +546,7 @@ class BleManager {
     }
 
     fun setOnDataReceived(callback: (ByteArray) -> Unit) {
+        dataReceivedCallback = callback
         bleConnection?.onDataReceived = callback
     }
 }
