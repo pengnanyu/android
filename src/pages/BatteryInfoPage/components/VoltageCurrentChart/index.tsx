@@ -28,7 +28,7 @@ function buildInitialOption(dataPoints: VoltageCurrentDataPoint[]) {
     grid: { left: 30, right: 30, top: 18, bottom: 24 },
     tooltip: {
       trigger: 'axis',
-      triggerOn: 'mousemove',
+      triggerOn: 'mousemove|click',
       axisPointer: { type: 'cross', label: { backgroundColor: getThemeColor('--color-background') } },
       formatter(params: unknown) {
         const ps = Array.isArray(params) ? params : [params];
@@ -145,8 +145,13 @@ export function VoltageCurrentChart({ history, cellVoltages, voltageMax, voltage
     });
   }, []);
 
+  const voltageDiff = (voltageMax !== undefined && voltageMin !== undefined) ? voltageMax - voltageMin : undefined;
+
   const titleExtra = (
     <div className={styles.titleLegend}>
+      {voltageMax !== undefined && <span className={styles.legendItem}><span className={styles.arrowUp}>↑</span>{(voltageMax / 1000).toFixed(3)}V</span>}
+      {voltageMin !== undefined && <span className={styles.legendItem}><span className={styles.arrowDown}>↓</span>{(voltageMin / 1000).toFixed(3)}V</span>}
+      {voltageDiff !== undefined && <span className={styles.legendItem}><span className={styles.arrowDiff}>Δ</span>{(voltageDiff / 1000).toFixed(3)}V</span>}
       <span className={styles.legendItem}>
         <span className={styles.legendDot} style={{ background: '#6366f1' }} />
         Voltage
@@ -155,8 +160,6 @@ export function VoltageCurrentChart({ history, cellVoltages, voltageMax, voltage
         <span className={styles.legendDot} style={{ background: '#f59e0b' }} />
         Current
       </span>
-      {voltageMax !== undefined && <span className={styles.legendItem}><span className={styles.arrowUp}>↑</span>{(voltageMax / 1000).toFixed(2)}V</span>}
-      {voltageMin !== undefined && <span className={styles.legendItem}><span className={styles.arrowDown}>↓</span>{(voltageMin / 1000).toFixed(2)}V</span>}
     </div>
   );
 

@@ -9,6 +9,7 @@
   backdrop-filter: blur(var(--card-blur));
   -webkit-backdrop-filter: blur(var(--card-blur));
   overflow: hidden;
+  touch-action: none;
 }
 
 .empty {
@@ -49,6 +50,11 @@
 
 .arrowDown {
   color: var(--color-info);
+  font-weight: 600;
+}
+
+.arrowDiff {
+  color: var(--color-warning);
   font-weight: 600;
 }
 

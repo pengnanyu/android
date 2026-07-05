@@ -27,7 +27,6 @@ class BleConnection(
     private var notifyChar: BluetoothGattCharacteristic? = null
     private var writeChar: BluetoothGattCharacteristic? = null
     private val handler = Handler(Looper.getMainLooper())
-    private var commandSent = false
 
     private val idleBuffer = mutableListOf<Byte>()
     private var idleTimer: Runnable? = null
@@ -92,7 +91,6 @@ class BleConnection(
             }
 
             fun handleCharacteristicChange(value: ByteArray) {
-                if (!commandSent) return
                 Log.d("BMS_BLE", "Received ${value.size} bytes: ${value.joinToString(",") { "%02x".format(it) }}")
                 LogCollector.log("BLE", "RX ${value.size}B: ${value.joinToString("") { "%02x".format(it) }.take(40)}")
                 synchronized(idleBuffer) {
@@ -139,10 +137,7 @@ class BleConnection(
         val g = gatt ?: return false
         Log.d("BMS_BLE", "Writing ${data.size} bytes: ${data.joinToString(",") { "%02x".format(it) }}")
         LogCollector.log("BLE", "TX ${data.size}B: ${data.joinToString("") { "%02x".format(it) }.take(40)}")
-        if (!commandSent) {
-            commandSent = true
-            synchronized(idleBuffer) { idleBuffer.clear() }
-        }
+        synchronized(idleBuffer) { idleBuffer.clear() }
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
             val result = g.writeCharacteristic(char, data, BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE)
             return result == android.bluetooth.BluetoothGatt.GATT_SUCCESS
@@ -160,7 +155,6 @@ class BleConnection(
         idleTimer?.let { handler.removeCallbacks(it) }
         idleTimer = null
         synchronized(idleBuffer) { idleBuffer.clear() }
-        commandSent = false
         gatt?.close()
         gatt = null
     }

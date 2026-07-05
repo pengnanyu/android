@@ -332,6 +332,7 @@ class BleManager {
 
     private var bluetoothAdapter: BluetoothAdapter? = null
     private var bleConnection: BleConnection? = null
+    private var pendingDataCallback: ((ByteArray) -> Unit)? = null
 
     companion object {
         const val SERVICE_UUID = "0000ff00-0000-1000-8000-00805f9b34fb"
@@ -454,6 +455,7 @@ class BleManager {
         val btDevice = adapter.getRemoteDevice(device.address) ?: return onResult(false)
 
         bleConnection = BleConnection(btDevice, SERVICE_UUID, NOTIFY_UUID, WRITE_UUID)
+        pendingDataCallback?.let { bleConnection?.onDataReceived = it }
         bleConnection?.connect(context) { success ->
             if (success) {
                 connectedDevice.value = device
@@ -475,6 +477,7 @@ class BleManager {
     }
 
     fun setOnDataReceived(callback: (ByteArray) -> Unit) {
+        pendingDataCallback = callback
         bleConnection?.onDataReceived = callback
     }
 }
@@ -505,7 +508,7 @@ fun BmsApp(
 
     LaunchedEffect(Unit) {
         bleManager.setOnDataReceived { data ->
-            val dataJson = data.toList().toString()
+            val dataJson = data.map { (it.toInt() and 0xFF).toString() }.joinToString(",", "[", "]")
             pushToUi(webView, "bms:raw-data", """{"data":$dataJson}""")
         }
     }
@@ -565,9 +568,18 @@ fun BmsApp(
                         LogCollector.log("JS", "msg $type")
                         when (type) {
                             "bms:frame-send" -> {
-                                val frameArr = payload?.optJSONArray("frame")
-                                if (frameArr != null) {
-                                    val frame = ByteArray(frameArr.length()) { frameArr.getInt(it).toByte() }
+                                val frameVal = payload?.opt("frame")
+                                val frame: ByteArray? = when (frameVal) {
+                                    is org.json.JSONArray -> {
+                                        ByteArray(frameVal.length()) { frameVal.getInt(it).toByte() }
+                                    }
+                                    is String -> {
+                                        if (frameVal.length % 2 != 0) null
+                                        else ByteArray(frameVal.length / 2) { frameVal.substring(it * 2, it * 2 + 2).toInt(16).toByte() }
+                                    }
+                                    else -> null
+                                }
+                                if (frame != null) {
                                     bleManager.send(frame)
                                 }
                             }
@@ -575,8 +587,15 @@ fun BmsApp(
                                 val status = if (bleManager.connected.value) "connected" else "disconnected"
                                 pushToUi(webView, "bms:connection-status", """{"status":"$status"}""")
                             }
+                            "bms:ui-ready" -> {
+                                val status = if (bleManager.connected.value) "connected" else "disconnected"
+                                pushToUi(webView, "bms:connection-status", """{"status":"$status"}""")
+                                pushToUi(webView, "bms:theme-change", """{"theme":"$themeStr"}""")
+                            }
                         }
-                    } catch (_: Exception) {}
+                    } catch (_e: Exception) {
+                        LogCollector.log("JS", "postMessage error: ${_e.message}")
+                    }
                 }
 
                 @android.webkit.JavascriptInterface
