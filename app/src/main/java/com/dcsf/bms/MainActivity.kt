@@ -327,14 +327,15 @@ fun parseAdData(bytes: ByteArray): IntArray? {
         if (type == 0xFF) {
             val mfgId = ((bytes[i + 3].toInt() and 0xFF) shl 8) or (bytes[i + 2].toInt() and 0xFF)
             LogCollector.log("BLE", "0xFF mfg=%04x len=%d".format(mfgId, len))
-            if (mfgId == 0xFF0A) {
+            if (mfgId == 0x7030) {
                 val dataLen = len - 3
-                if (dataLen >= 7) {
+                if (dataLen >= 5) {
                     val off = i + 4
-                    val soc = bytes[off + 2].toInt() and 0xFF
-                    val voltage = ((bytes[off + 4].toInt() and 0xFF) shl 8) or (bytes[off + 3].toInt() and 0xFF)
-                    val current = ((bytes[off + 6].toInt() and 0xFF) shl 8) or (bytes[off + 5].toInt() and 0xFF)
-                    val safety = if (dataLen >= 9) ((bytes[off + 8].toInt() and 0xFF) shl 8) or (bytes[off + 7].toInt() and 0xFF) else 0
+                    val soc = bytes[off].toInt() and 0xFF
+                    val voltage = ((bytes[off + 2].toInt() and 0xFF) shl 8) or (bytes[off + 1].toInt() and 0xFF)
+                    val current = if (dataLen >= 7) ((bytes[off + 4].toInt() and 0xFF) shl 8) or (bytes[off + 3].toInt() and 0xFF) else 0
+                    val safety = if (dataLen >= 9) ((bytes[off + 6].toInt() and 0xFF) shl 8) or (bytes[off + 5].toInt() and 0xFF) else 0
+                    LogCollector.log("BLE", "Parsed: soc=%d V=%d I=%d safety=%d".format(soc, voltage, current, safety))
                     return intArrayOf(soc, voltage, current, safety)
                 }
             }
