@@ -17,3 +17,9 @@ build_log.txt
 logs.zip
 logs/
 .codeartsdoer
+node_modules/
+dist/
+tsconfig.tsbuildinfo
+.arts/
+.codeartsdoer/
+*.local
