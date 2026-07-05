@@ -7,6 +7,7 @@ import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.view.WindowManager
@@ -569,8 +570,9 @@ fun BmsApp(
         }
     }
 
+    val ctx = LocalContext.current
     LaunchedEffect(Unit) {
-        bleManager.setContext(LocalContext.current)
+        bleManager.setContext(ctx)
         bleManager.setOnDataReceived { data ->
             val hex = data.joinToString("") { "%02x".format(it) }
             LogCollector.log("BLE", "->UI ${data.size}B: $hex")
