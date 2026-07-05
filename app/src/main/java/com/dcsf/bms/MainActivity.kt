@@ -596,7 +596,7 @@ fun BmsApp(
                     val shim = """
                         window.__APP_BRIDGE__ = {
                             _handler: null,
-                            onMessage: function(cb) { this._handler = cb; },
+                            onMessage: function(cb) { window.__APP_BRIDGE__._handler = cb; },
                             postMessage: function(msg) {
                                 if(window.__NativeBridge__ && window.__NativeBridge__.postMessage) {
                                     window.__NativeBridge__.postMessage(JSON.stringify(msg));
