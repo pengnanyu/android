@@ -299,6 +299,19 @@ object SafetyBits {
 @Suppress("DEPRECATION")
 fun getScanRecordBytes(record: android.bluetooth.le.ScanRecord): ByteArray? = record.getBytes()
 
+fun parseMfgData(data: ByteArray): IntArray? {
+    if (data.size < 9) {
+        Log.d("BMS_BLE", "parseMfgData: data too short (${data.size} bytes, need >=9)")
+        return null
+    }
+    val soc = data[2].toInt() and 0xFF
+    val voltage = ((data[4].toInt() and 0xFF) shl 8) or (data[3].toInt() and 0xFF)
+    val current = ((data[6].toInt() and 0xFF) shl 8) or (data[5].toInt() and 0xFF)
+    val safety = ((data[8].toInt() and 0xFF) shl 8) or (data[7].toInt() and 0xFF)
+    Log.d("BMS_BLE", "parseMfgData OK: soc=$soc V=$voltage I=$current safety=0x${safety.toString(16)}")
+    return intArrayOf(soc, voltage, current, safety)
+}
+
 fun parseAdData(bytes: ByteArray): IntArray? {
     var i = 0
     while (i < bytes.size - 3) {
@@ -363,19 +376,45 @@ class BleManager {
             var soc = 0; var voltage = 0; var current = 0; var safety = 0
             val scanRecord = result.scanRecord
             if (scanRecord != null) {
-                val bytes = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) scanRecord.bytes else getScanRecordBytes(scanRecord)
-                if (bytes != null) {
-                    Log.d("BMS_BLE", "ScanRecord bytes for $name: ${bytes.joinToString(",") { "%02x".format(it) }}")
-                    val parsed = parseAdData(bytes)
-                    if (parsed != null) {
-                        soc = parsed[0]; voltage = parsed[1]; current = parsed[2]; safety = parsed[3]
-                        Log.d("BMS_BLE", "Parsed: soc=$soc voltage=$voltage current=$current safety=$safety")
-                        LogCollector.log("BLE", "Adv: soc=$soc V=$voltage I=$current safety=$safety")
-                    } else {
-                        Log.d("BMS_BLE", "parseAdData returned null")
-                        LogCollector.log("BLE", "Adv parse failed")
+                // 方法1: 使用 getManufacturerSpecificData API (API 21+, 更可靠)
+                val mfgDataMap = scanRecord.manufacturerSpecificData
+                if (mfgDataMap != null && mfgDataMap.size() > 0) {
+                    for (i in 0 until mfgDataMap.size()) {
+                        val mfgId = mfgDataMap.keyAt(i)
+                        val mfgData = mfgDataMap.valueAt(i)
+                        val hexStr = mfgData.joinToString("") { "%02x".format(it) }
+                        Log.d("BMS_BLE", "MfgData id=0x${mfgId.toString(16)} len=${mfgData.size} data=$hexStr")
+                        LogCollector.log("BLE", "Mfg 0x${mfgId.toString(16)}: $hexStr")
+
+                        val parsed = parseMfgData(mfgData)
+                        if (parsed != null) {
+                            soc = parsed[0]; voltage = parsed[1]; current = parsed[2]; safety = parsed[3]
+                            LogCollector.log("BLE", "Adv: soc=$soc V=$voltage I=$current safety=0x${safety.toString(16)}")
+                            break
+                        }
                     }
                 }
+
+                // 方法2: 如果API方法失败，尝试原始字节解析
+                if (soc == 0 && voltage == 0) {
+                    val bytes = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) scanRecord.bytes else getScanRecordBytes(scanRecord)
+                    if (bytes != null) {
+                        Log.d("BMS_BLE", "Raw bytes for $name: ${bytes.joinToString("") { "%02x".format(it) }}")
+                        val parsed = parseAdData(bytes)
+                        if (parsed != null) {
+                            soc = parsed[0]; voltage = parsed[1]; current = parsed[2]; safety = parsed[3]
+                            Log.d("BMS_BLE", "Parsed via raw: soc=$soc V=$voltage I=$current safety=$safety")
+                            LogCollector.log("BLE", "Adv(raw): soc=$soc V=$voltage I=$current")
+                        } else {
+                            Log.d("BMS_BLE", "parseAdData returned null")
+                            LogCollector.log("BLE", "Adv parse failed (raw)")
+                        }
+                    } else {
+                        LogCollector.log("BLE", "No scan record bytes")
+                    }
+                }
+            } else {
+                LogCollector.log("BLE", "No scan record")
             }
 
             val existing = devices.indexOfFirst { it.address == result.device.address }
@@ -391,6 +430,7 @@ class BleManager {
         override fun onScanFailed(errorCode: Int) {
             scanning.value = false
             scanStatus.value = "Scan failed: $errorCode"
+            LogCollector.log("BLE", "Scan failed: $errorCode")
         }
     }
 
@@ -501,14 +541,21 @@ fun BmsApp(
     LaunchedEffect(bleManager.connected.value) {
         val status = if (bleManager.connected.value) "connected" else "disconnected"
         pushToUi(webView, "bms:connection-status", """{"status":"$status"}""")
+        LogCollector.log("BLE", "connection: $status")
         if (bleManager.connected.value) {
             selectedTab = 1
         }
     }
 
+    LaunchedEffect(darkTheme) {
+        pushToUi(webView, "bms:theme-change", """{"theme":"$themeStr"}""")
+        LogCollector.log("UI", "theme sync: $themeStr")
+    }
+
     LaunchedEffect(Unit) {
         bleManager.setOnDataReceived { data ->
             val dataJson = data.map { (it.toInt() and 0xFF).toString() }.joinToString(",", "[", "]")
+            LogCollector.log("BLE", "Data→UI: ${data.size}B ${data.joinToString("") { "%02x".format(it) }.take(30)}")
             pushToUi(webView, "bms:raw-data", """{"data":$dataJson}""")
         }
     }
@@ -521,9 +568,12 @@ fun BmsApp(
             settings.databaseEnabled = true
             settings.mediaPlaybackRequiresUserGesture = false
             settings.mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_NEVER_ALLOW
+            settings.useWideViewPort = true
+            settings.loadWithOverviewMode = true
             webViewClient = object : WebViewClient() {
                 override fun onPageFinished(view: WebView?, url: String?) {
                     Log.d("BMS_UI", "Page finished: $url")
+                    LogCollector.log("UI", "Page loaded: $url")
                     super.onPageFinished(view, url)
                     view?.evaluateJavascript("localStorage.setItem('bms-theme','$themeStr')", null)
 
@@ -581,16 +631,20 @@ fun BmsApp(
                                 }
                                 if (frame != null) {
                                     bleManager.send(frame)
+                                    LogCollector.log("UI", "TX ${frame.size}B: ${frame.joinToString("") { "%02x".format(it) }.take(30)}")
                                 }
                             }
                             "bms:request-status" -> {
                                 val status = if (bleManager.connected.value) "connected" else "disconnected"
                                 pushToUi(webView, "bms:connection-status", """{"status":"$status"}""")
+                                pushToUi(webView, "bms:theme-change", """{"theme":"$themeStr"}""")
+                                LogCollector.log("UI", "request-status: theme=$themeStr status=$status")
                             }
                             "bms:ui-ready" -> {
                                 val status = if (bleManager.connected.value) "connected" else "disconnected"
                                 pushToUi(webView, "bms:connection-status", """{"status":"$status"}""")
                                 pushToUi(webView, "bms:theme-change", """{"theme":"$themeStr"}""")
+                                LogCollector.log("UI", "ui-ready: theme=$themeStr status=$status")
                             }
                         }
                     } catch (_e: Exception) {
@@ -617,6 +671,7 @@ fun BmsApp(
 
 
 
+    Box(modifier = Modifier.fillMaxSize()) {
     if (isWideScreen) {
         Row(
             modifier = Modifier
@@ -793,6 +848,68 @@ fun BmsApp(
                 }
             }
         }
+    }
+    // 浮动调试面板
+    var showDebug by remember { mutableStateOf(false) }
+    if (showDebug) {
+        Card(
+            shape = RoundedCornerShape(8.dp),
+            colors = CardDefaults.cardColors(containerColor = colors.surface),
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(8.dp)
+                .fillMaxWidth(0.92f)
+                .heightIn(max = 280.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+        ) {
+            Column {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(Icons.Default.Terminal, contentDescription = null, tint = colors.fg2, modifier = Modifier.size(14.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("调试日志", fontSize = 12.sp, color = colors.fg2, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
+                    TextButton(onClick = { LogCollector.clear() }) { Text("清除", fontSize = 11.sp, color = colors.danger) }
+                    IconButton(onClick = { showDebug = false }, modifier = Modifier.size(24.dp)) {
+                        Text("✕", fontSize = 14.sp, color = colors.fg2)
+                    }
+                }
+                if (LogCollector.logs.isEmpty()) {
+                    Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
+                        Text("暂无日志", fontSize = 12.sp, color = colors.fg3)
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp).padding(bottom = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                    ) {
+                        items(LogCollector.logs.toList()) { log ->
+                            val tagColor = when {
+                                log.contains(" BLE ") -> Color(0xFF60A5FA)
+                                log.contains(" JS ") -> Color(0xFFA78BFA)
+                                log.contains(" UI ") -> Color(0xFF34D399)
+                                else -> colors.fg3
+                            }
+                            Text(log, fontSize = 10.sp, fontFamily = FontFamily.Monospace, color = tagColor, lineHeight = 14.sp)
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        Surface(
+            modifier = Modifier.align(Alignment.BottomEnd).padding(12.dp).size(40.dp),
+            shape = RoundedCornerShape(8.dp),
+            color = colors.surface,
+            shadowElevation = 4.dp,
+            onClick = { showDebug = true },
+        ) {
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                Icon(Icons.Default.Terminal, contentDescription = "调试", tint = colors.fg2, modifier = Modifier.size(18.dp))
+            }
+        }
+    }
     }
 }
 
