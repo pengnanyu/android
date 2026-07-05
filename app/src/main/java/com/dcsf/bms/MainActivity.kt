@@ -453,14 +453,11 @@ class BleManager {
         devices.clear()
         scanning.value = true
         scanStatus.value = "Scanning..."
-        val filter = ScanFilter.Builder()
-            .setServiceUuid(android.os.ParcelUuid.fromString(SERVICE_UUID))
-            .build()
         val settings = android.bluetooth.le.ScanSettings.Builder()
             .setScanMode(android.bluetooth.le.ScanSettings.SCAN_MODE_LOW_LATENCY)
             .build()
         try {
-            scanner.startScan(listOf(filter), settings, scanCallback)
+            scanner.startScan(null, settings, scanCallback)
         } catch (e: SecurityException) {
             scanStatus.value = "SecurityException: ${e.message}"
             scanning.value = false
