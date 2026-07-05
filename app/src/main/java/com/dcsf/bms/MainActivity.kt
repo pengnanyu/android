@@ -581,7 +581,7 @@ fun BmsApp(
         bleManager.setOnDataReceived { data ->
             val hex = data.joinToString("") { "%02x".format(it) }
             LogCollector.log("BLE", "->UI ${data.size}B: $hex")
-            val dataJson = data.toList().toString()
+            val dataJson = data.map { it.toInt() and 0xFF }.toString()
             pushToUi(webView, "bms:raw-data", """{"data":$dataJson}""")
         }
     }
