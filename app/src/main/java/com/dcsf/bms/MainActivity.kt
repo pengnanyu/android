@@ -590,11 +590,14 @@ fun BmsApp(
             settings.mediaPlaybackRequiresUserGesture = false
             settings.mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_NEVER_ALLOW
             webViewClient = object : WebViewClient() {
+                override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
+                    super.onPageStarted(view, url, favicon)
+                    view?.evaluateJavascript("localStorage.setItem('bms-theme','$themeStr')", null)
+                }
                 override fun onPageFinished(view: WebView?, url: String?) {
                     Log.d("BMS_UI", "Page finished: $url")
                     LogCollector.log("UI", "Page loaded: ${url?.take(40)}")
                     super.onPageFinished(view, url)
-                    view?.evaluateJavascript("localStorage.setItem('bms-theme','$themeStr')", null)
 
                     val shim = """
                         window.__APP_BRIDGE__ = {
@@ -704,20 +707,21 @@ fun BmsApp(
                         .weight(1f)
                         .fillMaxHeight()
                 ) {
-                    if (bleManager.connected.value) {
+                    Box(modifier = Modifier.fillMaxSize()) {
                         AndroidView(
                             factory = createWebView,
                             modifier = Modifier.fillMaxSize(),
                         )
-                    } else {
-                        Box(
-                            modifier = Modifier.fillMaxSize().background(colors.bg),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(Icons.Default.BluetoothDisabled, contentDescription = null, modifier = Modifier.size(48.dp), tint = colors.fg3)
-                                Spacer(Modifier.height(8.dp))
-                                Text("请先连接蓝牙设备", color = colors.fg3, fontSize = 14.sp)
+                        if (!bleManager.connected.value) {
+                            Box(
+                                modifier = Modifier.fillMaxSize().background(colors.bg),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Icon(Icons.Default.BluetoothDisabled, contentDescription = null, modifier = Modifier.size(48.dp), tint = colors.fg3)
+                                    Spacer(Modifier.height(8.dp))
+                                    Text("请先连接蓝牙设备", color = colors.fg3, fontSize = 14.sp)
+                                }
                             }
                         }
                     }
@@ -1353,22 +1357,22 @@ fun UiPage(
     createWebView: (android.content.Context) -> WebView,
     pushToUi: (String, String) -> Unit,
 ) {
-    if (!bleManager.connected.value) {
-        Box(
-            modifier = modifier.fillMaxSize().background(colors.bg),
-            contentAlignment = Alignment.Center,
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(Icons.Default.BluetoothDisabled, contentDescription = null, modifier = Modifier.size(48.dp), tint = colors.fg3)
-                Spacer(Modifier.height(8.dp))
-                Text("请先连接蓝牙设备", color = colors.fg3, fontSize = 14.sp)
+    Box(modifier = modifier) {
+        AndroidView(
+            factory = createWebView,
+            modifier = Modifier.fillMaxSize(),
+        )
+        if (!bleManager.connected.value) {
+            Box(
+                modifier = Modifier.fillMaxSize().background(colors.bg),
+                contentAlignment = Alignment.Center,
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(Icons.Default.BluetoothDisabled, contentDescription = null, modifier = Modifier.size(48.dp), tint = colors.fg3)
+                    Spacer(Modifier.height(8.dp))
+                    Text("请先连接蓝牙设备", color = colors.fg3, fontSize = 14.sp)
+                }
             }
         }
-        return
     }
-
-    AndroidView(
-        factory = createWebView,
-        modifier = modifier.fillMaxSize(),
-    )
 }
