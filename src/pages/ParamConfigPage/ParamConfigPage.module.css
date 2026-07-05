@@ -37,6 +37,96 @@
   overflow-y: auto;
   flex-shrink: 0;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.navToolbar {
+  display: flex;
+  gap: 4px;
+  padding: 8px 8px 6px;
+  border-bottom: 1px solid var(--card-border);
+  flex-shrink: 0;
+}
+
+.navBtn {
+  flex: 1;
+  padding: 6px 4px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  border: 1px solid var(--color-border);
+  background: var(--color-background);
+  color: var(--color-foreground);
+  transition: background-color 0.15s;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.navBtn:hover {
+  background: var(--color-muted);
+}
+
+.navBtnCancel {
+  flex: 1;
+  padding: 6px 4px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  border: 1px solid var(--color-border);
+  background: var(--color-background);
+  color: var(--color-foreground);
+  transition: background-color 0.15s;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.navBtnCancel:hover {
+  background: var(--color-muted);
+}
+
+.navBtnConfirm {
+  flex: 1;
+  padding: 6px 4px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  border: none;
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
+  font-weight: 500;
+  transition: opacity 0.15s;
+  white-space: nowrap;
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.navBtnConfirm:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.navBtnConfirm:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--color-primary-foreground);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .navItem {

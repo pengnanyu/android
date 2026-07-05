@@ -37,7 +37,6 @@ export function ParamConfigPage() {
     return map;
   }, [parsedValues]);
 
-  // 通过名称+地址构建索引，避免导入时对整个参数列表做线性查找。
   const parsedValuesByNameAndAddr = useMemo(() => {
     const map = new Map<string, typeof parsedValues[number]>();
     for (const value of parsedValues) {
@@ -264,6 +263,27 @@ export function ParamConfigPage() {
         <div className={styles.body}>
           {showNav && (
             <nav className={styles.nav}>
+              <div className={styles.navToolbar}>
+                {hasPendingImport ? (
+                  <>
+                    {!isBatchWriting && (
+                      <button className={styles.navBtnCancel} onClick={handleCancelImport}>
+                        {t('param.cancelImport')}
+                      </button>
+                    )}
+                    <button className={styles.navBtnConfirm} onClick={handleConfirmImport} disabled={isBatchWriting}>
+                      {isBatchWriting ? <span className={styles.spinner} /> : null}
+                      {isBatchWriting ? t('param.writing') : t('param.confirmImport')}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button className={styles.navBtn} onClick={handleImport}>{t('param.importConfig')}</button>
+                    <button className={styles.navBtn} onClick={handleExport}>{t('param.exportConfig')}</button>
+                    <button className={styles.navBtn} onClick={() => { }}>{t('param.preset')}</button>
+                  </>
+                )}
+              </div>
               {paramGroups.map((group, idx) => (
                 <button
                   key={group.groupName}
@@ -285,13 +305,6 @@ export function ParamConfigPage() {
                   onValueChange={handleValueChange}
                   onBlur={handleBlur}
                   onBack={isNarrow ? handleBack : undefined}
-                  onImport={handleImport}
-                  onExport={handleExport}
-                  onPreset={(_id: string) => { }}
-                  hasPendingImport={hasPendingImport}
-                  isBatchWriting={isBatchWriting}
-                  onConfirmImport={handleConfirmImport}
-                  onCancelImport={handleCancelImport}
                 />
               ) : (
                 <div className={styles.empty}>{t('param.noParamData')}</div>
