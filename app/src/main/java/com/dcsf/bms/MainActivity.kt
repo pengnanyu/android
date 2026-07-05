@@ -139,8 +139,13 @@ fun pushToUi(webView: MutableState<WebView?>, type: String, payloadJson: String)
     val wv = webView.value ?: return
     Log.d("BMS_UI", "pushToUi: type=$type payload=${payloadJson.take(100)}")
     LogCollector.log("UI", "push $type ${payloadJson.take(60)}")
-    val js = "if(window.__APP_BRIDGE__&&window.__APP_BRIDGE__._handler){window.__APP_BRIDGE__._handler({type:'" + type + "',payload:" + payloadJson + "})}else{console.log('BRIDGE:_handler_not_ready')}"
-    wv.post { wv.evaluateJavascript(js, null) }
+    try {
+        val escapedType = type.replace("'", "\\'")
+        val js = "try{if(window.__APP_BRIDGE__&&window.__APP_BRIDGE__._handler){window.__APP_BRIDGE__._handler({type:'" + escapedType + "',payload:" + payloadJson + "})}}catch(e){console.log('BRIDGE:push_error:'+e.message)}"
+        wv.post { wv.evaluateJavascript(js, null) }
+    } catch (e: Exception) {
+        LogCollector.log("UI", "pushToUi error: ${e.message}")
+    }
 }
 
 class MainActivity : ComponentActivity() {
@@ -550,6 +555,7 @@ fun BmsApp(
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     val webView = remember { mutableStateOf<WebView?>(null) }
+    val uiReady = remember { mutableStateOf(false) }
     val configuration = LocalConfiguration.current
     val isWideScreen = configuration.screenWidthDp >= 600
     val themeStr = if (darkTheme) "dark" else "light"
@@ -570,8 +576,9 @@ fun BmsApp(
 
     LaunchedEffect(Unit) {
         bleManager.setOnDataReceived { data ->
+            if (!uiReady.value) return@setOnDataReceived
             val hexStr = data.joinToString("") { "%02x".format(it) }
-            LogCollector.log("BLE", "Data→UI: ${data.size}B $hexStr")
+            LogCollector.log("BLE", "Data→UI: ${data.size}B ${hexStr.take(40)}")
             pushToUi(webView, "bms:raw-data", """{"data":"$hexStr"}""")
         }
     }
@@ -591,6 +598,7 @@ fun BmsApp(
                     Log.d("BMS_UI", "Page finished: $url")
                     LogCollector.log("UI", "Page loaded: $url")
                     super.onPageFinished(view, url)
+                    uiReady.value = true
                     view?.evaluateJavascript("localStorage.setItem('bms-theme','$themeStr')", null)
 
                     val shim = """
