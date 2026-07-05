@@ -327,7 +327,7 @@ fun parseAdData(bytes: ByteArray): IntArray? {
         if (type == 0xFF) {
             val mfgId = ((bytes[i + 3].toInt() and 0xFF) shl 8) or (bytes[i + 2].toInt() and 0xFF)
             LogCollector.log("BLE", "0xFF mfg=%04x len=%d".format(mfgId, len))
-            if (mfgId == 0x7030) {
+            if (mfgId == 0xFF0A) {
                 val dataLen = len - 3
                 if (dataLen >= 5) {
                     val off = i + 4
@@ -454,7 +454,7 @@ class BleManager {
         scanning.value = true
         scanStatus.value = "Scanning..."
         val filter = ScanFilter.Builder()
-            .setManufacturerData(0x7030, byteArrayOf())
+            .setServiceUuid(android.os.ParcelUuid.fromString(SERVICE_UUID))
             .build()
         val settings = android.bluetooth.le.ScanSettings.Builder()
             .setScanMode(android.bluetooth.le.ScanSettings.SCAN_MODE_LOW_LATENCY)
