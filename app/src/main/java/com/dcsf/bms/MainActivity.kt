@@ -454,7 +454,7 @@ class BleManager {
         scanning.value = true
         scanStatus.value = "Scanning..."
         val filter = ScanFilter.Builder()
-            .setServiceUuid(java.util.UUID.fromString(SERVICE_UUID))
+            .setServiceUuid(android.os.ParcelUuid.fromString(SERVICE_UUID))
             .build()
         val settings = android.bluetooth.le.ScanSettings.Builder()
             .setScanMode(android.bluetooth.le.ScanSettings.SCAN_MODE_LOW_LATENCY)
