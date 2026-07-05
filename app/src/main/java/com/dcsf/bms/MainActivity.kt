@@ -711,6 +711,7 @@ fun BmsApp(
                         AndroidView(
                             factory = createWebView,
                             modifier = Modifier.fillMaxSize(),
+                            key = bleManager.connected.value,
                         )
                         if (!bleManager.connected.value) {
                             Box(
@@ -737,7 +738,15 @@ fun BmsApp(
                             containerColor = colors.navBg,
                             tonalElevation = 2.dp,
                         ) {
+                            val navItemColors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = colors.primary,
+                                selectedTextColor = colors.primary,
+                                unselectedIconColor = colors.fg2,
+                                unselectedTextColor = colors.fg2,
+                                indicatorColor = colors.primary.copy(alpha = 0.12f),
+                            )
                             NavigationBarItem(
+                                colors = navItemColors,
                                 selected = selectedTab == 0,
                                 onClick = { selectedTab = 0 },
                                 icon = {
@@ -757,6 +766,7 @@ fun BmsApp(
                                 },
                             )
                             NavigationBarItem(
+                                colors = navItemColors,
                                 selected = false,
                                 onClick = { },
                                 icon = {
@@ -783,6 +793,7 @@ fun BmsApp(
                                 },
                             )
                             NavigationBarItem(
+                                colors = navItemColors,
                                 selected = selectedTab == 1,
                                 onClick = { if (bleManager.connected.value) selectedTab = 1 },
                                 icon = {
@@ -820,7 +831,7 @@ fun BmsApp(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(40.dp)
-                                    .background(colors.bg.copy(alpha = 0.85f))
+                                    .background(colors.surface)
                                     .clickable { selectedTab = 0 }
                                     .padding(horizontal = 12.dp),
                                 verticalAlignment = Alignment.CenterVertically,
@@ -1357,10 +1368,12 @@ fun UiPage(
     createWebView: (android.content.Context) -> WebView,
     pushToUi: (String, String) -> Unit,
 ) {
+    val connectedKey = bleManager.connected.value
     Box(modifier = modifier) {
         AndroidView(
             factory = createWebView,
             modifier = Modifier.fillMaxSize(),
+            key = connectedKey,
         )
         if (!bleManager.connected.value) {
             Box(
