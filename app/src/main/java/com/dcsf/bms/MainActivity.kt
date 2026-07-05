@@ -356,6 +356,9 @@ class BleManager {
 
     private var bluetoothAdapter: BluetoothAdapter? = null
     private var bleConnection: BleConnection? = null
+    private var appContext: Context? = null
+    private val scanHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var scanCycleRunnable: Runnable? = null
 
     companion object {
         const val SERVICE_UUID = "0000ff00-0000-1000-8000-00805f9b34fb"
@@ -364,6 +367,8 @@ class BleManager {
         const val NAME_PREFIX = "DCSF+"
         const val MAX_DEVICES = 30
     }
+
+    fun setContext(ctx: Context) { appContext = ctx.applicationContext }
 
     fun rememberDevice(address: String) {
         if (!rememberedAddresses.contains(address)) {
@@ -453,20 +458,60 @@ class BleManager {
         devices.clear()
         scanning.value = true
         scanStatus.value = "Scanning..."
+        appContext?.let {
+            val intent = Intent(it, BleScanService::class.java)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                it.startForegroundService(intent)
+            } else {
+                it.startService(intent)
+            }
+        }
+        val filter = ScanFilter.Builder()
+            .setDeviceName(NAME_PREFIX)
+            .build()
         val settings = android.bluetooth.le.ScanSettings.Builder()
             .setScanMode(android.bluetooth.le.ScanSettings.SCAN_MODE_LOW_LATENCY)
             .build()
+        startScanCycle(scanner, listOf(filter), settings)
+    }
+
+    private fun startScanCycle(
+        scanner: android.bluetooth.le.BluetoothLeScanner,
+        filters: List<ScanFilter>,
+        settings: android.bluetooth.le.ScanSettings
+    ) {
         try {
-            scanner.startScan(null, settings, scanCallback)
+            scanner.startScan(filters, settings, scanCallback)
         } catch (e: SecurityException) {
             scanStatus.value = "SecurityException: ${e.message}"
             scanning.value = false
+            return
         }
+        scanCycleRunnable = object : Runnable {
+            override fun run() {
+                if (!scanning.value) return
+                try { scanner.stopScan(scanCallback) } catch (_: Exception) {}
+                scanCycleRunnable = object : Runnable {
+                    override fun run() {
+                        if (!scanning.value) return
+                        try { scanner.startScan(filters, settings, scanCallback) } catch (_: Exception) {}
+                        scanHandler.postDelayed(this, 3000)
+                    }
+                }
+                scanHandler.postDelayed(scanCycleRunnable!!, 500)
+            }
+        }
+        scanHandler.postDelayed(scanCycleRunnable!!, 3000)
     }
 
     fun stopScan() {
         scanning.value = false
-        bluetoothAdapter?.bluetoothLeScanner?.stopScan(scanCallback)
+        scanCycleRunnable?.let { scanHandler.removeCallbacks(it) }
+        try { bluetoothAdapter?.bluetoothLeScanner?.stopScan(scanCallback) } catch (_: Exception) {}
+        appContext?.let {
+            val intent = Intent(it, BleScanService::class.java)
+            it.stopService(intent)
+        }
     }
 
     fun connect(context: Context, device: BleDevice, onResult: (Boolean) -> Unit) {
@@ -525,6 +570,7 @@ fun BmsApp(
     }
 
     LaunchedEffect(Unit) {
+        bleManager.setContext(LocalContext.current)
         bleManager.setOnDataReceived { data ->
             val hex = data.joinToString("") { "%02x".format(it) }
             LogCollector.log("BLE", "->UI ${data.size}B: $hex")
