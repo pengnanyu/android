@@ -239,8 +239,11 @@ export function BmsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const sendFrame = useCallback((frame: number[]) => {
+    console.log('sendFrame called, hasRef=' + !!sendMessageRef.current + ' frame=' + frame.length + 'B');
     if (sendMessageRef.current) {
       sendMessageRef.current({ type: 'bms:frame-send', payload: { frame } });
+    } else {
+      console.log('sendFrame: sendMessageRef.current is null!');
     }
   }, []);
 
@@ -996,6 +999,7 @@ export function BmsProvider({ children }: { children: ReactNode }) {
 
   const handleConnectionStatus = useCallback((payload: unknown) => {
     const p = payload as { status: ConnectionStatus };
+    console.log('handleConnectionStatus: ' + p.status);
     setConnectionStatus(p.status);
   }, []);
 

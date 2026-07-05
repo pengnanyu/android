@@ -1,6 +1,6 @@
 import { useEffect, useCallback, useRef } from 'react';
 import type { BridgeMessage, BridgeMessageType } from '@/types';
-import { isMiniProgram, isApp } from '@/utils/platform';
+import { isMiniProgram, isApp, detectPlatform } from '@/utils/platform';
 
 type MessageHandler = (payload: unknown) => void;
 
@@ -81,14 +81,18 @@ export function useBridgeMessage(options: UseBridgeMessageOptions = {}) {
       }
       return;
     }
+    const _p = detectPlatform();
+    console.log('sendMessage type=' + message.type + ' platform=' + _p);
     if (isApp()) {
       const bridge = (window as unknown as Record<string, unknown>).__APP_BRIDGE__;
       if (bridge && typeof (bridge as Record<string, unknown>).postMessage === 'function') {
         try { ((bridge as Record<string, unknown>).postMessage as (m: BridgeMessage) => void)(message); } catch (_e) { /* ignore */ }
         return;
       }
+      console.log('sendMessage: isApp but bridge.postMessage not found');
     }
     if (window.parent && window.parent !== window) {
+      console.log('sendMessage: fallback to parent.postMessage');
       window.parent.postMessage(message, '*');
     }
   }, []);
