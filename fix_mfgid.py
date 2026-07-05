@@ -1,8 +1,0 @@
-﻿f = open(r'E:\APP\android\app\src\main\java\com\dcsf\bms\MainActivity.kt', 'r', encoding='utf-8')
-content = f.read()
-f.close()
-content = content.replace('mfgId == 0xFF0A', 'mfgId == 0x7030')
-f = open(r'E:\APP\android\app\src\main\java\com\dcsf\bms\MainActivity.kt', 'w', encoding='utf-8')
-f.write(content)
-f.close()
-print('FIXED: mfgId back to 0x7030')
