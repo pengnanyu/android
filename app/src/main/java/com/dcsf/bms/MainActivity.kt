@@ -327,7 +327,7 @@ fun parseAdData(bytes: ByteArray): IntArray? {
         if (type == 0xFF) {
             val mfgId = ((bytes[i + 3].toInt() and 0xFF) shl 8) or (bytes[i + 2].toInt() and 0xFF)
             LogCollector.log("BLE", "0xFF mfg=%04x len=%d".format(mfgId, len))
-            if (mfgId == 0xFF0A) {
+            if (mfgId == 0x7030) {
                 val dataLen = len - 3
                 if (dataLen >= 5) {
                     val off = i + 4
