@@ -237,13 +237,18 @@ class MainActivity : ComponentActivity() {
 
     private fun connectDevice(device: BleDevice) {
         bleManager.stopScan()
-        LogCollector.log("BLE", "Connecting ${device.name}...")
-        bleManager.connect(this, device) { connected ->
-            runOnUiThread {
-                bleManager.connected.value = connected
-                if (!connected) bleManager.connectionError.value = true
-                LogCollector.log("BLE", if (connected) "Connected" else "Connection failed")
+        LogCollector.log("BLE", "Connecting ${device.name} addr=${device.address}...")
+        try {
+            bleManager.connect(this, device) { connected ->
+                runOnUiThread {
+                    bleManager.connected.value = connected
+                    if (!connected) bleManager.connectionError.value = true
+                    LogCollector.log("BLE", if (connected) "Connected OK" else "Connection failed")
+                }
             }
+        } catch (e: Exception) {
+            LogCollector.log("BLE", "connectDevice error: ${e.message}")
+            Log.e("BMS_BLE", "connectDevice crash", e)
         }
     }
 
@@ -300,16 +305,27 @@ object SafetyBits {
 fun getScanRecordBytes(record: android.bluetooth.le.ScanRecord): ByteArray? = record.getBytes()
 
 fun parseMfgData(data: ByteArray): IntArray? {
-    if (data.size < 9) {
-        Log.d("BMS_BLE", "parseMfgData: data too short (${data.size} bytes, need >=9)")
-        return null
+    Log.d("BMS_BLE", "parseMfgData: ${data.size} bytes: ${data.joinToString("") { "%02x".format(it) }}")
+    // 格式1: 9+ bytes (旧格式, 前2字节为前缀)
+    if (data.size >= 9) {
+        val soc = data[2].toInt() and 0xFF
+        val voltage = ((data[4].toInt() and 0xFF) shl 8) or (data[3].toInt() and 0xFF)
+        val current = ((data[6].toInt() and 0xFF) shl 8) or (data[5].toInt() and 0xFF)
+        val safety = ((data[8].toInt() and 0xFF) shl 8) or (data[7].toInt() and 0xFF)
+        Log.d("BMS_BLE", "parseMfgData(fmt1 9B): soc=$soc V=$voltage I=$current safety=0x${safety.toString(16)}")
+        return intArrayOf(soc, voltage, current, safety)
     }
-    val soc = data[2].toInt() and 0xFF
-    val voltage = ((data[4].toInt() and 0xFF) shl 8) or (data[3].toInt() and 0xFF)
-    val current = ((data[6].toInt() and 0xFF) shl 8) or (data[5].toInt() and 0xFF)
-    val safety = ((data[8].toInt() and 0xFF) shl 8) or (data[7].toInt() and 0xFF)
-    Log.d("BMS_BLE", "parseMfgData OK: soc=$soc V=$voltage I=$current safety=0x${safety.toString(16)}")
-    return intArrayOf(soc, voltage, current, safety)
+    // 格式2: 7 bytes (新格式, 无前缀)
+    if (data.size >= 7) {
+        val soc = data[0].toInt() and 0xFF
+        val voltage = ((data[2].toInt() and 0xFF) shl 8) or (data[1].toInt() and 0xFF)
+        val current = ((data[4].toInt() and 0xFF) shl 8) or (data[3].toInt() and 0xFF)
+        val safety = ((data[6].toInt() and 0xFF) shl 8) or (data[5].toInt() and 0xFF)
+        Log.d("BMS_BLE", "parseMfgData(fmt2 7B): soc=$soc V=$voltage I=$current safety=0x${safety.toString(16)}")
+        return intArrayOf(soc, voltage, current, safety)
+    }
+    Log.d("BMS_BLE", "parseMfgData: data too short (${data.size} bytes)")
+    return null
 }
 
 fun parseAdData(bytes: ByteArray): IntArray? {
@@ -554,9 +570,9 @@ fun BmsApp(
 
     LaunchedEffect(Unit) {
         bleManager.setOnDataReceived { data ->
-            val dataJson = data.map { (it.toInt() and 0xFF).toString() }.joinToString(",", "[", "]")
-            LogCollector.log("BLE", "Data→UI: ${data.size}B ${data.joinToString("") { "%02x".format(it) }.take(30)}")
-            pushToUi(webView, "bms:raw-data", """{"data":$dataJson}""")
+            val hexStr = data.joinToString("") { "%02x".format(it) }
+            LogCollector.log("BLE", "Data→UI: ${data.size}B $hexStr")
+            pushToUi(webView, "bms:raw-data", """{"data":"$hexStr"}""")
         }
     }
 
@@ -619,6 +635,7 @@ fun BmsApp(
                         when (type) {
                             "bms:frame-send" -> {
                                 val frameVal = payload?.opt("frame")
+                                LogCollector.log("JS", "frame-send frameVal type=${frameVal?.javaClass?.simpleName} val=${frameVal.toString().take(40)}")
                                 val frame: ByteArray? = when (frameVal) {
                                     is org.json.JSONArray -> {
                                         ByteArray(frameVal.length()) { frameVal.getInt(it).toByte() }
@@ -631,7 +648,9 @@ fun BmsApp(
                                 }
                                 if (frame != null) {
                                     bleManager.send(frame)
-                                    LogCollector.log("UI", "TX ${frame.size}B: ${frame.joinToString("") { "%02x".format(it) }.take(30)}")
+                                    LogCollector.log("UI", "TX ${frame.size}B: ${frame.joinToString("") { "%02x".format(it) }}")
+                                } else {
+                                    LogCollector.log("JS", "frame-send: frame is null or invalid")
                                 }
                             }
                             "bms:request-status" -> {
@@ -898,12 +917,15 @@ fun BmsApp(
             }
         }
     } else {
-        Surface(
-            modifier = Modifier.align(Alignment.BottomEnd).padding(12.dp).size(40.dp),
+        Card(
             shape = RoundedCornerShape(8.dp),
-            color = colors.surface,
-            shadowElevation = 4.dp,
-            onClick = { showDebug = true },
+            colors = CardDefaults.cardColors(containerColor = colors.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(12.dp)
+                .size(40.dp)
+                .clickable { showDebug = true },
         ) {
             Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
                 Icon(Icons.Default.Terminal, contentDescription = "调试", tint = colors.fg2, modifier = Modifier.size(18.dp))
