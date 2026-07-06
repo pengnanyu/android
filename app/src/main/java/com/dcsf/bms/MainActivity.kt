@@ -14,10 +14,17 @@ import android.view.WindowInsetsController
 import android.os.Bundle
 import android.util.Log
 import android.webkit.WebView
+import android.net.Uri
+import android.webkit.ValueCallback
+import android.webkit.WebChromeClient
+import android.os.Environment
+import java.io.File
+import java.io.FileOutputStream
 
 import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Canvas
@@ -110,35 +117,37 @@ data class AppColors(
     val swipeBg: Color,
 ) {
     companion object {
+        // Colors synced with ui/src/styles/themes/light.css
         val Light = AppColors(
-            bg = Color(0xFFF5F7FA),
-            surface = Color.White,
+            bg = Color(0xFFF3F5F9),
+            surface = Color(0xFFFFFFFF),
             surfaceConn = Color(0xFFECFDF5),
             surfaceConnBorder = Color(0xFFA7F3D0),
-            fg = Color(0xFF1A1A2E),
-            fg2 = Color(0xFF6B7280),
+            fg = Color(0xFF11161F),
+            fg2 = Color(0xFF5D646F),
             fg3 = Color(0xFF9CA3AF),
-            border = Color(0xFFE5E7EB),
-            primary = Color(0xFF3B82F6),
+            border = Color(0xFFDCDEE1),
+            primary = Color(0xFF0072D5),
             primaryFg = Color.White,
-            track = Color(0xFFE5E7EB),
+            track = Color(0xFFDCDEE1),
             navBg = Color.White,
             danger = Color(0xFFEF4444),
             swipeBg = Color(0xFFEF4444),
         )
+        // Colors synced with ui/src/styles/themes/dark.css
         val Dark = AppColors(
-            bg = Color(0xFF1A1B2E),
-            surface = Color(0xFF252640),
+            bg = Color(0xFF060709),
+            surface = Color(0xFF13161B),
             surfaceConn = Color(0xFF0D2818),
             surfaceConnBorder = Color(0xFF166534),
-            fg = Color(0xFFE5E5E5),
-            fg2 = Color(0xFF9CA3AF),
+            fg = Color(0xFFE4E8EF),
+            fg2 = Color(0xFF88909C),
             fg3 = Color(0xFF6B7280),
-            border = Color(0xFF333450),
-            primary = Color(0xFF60A5FA),
+            border = Color(0xFF26292E),
+            primary = Color(0xFF4BA3F7),
             primaryFg = Color.White,
-            track = Color(0xFF333450),
-            navBg = Color(0xFF1E1F36),
+            track = Color(0xFF26292E),
+            navBg = Color(0xFF13161B),
             danger = Color(0xFFF87171),
             swipeBg = Color(0xFFDC2626),
         )
@@ -575,12 +584,39 @@ fun BmsApp(
     onConnectDevice: (BleDevice) -> Unit,
     onDisconnect: () -> Unit,
 ) {
-    var selectedTab by remember { mutableIntStateOf(0) }
+    var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     val webView = remember { mutableStateOf<WebView?>(null) }
     val uiReady = remember { mutableStateOf(false) }
     val configuration = LocalConfiguration.current
     val isWideScreen = configuration.screenWidthDp >= 600
     val themeStr = if (darkTheme) "dark" else "light"
+
+    // File chooser state for import functionality
+    val fileChooserCallback = remember { mutableStateOf<ValueCallback<Array<Uri>>?>(null) }
+    val context = LocalContext.current
+    val fileChooserLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val callback = fileChooserCallback.value
+        if (callback != null) {
+            if (result.resultCode == android.app.Activity.RESULT_OK && result.data != null) {
+                val uri = result.data!!.data
+                if (uri != null) {
+                    // Grant read permission for the URI
+                    try {
+                        context.contentResolver.takePersistableUriPermission(uri, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    } catch (_e: SecurityException) { /* ignore */ }
+                    callback.onReceiveValue(arrayOf(uri))
+                    LogCollector.log("UI", "File selected: $uri")
+                } else {
+                    callback.onReceiveValue(null)
+                }
+            } else {
+                callback.onReceiveValue(null)
+            }
+            fileChooserCallback.value = null
+        }
+    }
 
     LaunchedEffect(bleManager.connected.value) {
         val status = if (bleManager.connected.value) "connected" else "disconnected"
@@ -614,6 +650,9 @@ fun BmsApp(
             settings.mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_NEVER_ALLOW
             settings.useWideViewPort = true
             settings.loadWithOverviewMode = true
+            // Set background color to match UI theme, preventing white flash
+            val bgHex = if (darkTheme) "#060709" else "#F3F5F9"
+            setBackgroundColor(android.graphics.Color.parseColor(bgHex))
             webViewClient = object : WebViewClient() {
                 override fun onPageFinished(view: WebView?, url: String?) {
                     Log.d("BMS_UI", "Page finished: $url")
@@ -645,11 +684,32 @@ fun BmsApp(
                     """
                     view?.evaluateJavascript(shim, null)
                 }
+                override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
+                    super.onPageStarted(view, url, favicon)
+                    // Set background immediately to prevent white flash
+                    val bg = if (darkTheme) "#060709" else "#F3F5F9"
+                    view?.setBackgroundColor(android.graphics.Color.parseColor(bg))
+                }
             }
-            webChromeClient = object : android.webkit.WebChromeClient() {
+            webChromeClient = object : WebChromeClient() {
                 override fun onConsoleMessage(consoleMessage: android.webkit.ConsoleMessage): Boolean {
                     Log.d("BMS_JS", "${consoleMessage.message()} -- ${consoleMessage.sourceId()}:${consoleMessage.lineNumber()}")
                     LogCollector.log("JS", consoleMessage.message().take(80))
+                    return true
+                }
+                override fun onShowFileChooser(webView: WebView?, filePathCallback: ValueCallback<Array<Uri>>?, fileChooserParams: FileChooserParams?): Boolean {
+                    fileChooserCallback.value?.onReceiveValue(null)
+                    fileChooserCallback.value = filePathCallback
+                    val intent = android.content.Intent(android.content.Intent.ACTION_GET_CONTENT)
+                    intent.addCategory(android.content.Intent.CATEGORY_OPENABLE)
+                    intent.type = "*/*"
+                    intent.putExtra(android.content.Intent.EXTRA_MIME_TYPES, arrayOf("application/json", "text/csv", "*/*"))
+                    try {
+                        fileChooserLauncher.launch(intent)
+                    } catch (e: Exception) {
+                        LogCollector.log("UI", "File chooser error: ${e.message}")
+                        filePathCallback?.onReceiveValue(null)
+                    }
                     return true
                 }
             }
@@ -694,6 +754,21 @@ fun BmsApp(
                                 pushToUi(webView, "bms:theme-change", """{"theme":"$themeStr"}""")
                                 LogCollector.log("UI", "ui-ready: theme=$themeStr status=$status")
                             }
+                            "bms:download-file" -> {
+                                val filename = payload?.optString("filename", "download.bin") ?: "download.bin"
+                                val content = payload?.optString("content", "") ?: ""
+                                val mimeType = payload?.optString("mimeType", "application/octet-stream") ?: "application/octet-stream"
+                                try {
+                                    val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                                    val file = File(downloadsDir, filename)
+                                    FileOutputStream(file).use { it.write(content.toByteArray(Charsets.UTF_8)) }
+                                    LogCollector.log("UI", "File saved: ${file.absolutePath}")
+                                    pushToUi(webView, "bms:file-saved", """{"path":"${file.absolutePath}","filename":"$filename"}""")
+                                } catch (e: Exception) {
+                                    LogCollector.log("UI", "File save error: ${e.message}")
+                                    pushToUi(webView, "bms:file-save-error", """{"error":"${e.message?.replace("\"", "\\\"")}"}""")
+                                }
+                            }
                         }
                     } catch (_e: Exception) {
                         LogCollector.log("JS", "postMessage error: ${_e.message}")
@@ -710,6 +785,20 @@ fun BmsApp(
                 @android.webkit.JavascriptInterface
                 fun getPlatform(): String {
                     return """{"platform":"app","version":"1.0.0","bluetoothSupported":true,"serialSupported":false}"""
+                }
+
+                @android.webkit.JavascriptInterface
+                fun saveFile(filename: String, content: String): String {
+                    try {
+                        val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                        val file = File(downloadsDir, filename)
+                        FileOutputStream(file).use { it.write(content.toByteArray(Charsets.UTF_8)) }
+                        LogCollector.log("UI", "File saved: ${file.absolutePath}")
+                        return file.absolutePath
+                    } catch (e: Exception) {
+                        LogCollector.log("UI", "File save error: ${e.message}")
+                        return ""
+                    }
                 }
             }, "__NativeBridge__")
             loadUrl("https://ui.bms.pub")
@@ -848,50 +937,56 @@ fun BmsApp(
                 }
             }
         ) { padding ->
-            when (selectedTab) {
-                0 -> BluetoothPage(
-                    bleManager = bleManager,
-                    colors = colors,
-                    onRequestPermissions = onRequestPermissions,
-                    onConnectDevice = onConnectDevice,
-                    onDisconnect = onDisconnect,
-                    onConnectedClick = { selectedTab = 1 },
-                    modifier = Modifier.padding(padding),
-                )
-                1 -> Column(modifier = Modifier.fillMaxSize().padding(if (showBottomBar) padding else PaddingValues())) {
-                    if (!showBottomBar) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(40.dp)
-                                .background(colors.bg.copy(alpha = 0.85f))
-                                .clickable { selectedTab = 0 }
-                                .padding(horizontal = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Icon(
-                                Icons.Default.BluetoothConnected,
-                                contentDescription = null,
-                                tint = colors.primary,
-                                modifier = Modifier.size(16.dp),
-                            )
-                            Spacer(Modifier.width(6.dp))
-                            Text(
-                                bleManager.connectedDevice.value?.name ?: "BMS",
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = colors.fg,
-                            )
+            Box(modifier = Modifier.fillMaxSize()) {
+                // Always render WebView page when connected (prevents recreation on tab switch)
+                if (bleManager.connected.value) {
+                    Column(modifier = Modifier.fillMaxSize().padding(if (showBottomBar) padding else PaddingValues())) {
+                        if (!showBottomBar) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(40.dp)
+                                    .background(colors.bg.copy(alpha = 0.85f))
+                                    .clickable { selectedTab = 0 }
+                                    .padding(horizontal = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Icon(
+                                    Icons.Default.BluetoothConnected,
+                                    contentDescription = null,
+                                    tint = colors.primary,
+                                    modifier = Modifier.size(16.dp),
+                                )
+                                Spacer(Modifier.width(6.dp))
+                                Text(
+                                    bleManager.connectedDevice.value?.name ?: "BMS",
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = colors.fg,
+                                )
+                            }
                         }
+                        UiPage(
+                            bleManager = bleManager,
+                            colors = colors,
+                            webView = webView,
+                            darkTheme = darkTheme,
+                            modifier = Modifier.fillMaxSize().weight(1f),
+                            createWebView = createWebView,
+                            pushToUi = { type, payload -> pushToUi(webView, type, payload) },
+                        )
                     }
-                    UiPage(
+                }
+                // Overlay BluetoothPage on top when selectedTab == 0
+                if (selectedTab == 0 || !bleManager.connected.value) {
+                    BluetoothPage(
                         bleManager = bleManager,
                         colors = colors,
-                        webView = webView,
-                        darkTheme = darkTheme,
-                        modifier = Modifier.fillMaxSize().weight(1f),
-                        createWebView = createWebView,
-                        pushToUi = { type, payload -> pushToUi(webView, type, payload) },
+                        onRequestPermissions = onRequestPermissions,
+                        onConnectDevice = onConnectDevice,
+                        onDisconnect = onDisconnect,
+                        onConnectedClick = { selectedTab = 1 },
+                        modifier = Modifier.padding(padding).fillMaxSize(),
                     )
                 }
             }

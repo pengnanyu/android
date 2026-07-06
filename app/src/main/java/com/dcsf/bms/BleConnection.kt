@@ -30,7 +30,7 @@ class BleConnection(
 
     private val idleBuffer = mutableListOf<Byte>()
     private var idleTimer: Runnable? = null
-    private var idleMs = 20L
+    private var idleMs = 50L
     private val MAX_BUFFER_BEFORE_FLUSH = 512
 
     fun connect(context: Context, onResult: (Boolean) -> Unit) {
@@ -153,7 +153,18 @@ class BleConnection(
         if (txLogCounter++ % 10 == 0) {
             LogCollector.log("BLE", "TX ${data.size}B: ${data.joinToString("") { "%02x".format(it) }.take(40)}")
         }
-        synchronized(idleBuffer) { idleBuffer.clear() }
+        // Flush any pending data before clearing, to avoid losing partial frames
+        synchronized(idleBuffer) {
+            if (idleBuffer.isNotEmpty()) {
+                val chunk = idleBuffer.toByteArray()
+                idleBuffer.clear()
+                handler.post { onDataReceived?.invoke(chunk) }
+            } else {
+                idleBuffer.clear()
+            }
+        }
+        idleTimer?.let { handler.removeCallbacks(it) }
+        idleTimer = null
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
             val result = g.writeCharacteristic(char, data, BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE)
             return result == android.bluetooth.BluetoothGatt.GATT_SUCCESS
