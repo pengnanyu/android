@@ -188,6 +188,7 @@ fun pushToUi(webView: MutableState<WebView?>, type: String, payloadJson: String)
 
 class MainActivity : ComponentActivity() {
     private val bleManager = BleManager()
+    private var mainWebView: WebView? = null
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -304,6 +305,18 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
         bleManager.stopScan()
         bleManager.disconnect()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val status = if (bleManager.connected.value) "connected" else "disconnected"
+        LogCollector.log("BLE", "onResume: BLE status=$status")
+        mainWebView?.let { wv ->
+            wv.post {
+                val js = "try{if(window.__APP_BRIDGE__&&window.__APP_BRIDGE__._handler){window.__APP_BRIDGE__._handler({type:'bms:connection-status',payload:{\"status\":\"$status\"}})}}catch(e){console.log('BRIDGE:push_error:'+e.message)}"
+                wv.evaluateJavascript(js, null)
+            }
+        }
     }
 }
 
@@ -552,6 +565,9 @@ class BleManager {
         val adapter = bluetoothAdapter ?: return onResult(false)
         val btDevice = adapter.getRemoteDevice(device.address) ?: return onResult(false)
 
+        bleConnection?.disconnect()
+        bleConnection = null
+
         bleConnection = BleConnection(btDevice, SERVICE_UUID, NOTIFY_UUID, WRITE_UUID)
         pendingDataCallback?.let { bleConnection?.onDataReceived = it }
         bleConnection?.onDisconnected = {
@@ -735,7 +751,10 @@ fun BmsApp(
                         LogCollector.log("JS", "msg $type")
                         when (type) {
                             "bms:frame-send" -> {
-                                if (!bleManager.connected.value) return@postMessage
+                                if (!bleManager.connected.value) {
+                                    pushToUi(webView, "bms:connection-status", """{"status":"disconnected"}""")
+                                    return@postMessage
+                                }
                                 val frameVal = payload?.opt("frame")
                                 LogCollector.log("JS", "frame-send frameVal type=${frameVal?.javaClass?.simpleName} val=${frameVal.toString().take(40)}")
                                 val frame: ByteArray? = when (frameVal) {
@@ -817,6 +836,7 @@ fun BmsApp(
             }, "__NativeBridge__")
             loadUrl("https://ui.bms.pub")
             webView.value = this
+            mainWebView = this
         }
     }
 
@@ -1022,79 +1042,6 @@ fun BmsApp(
                         modifier = Modifier.padding(padding).fillMaxSize(),
                     )
                 }
-            }
-        }
-    }
-    // 浮动调试面板
-    var showDebug by remember { mutableStateOf(false) }
-    if (showDebug) {
-        val logListState = rememberLazyListState()
-        val logsList = LogCollector.logs
-        // Auto-scroll to bottom when new logs arrive
-        LaunchedEffect(logsList.size) {
-            if (logsList.isNotEmpty()) {
-                logListState.animateScrollToItem(logsList.lastIndex)
-            }
-        }
-        Card(
-            shape = RoundedCornerShape(8.dp),
-            colors = CardDefaults.cardColors(containerColor = colors.surface),
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(8.dp)
-                .fillMaxWidth(0.92f)
-                .heightIn(max = 350.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-        ) {
-            Column {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(Icons.Default.Terminal, contentDescription = null, tint = colors.fg2, modifier = Modifier.size(14.dp))
-                    Spacer(Modifier.width(6.dp))
-                    Text("调试日志 (${logsList.size})", fontSize = 12.sp, color = colors.fg2, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
-                    TextButton(onClick = { LogCollector.clear() }) { Text("清除", fontSize = 11.sp, color = colors.danger) }
-                    IconButton(onClick = { showDebug = false }, modifier = Modifier.size(24.dp)) {
-                        Text("✕", fontSize = 14.sp, color = colors.fg2)
-                    }
-                }
-                if (logsList.isEmpty()) {
-                    Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
-                        Text("暂无日志", fontSize = 12.sp, color = colors.fg3)
-                    }
-                } else {
-                    LazyColumn(
-                        state = logListState,
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp).padding(bottom = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(2.dp),
-                    ) {
-                        items(logsList.toList()) { log ->
-                            val tagColor = when {
-                                log.contains(" BLE ") -> Color(0xFF60A5FA)
-                                log.contains(" JS ") -> Color(0xFFA78BFA)
-                                log.contains(" UI ") -> Color(0xFF34D399)
-                                else -> colors.fg3
-                            }
-                            Text(log, fontSize = 10.sp, fontFamily = FontFamily.Monospace, color = tagColor, lineHeight = 14.sp)
-                        }
-                    }
-                }
-            }
-        }
-    } else {
-        Card(
-            shape = RoundedCornerShape(8.dp),
-            colors = CardDefaults.cardColors(containerColor = colors.surface),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(12.dp)
-                .size(40.dp)
-                .clickable { showDebug = true },
-        ) {
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                Icon(Icons.Default.Terminal, contentDescription = "调试", tint = colors.fg2, modifier = Modifier.size(18.dp))
             }
         }
     }
@@ -1458,7 +1405,7 @@ fun ConnectedCard(device: BleDevice, colors: AppColors, onDisconnect: () -> Unit
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     Text("%.3fV".format(device.voltageV()), color = colors.fg, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
-                    Text("${if (device.currentA() > 0) "+" else ""}${device.currentA()}A", color = colors.fg, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                    Text("${if (device.currentA() > 0) "+" else ""}%.3fA".format(device.currentA()), color = colors.fg, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                 }
                 SafetyFlagRow(device.safety, colors)
             }
@@ -1492,7 +1439,7 @@ fun DeviceCard(device: BleDevice, colors: AppColors, onClick: () -> Unit) {
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     Text("%.3fV".format(device.voltageV()), color = colors.fg, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
-                    Text("${if (device.currentA() > 0) "+" else ""}${device.currentA()}A", color = colors.fg, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                    Text("${if (device.currentA() > 0) "+" else ""}%.3fA".format(device.currentA()), color = colors.fg, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                 }
                 SafetyFlagRow(device.safety, colors)
             }
@@ -1542,25 +1489,7 @@ fun RssiIndicator(rssi: Int, showDbm: Boolean = false, trackColor: Color = Color
         rssi > -70 -> Color(0xFFEAB308)
         else -> Color(0xFFEF4444)
     }
-    val bars = when {
-        rssi > -50 -> 4
-        rssi > -60 -> 3
-        rssi > -70 -> 2
-        else -> 1
-    }
-    Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-        repeat(4) { i ->
-            Box(
-                modifier = Modifier
-                    .width(3.dp)
-                    .height((6 + i * 3).dp)
-                    .background(if (i < bars) color else trackColor, RoundedCornerShape(1.dp)),
-            )
-        }
-        if (showDbm) {
-            Text("${rssi}dBm", fontSize = 10.sp, fontWeight = FontWeight.Medium, color = fg2Color)
-        }
-    }
+    Text("${rssi}dBm", fontSize = 11.sp, fontWeight = FontWeight.Medium, color = color)
 }
 
 @Composable
