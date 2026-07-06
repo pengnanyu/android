@@ -75,20 +75,40 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.Velocity
 
+enum class LogCategory { BROADCAST, DATA, SYSTEM }
+
+data class LogEntry(val text: String, val category: LogCategory)
+
 object LogCollector {
-    private val _buffer = ArrayDeque<String>()
-    private val _logs = mutableStateListOf<String>()
-    val logs: List<String> get() = _logs
+    private val _buffer = ArrayDeque<LogEntry>()
+    private val _logs = mutableStateListOf<LogEntry>()
+    val logs: List<LogEntry> get() = _logs
     private const val MAX = 200
     private const val FLUSH_INTERVAL_MS = 500L
     private var lastFlush = 0L
     private val dateFormat = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.US)
 
+    private fun categorize(tag: String, msg: String): LogCategory {
+        // Broadcast: BLE advertisement/scan related logs
+        if (tag == "BLE" && (msg.contains("Found") || msg.contains("Mfg") || msg.contains("Adv"))) {
+            return LogCategory.BROADCAST
+        }
+        // Data: raw data pushes, frame sends, TX
+        if (tag == "UI" && (msg.contains("push bms:raw-data") || msg.contains("TX "))) {
+            return LogCategory.DATA
+        }
+        if (tag == "JS" && (msg.contains("frame-send") || msg.contains("msg bms:frame-send"))) {
+            return LogCategory.DATA
+        }
+        return LogCategory.SYSTEM
+    }
+
     fun log(tag: String, msg: String) {
         val ts = dateFormat.format(java.util.Date())
         val entry = "$ts $tag $msg"
+        val category = categorize(tag, msg)
         synchronized(_buffer) {
-            _buffer.addLast(entry)
+            _buffer.addLast(LogEntry(entry, category))
             if (_buffer.size > MAX) _buffer.removeFirst()
         }
         val now = System.currentTimeMillis()
@@ -104,6 +124,10 @@ object LogCollector {
     fun clear() {
         synchronized(_buffer) { _buffer.clear() }
         _logs.clear()
+    }
+
+    fun getAllText(): String {
+        return synchronized(_buffer) { _buffer.joinToString("\n") { it.text } }
     }
 }
 
@@ -292,6 +316,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
         } catch (e: Exception) {
+            bleManager.connectingDevice.value = null
             LogCollector.log("BLE", "connectDevice error: ${e.message}")
             Log.e("BMS_BLE", "connectDevice crash", e)
         }
@@ -414,12 +439,16 @@ class BleManager {
     val connected = mutableStateOf(false)
     val connectedDevice = mutableStateOf<BleDevice?>(null)
     val connectionError = mutableStateOf(false)
+    val connectingDevice = mutableStateOf<BleDevice?>(null)
     val rememberedAddresses = mutableStateListOf<String>()
     val scanStatus = mutableStateOf("")
 
     private var bluetoothAdapter: BluetoothAdapter? = null
     private var bleConnection: BleConnection? = null
     private var pendingDataCallback: ((ByteArray) -> Unit)? = null
+    private val scannedAddresses = mutableSetOf<String>()
+    private val missCount = mutableMapOf<String, Int>()
+    private var lastScanCycleTime = 0L
 
     companion object {
         const val SERVICE_UUID = "0000ff00-0000-1000-8000-00805f9b34fb"
@@ -493,6 +522,7 @@ class BleManager {
 
             val existing = devices.indexOfFirst { it.address == result.device.address }
             val device = BleDevice(name, result.device.address, result.rssi, soc, voltage, current, safety, System.currentTimeMillis())
+            scannedAddresses.add(result.device.address)
 
             if (existing >= 0) {
                 devices[existing] = device
@@ -542,6 +572,8 @@ class BleManager {
         }
 
         devices.clear()
+        missCount.clear()
+        scannedAddresses.clear()
         scanning.value = true
         scanStatus.value = "Scanning..."
         // Don't use ScanFilter.setDeviceName - it does exact match, not prefix match.
@@ -557,12 +589,32 @@ class BleManager {
         }
     }
 
-    fun cleanupStaleDevices(maxAgeMs: Long = 5000L) {
-        val now = System.currentTimeMillis()
-        val toRemove = devices.filter { now - it.lastSeen > maxAgeMs }
+    fun processScanCycle() {
+        val toRemove = mutableListOf<BleDevice>()
+        for (dev in devices) {
+            val isProtected = connectedDevice.value?.address == dev.address || isRemembered(dev.address)
+            if (dev.address !in scannedAddresses) {
+                val count = (missCount[dev.address] ?: 0) + 1
+                missCount[dev.address] = count
+                if (count > 5 && !isProtected) {
+                    toRemove.add(dev)
+                    missCount.remove(dev.address)
+                } else if (isProtected && count > 5) {
+                    // For protected devices, just clear RSSI but keep in list
+                    val idx = devices.indexOfFirst { it.address == dev.address }
+                    if (idx >= 0) {
+                        devices[idx] = dev.copy(rssi = 0)
+                    }
+                    missCount[dev.address] = 0
+                }
+            } else {
+                missCount[dev.address] = 0
+            }
+        }
         if (toRemove.isNotEmpty()) {
             devices.removeAll(toRemove)
         }
+        scannedAddresses.clear()
     }
 
     fun stopScan() {
@@ -572,8 +624,9 @@ class BleManager {
 
     fun connect(context: Context, device: BleDevice, onResult: (Boolean) -> Unit) {
         stopScan()
-        val adapter = bluetoothAdapter ?: return onResult(false)
-        val btDevice = adapter.getRemoteDevice(device.address) ?: return onResult(false)
+        connectingDevice.value = device
+        val adapter = bluetoothAdapter ?: { connectingDevice.value = null; return onResult(false) }()
+        val btDevice = adapter?.getRemoteDevice(device.address) ?: { connectingDevice.value = null; return onResult(false) }()
 
         bleConnection?.disconnect()
         bleConnection = null
@@ -585,6 +638,7 @@ class BleManager {
             connectedDevice.value = null
         }
         bleConnection?.connect(context) { success ->
+            connectingDevice.value = null
             if (success) {
                 connectedDevice.value = device
                 connectionError.value = false
@@ -1062,11 +1116,31 @@ fun BmsApp(
     if (showDebug) {
         val logListState = rememberLazyListState()
         val logsList = LogCollector.logs
-        LaunchedEffect(logsList.size) {
-            if (logsList.isNotEmpty()) {
-                logListState.animateScrollToItem(logsList.lastIndex)
+        var autoScrollFloat by remember { mutableStateOf(true) }
+        var selectedTabFloat by remember { mutableStateOf(0) }
+        val floatContext = LocalContext.current
+
+        val filteredFloatLogs = remember(logsList, selectedTabFloat) {
+            when (selectedTabFloat) {
+                1 -> logsList.filter { it.category == LogCategory.BROADCAST }
+                2 -> logsList.filter { it.category == LogCategory.DATA }
+                else -> logsList
             }
         }
+
+        LaunchedEffect(filteredFloatLogs.size, autoScrollFloat) {
+            if (autoScrollFloat && filteredFloatLogs.isNotEmpty()) {
+                logListState.animateScrollToItem(filteredFloatLogs.lastIndex)
+            }
+        }
+
+        val copyAllFloat: () -> Unit = {
+            val text = LogCollector.getAllText()
+            val clipboard = floatContext.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+            clipboard.setPrimaryClip(android.content.ClipData.newPlainText("Debug Logs", text))
+            LogCollector.log("UI", "Logs copied to clipboard (${text.length} chars)")
+        }
+
         Card(
             shape = RoundedCornerShape(8.dp),
             colors = CardDefaults.cardColors(containerColor = colors.surface),
@@ -1085,12 +1159,56 @@ fun BmsApp(
                     Icon(Icons.Default.Terminal, contentDescription = null, tint = colors.fg2, modifier = Modifier.size(14.dp))
                     Spacer(Modifier.width(6.dp))
                     Text("调试日志 (${logsList.size})", fontSize = 12.sp, color = colors.fg2, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
+                    // Auto-scroll checkbox
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(end = 2.dp),
+                    ) {
+                        Checkbox(
+                            checked = autoScrollFloat,
+                            onCheckedChange = { autoScrollFloat = it },
+                            modifier = Modifier.size(18.dp),
+                            colors = CheckboxDefaults.colors(
+                                checkedColor = colors.primary,
+                                uncheckedColor = colors.fg3,
+                                checkmarkColor = colors.primaryFg,
+                            ),
+                        )
+                        Text("自动", fontSize = 9.sp, color = colors.fg2)
+                    }
+                    TextButton(onClick = copyAllFloat) { Text("复制", fontSize = 11.sp, color = colors.primary) }
                     TextButton(onClick = { LogCollector.clear() }) { Text("清除", fontSize = 11.sp, color = colors.danger) }
                     IconButton(onClick = { showDebug = false }, modifier = Modifier.size(24.dp)) {
                         Text("✕", fontSize = 14.sp, color = colors.fg2)
                     }
                 }
-                if (logsList.isEmpty()) {
+                // Tab bar
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, bottom = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    listOf("全部", "广播", "数据").forEachIndexed { idx, label ->
+                        val count = when (idx) {
+                            1 -> logsList.count { it.category == LogCategory.BROADCAST }
+                            2 -> logsList.count { it.category == LogCategory.DATA }
+                            else -> logsList.size
+                        }
+                        Surface(
+                            shape = RoundedCornerShape(6.dp),
+                            color = if (selectedTabFloat == idx) colors.primary.copy(alpha = 0.12f) else Color.Transparent,
+                            modifier = Modifier.clickable { selectedTabFloat = idx },
+                        ) {
+                            Text(
+                                "$label ($count)",
+                                fontSize = 10.sp,
+                                color = if (selectedTabFloat == idx) colors.primary else colors.fg2,
+                                fontWeight = if (selectedTabFloat == idx) FontWeight.SemiBold else FontWeight.Normal,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                            )
+                        }
+                    }
+                }
+                if (filteredFloatLogs.isEmpty()) {
                     Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
                         Text("暂无日志", fontSize = 12.sp, color = colors.fg3)
                     }
@@ -1100,14 +1218,18 @@ fun BmsApp(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp).padding(bottom = 8.dp),
                         verticalArrangement = Arrangement.spacedBy(2.dp),
                     ) {
-                        items(logsList.toList()) { log ->
-                            val tagColor = when {
-                                log.contains(" BLE ") -> Color(0xFF60A5FA)
-                                log.contains(" JS ") -> Color(0xFFA78BFA)
-                                log.contains(" UI ") -> Color(0xFF34D399)
-                                else -> colors.fg3
+                        items(filteredFloatLogs.toList()) { logEntry ->
+                            val tagColor = when (logEntry.category) {
+                                LogCategory.BROADCAST -> Color(0xFF60A5FA)
+                                LogCategory.DATA -> Color(0xFF34D399)
+                                LogCategory.SYSTEM -> {
+                                    when {
+                                        logEntry.text.contains(" JS ") -> Color(0xFFA78BFA)
+                                        else -> colors.fg3
+                                    }
+                                }
                             }
-                            Text(log, fontSize = 10.sp, fontFamily = FontFamily.Monospace, color = tagColor, lineHeight = 14.sp)
+                            Text(logEntry.text, fontSize = 10.sp, fontFamily = FontFamily.Monospace, color = tagColor, lineHeight = 14.sp)
                         }
                     }
                 }
@@ -1146,9 +1268,11 @@ fun BluetoothPage(
     val context = LocalContext.current
     val listState = rememberLazyListState()
 
-    // Auto-scan whenever BluetoothPage is visible
-    LaunchedEffect(Unit) {
-        if (!bleManager.scanning.value && !bleManager.connected.value) {
+    // Auto-scan whenever BluetoothPage becomes visible (re-triggers on recomposition from tab switch)
+    val isConnected = bleManager.connected.value
+    val isScanning = bleManager.scanning.value
+    LaunchedEffect(isConnected, isScanning) {
+        if (!isScanning && !isConnected) {
             if (hasBlePermissions(context)) {
                 bleManager.startScan(context)
             } else {
@@ -1157,11 +1281,11 @@ fun BluetoothPage(
         }
     }
 
-    // Periodic cleanup of stale devices (>5 seconds not seen)
+    // Dual-list comparison: every 1 second process scan cycle
     LaunchedEffect(Unit) {
         while (true) {
-            kotlinx.coroutines.delay(2000L)
-            bleManager.cleanupStaleDevices(5000L)
+            kotlinx.coroutines.delay(1000L)
+            bleManager.processScanCycle()
         }
     }
 
@@ -1221,6 +1345,7 @@ fun BluetoothPage(
             }
         } else {
             val connAddr = bleManager.connectedDevice.value?.address
+            val connectingAddr = bleManager.connectingDevice.value?.address
             val remembered = bleManager.devices.filter { bleManager.isRemembered(it.address) }
                 .sortedByDescending { it.address == connAddr }
             val newDevs = bleManager.devices.filter { !bleManager.isRemembered(it.address) }
@@ -1244,9 +1369,11 @@ fun BluetoothPage(
                     }
                     items(remembered, key = { it.address }) { device ->
                         val isConn = connAddr != null && device.address == connAddr
+                        val isConnecting = connectingAddr != null && device.address == connectingAddr
                         SwipeDeviceCard(
                             device = device,
                             isConn = isConn,
+                            isConnecting = isConnecting,
                             isRemembered = true,
                             colors = colors,
                             onClick = { onConnectDevice(device) },
@@ -1269,9 +1396,11 @@ fun BluetoothPage(
                     }
                     items(newDevs, key = { it.address }) { device ->
                         val isConn = connAddr != null && device.address == connAddr
+                        val isConnecting = connectingAddr != null && device.address == connectingAddr
                         SwipeDeviceCard(
                             device = device,
                             isConn = isConn,
+                            isConnecting = isConnecting,
                             isRemembered = false,
                             colors = colors,
                             onClick = { onConnectDevice(device) },
@@ -1294,11 +1423,30 @@ fun DebugLogPanel(colors: AppColors) {
     var expanded by remember { mutableStateOf(false) }
     val logs = LogCollector.logs
     val logListState = rememberLazyListState()
-    // Auto-scroll to bottom when new logs arrive
-    LaunchedEffect(logs.size) {
-        if (logs.isNotEmpty()) {
-            logListState.animateScrollToItem(logs.lastIndex)
+    var autoScroll by remember { mutableStateOf(true) }
+    var selectedTab by remember { mutableStateOf(0) } // 0=all, 1=broadcast, 2=data
+    val context = LocalContext.current
+
+    val filteredLogs = remember(logs, selectedTab) {
+        when (selectedTab) {
+            1 -> logs.filter { it.category == LogCategory.BROADCAST }
+            2 -> logs.filter { it.category == LogCategory.DATA }
+            else -> logs
         }
+    }
+
+    // Auto-scroll to bottom when new logs arrive (only if autoScroll is enabled)
+    LaunchedEffect(filteredLogs.size, autoScroll) {
+        if (autoScroll && filteredLogs.isNotEmpty()) {
+            logListState.animateScrollToItem(filteredLogs.lastIndex)
+        }
+    }
+
+    val copyAllAction: () -> Unit = {
+        val text = LogCollector.getAllText()
+        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        clipboard.setPrimaryClip(android.content.ClipData.newPlainText("Debug Logs", text))
+        LogCollector.log("UI", "Logs copied to clipboard (${text.length} chars)")
     }
 
     Column(
@@ -1328,6 +1476,26 @@ fun DebugLogPanel(colors: AppColors) {
             )
             Spacer(Modifier.weight(1f))
             if (expanded && logs.isNotEmpty()) {
+                // Auto-scroll checkbox
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(end = 4.dp),
+                ) {
+                    Checkbox(
+                        checked = autoScroll,
+                        onCheckedChange = { autoScroll = it },
+                        modifier = Modifier.size(20.dp),
+                        colors = CheckboxDefaults.colors(
+                            checkedColor = colors.primary,
+                            uncheckedColor = colors.fg3,
+                            checkmarkColor = colors.primaryFg,
+                        ),
+                    )
+                    Text("自动滚动", fontSize = 10.sp, color = colors.fg2)
+                }
+                TextButton(onClick = copyAllAction) {
+                    Text("全部复制", fontSize = 11.sp, color = colors.primary)
+                }
                 TextButton(onClick = { LogCollector.clear() }) {
                     Text("清除", fontSize = 11.sp, color = colors.danger)
                 }
@@ -1335,12 +1503,39 @@ fun DebugLogPanel(colors: AppColors) {
         }
 
         if (expanded) {
+            // Tab bar
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                listOf("全部", "广播", "数据").forEachIndexed { idx, label ->
+                    val count = when (idx) {
+                        1 -> logs.count { it.category == LogCategory.BROADCAST }
+                        2 -> logs.count { it.category == LogCategory.DATA }
+                        else -> logs.size
+                    }
+                    Surface(
+                        shape = RoundedCornerShape(6.dp),
+                        color = if (selectedTab == idx) colors.primary.copy(alpha = 0.12f) else Color.Transparent,
+                        modifier = Modifier.clickable { selectedTab = idx },
+                    ) {
+                        Text(
+                            "$label ($count)",
+                            fontSize = 10.sp,
+                            color = if (selectedTab == idx) colors.primary else colors.fg2,
+                            fontWeight = if (selectedTab == idx) FontWeight.SemiBold else FontWeight.Normal,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                        )
+                    }
+                }
+            }
+
             Card(
                 shape = RoundedCornerShape(8.dp),
                 colors = CardDefaults.cardColors(containerColor = colors.surface),
                 modifier = Modifier.fillMaxWidth().heightIn(max = 300.dp),
             ) {
-                if (logs.isEmpty()) {
+                if (filteredLogs.isEmpty()) {
                     Box(
                         modifier = Modifier.fillMaxWidth().padding(16.dp),
                         contentAlignment = Alignment.Center,
@@ -1353,15 +1548,19 @@ fun DebugLogPanel(colors: AppColors) {
                         modifier = Modifier.fillMaxWidth().padding(8.dp),
                         verticalArrangement = Arrangement.spacedBy(2.dp),
                     ) {
-                        items(logs.toList()) { log ->
-                            val tagColor = when {
-                                log.contains(" BLE ") -> Color(0xFF60A5FA)
-                                log.contains(" JS ") -> Color(0xFFA78BFA)
-                                log.contains(" UI ") -> Color(0xFF34D399)
-                                else -> colors.fg3
+                        items(filteredLogs.toList()) { logEntry ->
+                            val tagColor = when (logEntry.category) {
+                                LogCategory.BROADCAST -> Color(0xFF60A5FA)
+                                LogCategory.DATA -> Color(0xFF34D399)
+                                LogCategory.SYSTEM -> {
+                                    when {
+                                        logEntry.text.contains(" JS ") -> Color(0xFFA78BFA)
+                                        else -> colors.fg3
+                                    }
+                                }
                             }
                             Text(
-                                log,
+                                logEntry.text,
                                 fontSize = 10.sp,
                                 fontFamily = FontFamily.Monospace,
                                 color = tagColor,
@@ -1380,6 +1579,7 @@ fun DebugLogPanel(colors: AppColors) {
 fun SwipeDeviceCard(
     device: BleDevice,
     isConn: Boolean,
+    isConnecting: Boolean = false,
     isRemembered: Boolean,
     colors: AppColors,
     onClick: () -> Unit,
@@ -1428,7 +1628,7 @@ fun SwipeDeviceCard(
             if (isConn) {
                 ConnectedCard(device = device, colors = colors, onDisconnect = onDisconnect, onClick = onConnectedClick)
             } else {
-                DeviceCard(device = device, colors = colors, onClick = onClick)
+                DeviceCard(device = device, colors = colors, onClick = onClick, isConnecting = isConnecting)
             }
         }
 
@@ -1442,7 +1642,7 @@ fun SwipeDeviceCard(
         if (isConn) {
             ConnectedCard(device = device, colors = colors, onDisconnect = onDisconnect, onClick = onConnectedClick)
         } else {
-            DeviceCard(device = device, colors = colors, onClick = onClick)
+            DeviceCard(device = device, colors = colors, onClick = onClick, isConnecting = isConnecting)
         }
     }
 }
@@ -1470,7 +1670,11 @@ fun ConnectedCard(device: BleDevice, colors: AppColors, onDisconnect: () -> Unit
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(device.name, fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = colors.fg)
                     Spacer(Modifier.weight(1f))
-                    RssiIndicator(device.rssi, showDbm = true, trackColor = colors.track, fg2Color = colors.fg2)
+                    if (device.rssi != 0) {
+                        RssiIndicator(device.rssi, showDbm = true, trackColor = colors.track, fg2Color = colors.fg2)
+                    } else {
+                        Text("--", fontSize = 11.sp, fontWeight = FontWeight.Medium, color = colors.fg3)
+                    }
                 }
                 Spacer(Modifier.height(3.dp))
                 Row(
@@ -1487,34 +1691,58 @@ fun ConnectedCard(device: BleDevice, colors: AppColors, onDisconnect: () -> Unit
 }
 
 @Composable
-fun DeviceCard(device: BleDevice, colors: AppColors, onClick: () -> Unit) {
+fun DeviceCard(device: BleDevice, colors: AppColors, onClick: () -> Unit, isConnecting: Boolean = false) {
     Card(
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = colors.surface),
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
-        Row(
-            modifier = Modifier.padding(12.dp, 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            SocCircle(soc = device.soc, isGlowing = false, trackColor = colors.track)
-            Spacer(Modifier.width(10.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(device.name, fontWeight = FontWeight.Medium, fontSize = 15.sp, color = colors.fg)
-                    Spacer(Modifier.weight(1f))
-                    RssiIndicator(device.rssi, showDbm = true, trackColor = colors.track, fg2Color = colors.fg2)
+        Box {
+            Row(
+                modifier = Modifier.padding(12.dp, 14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (isConnecting) {
+                    Box(modifier = Modifier.size(46.dp), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(32.dp),
+                            strokeWidth = 3.dp,
+                            color = colors.primary,
+                        )
+                    }
+                } else {
+                    SocCircle(soc = device.soc, isGlowing = false, trackColor = colors.track)
                 }
-                Spacer(Modifier.height(3.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    Text("%.3fV".format(device.voltageV()), color = colors.fg, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
-                    Text("${if (device.currentA() > 0) "+" else ""}%.3fA".format(device.currentA()), color = colors.fg, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                Spacer(Modifier.width(10.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(device.name, fontWeight = FontWeight.Medium, fontSize = 15.sp, color = colors.fg)
+                        Spacer(Modifier.weight(1f))
+                        if (device.rssi != 0) {
+                            RssiIndicator(device.rssi, showDbm = true, trackColor = colors.track, fg2Color = colors.fg2)
+                        } else {
+                            Text("--", fontSize = 11.sp, fontWeight = FontWeight.Medium, color = colors.fg3)
+                        }
+                    }
+                    Spacer(Modifier.height(3.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Text("%.3fV".format(device.voltageV()), color = colors.fg, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                        Text("${if (device.currentA() > 0) "+" else ""}%.3fA".format(device.currentA()), color = colors.fg, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                    }
+                    SafetyFlagRow(device.safety, colors)
                 }
-                SafetyFlagRow(device.safety, colors)
+            }
+            if (isConnecting) {
+                // Semi-transparent overlay to show connecting state
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(colors.primary.copy(alpha = 0.06f), RoundedCornerShape(12.dp)),
+                )
             }
         }
     }
