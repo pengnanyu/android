@@ -68,6 +68,12 @@ import androidx.core.content.ContextCompat
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.unit.Velocity
 
 object LogCollector {
     private val _buffer = ArrayDeque<String>()
@@ -569,6 +575,7 @@ class BleManager {
     }
 
     fun send(data: ByteArray): Boolean {
+        if (!connected.value) return false
         return bleConnection?.write(data) ?: false
     }
 
@@ -589,6 +596,7 @@ fun BmsApp(
     onDisconnect: () -> Unit,
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
+    var sidebarVisible by rememberSaveable { mutableStateOf(true) }
     val webView = remember { mutableStateOf<WebView?>(null) }
     val uiReady = remember { mutableStateOf(false) }
     val configuration = LocalConfiguration.current
@@ -727,6 +735,7 @@ fun BmsApp(
                         LogCollector.log("JS", "msg $type")
                         when (type) {
                             "bms:frame-send" -> {
+                                if (!bleManager.connected.value) return@postMessage
                                 val frameVal = payload?.opt("frame")
                                 LogCollector.log("JS", "frame-send frameVal type=${frameVal?.javaClass?.simpleName} val=${frameVal.toString().take(40)}")
                                 val frame: ByteArray? = when (frameVal) {
@@ -781,6 +790,7 @@ fun BmsApp(
 
                 @android.webkit.JavascriptInterface
                 fun sendFrame(json: String) {
+                    if (!bleManager.connected.value) return
                     val nums = json.trim('[', ']').split(',').mapNotNull { it.trim().toIntOrNull() }
                     val frame = ByteArray(nums.size) { nums[it].toByte() }
                     bleManager.send(frame)
@@ -819,38 +829,39 @@ fun BmsApp(
                 .fillMaxSize()
                 .background(colors.bg)
         ) {
-            Box(
-                modifier = Modifier
-                    .width(360.dp)
-                    .fillMaxHeight()
-            ) {
-                BluetoothPage(
-                    bleManager = bleManager,
-                    colors = colors,
-                    onRequestPermissions = onRequestPermissions,
-                    onConnectDevice = onConnectDevice,
-                    onDisconnect = onDisconnect,
-                    onConnectedClick = { selectedTab = 1 },
-                    modifier = Modifier.fillMaxSize(),
+            if (sidebarVisible) {
+                Box(
+                    modifier = Modifier
+                        .width(360.dp)
+                        .fillMaxHeight()
+                ) {
+                    BluetoothPage(
+                        bleManager = bleManager,
+                        colors = colors,
+                        onRequestPermissions = onRequestPermissions,
+                        onConnectDevice = onConnectDevice,
+                        onDisconnect = onDisconnect,
+                        onConnectedClick = { selectedTab = 1 },
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .width(1.dp)
+                        .fillMaxHeight()
+                        .background(colors.border)
                 )
             }
-            Box(
-                modifier = Modifier
-                    .width(1.dp)
-                    .fillMaxHeight()
-                    .background(colors.border)
-            )
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
             ) {
-                if (bleManager.connected.value) {
-                    AndroidView(
-                        factory = createWebView,
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                } else {
+                AndroidView(
+                    factory = createWebView,
+                    modifier = Modifier.fillMaxSize(),
+                )
+                if (!bleManager.connected.value) {
                     Box(
                         modifier = Modifier.fillMaxSize().background(colors.bg),
                         contentAlignment = Alignment.Center,
@@ -862,6 +873,24 @@ fun BmsApp(
                         }
                     }
                 }
+            }
+        }
+        Card(
+            shape = RoundedCornerShape(topEnd = 8.dp, bottomEnd = 8.dp),
+            colors = CardDefaults.cardColors(containerColor = colors.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .size(width = 24.dp, height = 48.dp)
+                .clickable { sidebarVisible = !sidebarVisible },
+        ) {
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                Icon(
+                    if (sidebarVisible) Icons.Default.ChevronLeft else Icons.Default.ChevronRight,
+                    contentDescription = if (sidebarVisible) "隐藏侧栏" else "显示侧栏",
+                    tint = colors.fg2,
+                    modifier = Modifier.size(16.dp),
+                )
             }
         }
     } else {
@@ -1084,6 +1113,36 @@ fun BluetoothPage(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
+    val listState = rememberLazyListState()
+    var pullOffset by remember { mutableStateOf(0f) }
+    val refreshThreshold = 200f
+
+    fun doRefresh() {
+        if (bleManager.scanning.value) return
+        if (bleManager.connected.value) onDisconnect()
+        if (hasBlePermissions(context)) bleManager.startScan(context) else onRequestPermissions()
+    }
+
+    val nestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                val atTop = listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
+                if (atTop && available.y > 0 && !bleManager.scanning.value) {
+                    pullOffset = (pullOffset + available.y).coerceAtMost(refreshThreshold * 1.5f)
+                }
+                return Offset.Zero
+            }
+            override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
+                if (available.y < 0) pullOffset = (pullOffset + available.y).coerceAtLeast(0f)
+                return super.onPostScroll(consumed, available, source)
+            }
+            override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
+                if (pullOffset >= refreshThreshold && !bleManager.scanning.value) doRefresh()
+                pullOffset = 0f
+                return super.onPostFling(consumed, available)
+            }
+        }
+    }
 
     Column(
         modifier = modifier
@@ -1102,23 +1161,6 @@ fun BluetoothPage(
                 fontWeight = FontWeight.SemiBold,
                 color = colors.fg,
             )
-            IconButton(onClick = {
-                if (bleManager.scanning.value) {
-                    bleManager.stopScan()
-                } else {
-                    if (hasBlePermissions(context)) {
-                        bleManager.startScan(context)
-                    } else {
-                        onRequestPermissions()
-                    }
-                }
-            }) {
-                Icon(
-                    Icons.Default.Refresh,
-                    contentDescription = "刷新",
-                    tint = if (bleManager.scanning.value) colors.primary else colors.fg2,
-                )
-            }
         }
 
         if (bleManager.scanning.value) {
@@ -1127,14 +1169,6 @@ fun BluetoothPage(
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
                 color = colors.primary,
-            )
-        }
-        if (bleManager.scanStatus.value.isNotEmpty()) {
-            Text(
-                bleManager.scanStatus.value,
-                color = colors.fg2,
-                fontSize = 12.sp,
-                modifier = Modifier.padding(vertical = 4.dp),
             )
         }
 
@@ -1151,16 +1185,10 @@ fun BluetoothPage(
                         tint = colors.fg3,
                     )
                     Spacer(Modifier.height(8.dp))
-                    Text(if (bleManager.scanStatus.value.isNotEmpty()) bleManager.scanStatus.value else "未发现设备", color = colors.fg3, fontSize = 14.sp)
+                    Text("未发现设备", color = colors.fg3, fontSize = 14.sp)
                     Spacer(Modifier.height(16.dp))
                     Button(
-                        onClick = {
-                            if (hasBlePermissions(context)) {
-                                bleManager.startScan(context)
-                            } else {
-                                onRequestPermissions()
-                            }
-                        },
+                        onClick = { doRefresh() },
                         colors = ButtonDefaults.buttonColors(containerColor = colors.primary),
                         shape = RoundedCornerShape(8.dp),
                     ) {
@@ -1178,7 +1206,10 @@ fun BluetoothPage(
                 .sortedByDescending { it.address == connAddr }
 
             LazyColumn(
-                modifier = Modifier.fillMaxSize(),
+                state = listState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .nestedScroll(nestedScrollConnection),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 if (remembered.isNotEmpty()) {
@@ -1586,22 +1617,22 @@ fun UiPage(
     createWebView: (android.content.Context) -> WebView,
     pushToUi: (String, String) -> Unit,
 ) {
-    if (!bleManager.connected.value) {
-        Box(
-            modifier = modifier.fillMaxSize().background(colors.bg),
-            contentAlignment = Alignment.Center,
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(Icons.Default.BluetoothDisabled, contentDescription = null, modifier = Modifier.size(48.dp), tint = colors.fg3)
-                Spacer(Modifier.height(8.dp))
-                Text("请先连接蓝牙设备", color = colors.fg3, fontSize = 14.sp)
+    Box(modifier = modifier.fillMaxSize()) {
+        AndroidView(
+            factory = createWebView,
+            modifier = Modifier.fillMaxSize(),
+        )
+        if (!bleManager.connected.value) {
+            Box(
+                modifier = Modifier.fillMaxSize().background(colors.bg),
+                contentAlignment = Alignment.Center,
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(Icons.Default.BluetoothDisabled, contentDescription = null, modifier = Modifier.size(48.dp), tint = colors.fg3)
+                    Spacer(Modifier.height(8.dp))
+                    Text("请先连接蓝牙设备", color = colors.fg3, fontSize = 14.sp)
+                }
             }
         }
-        return
     }
-
-    AndroidView(
-        factory = createWebView,
-        modifier = modifier.fillMaxSize(),
-    )
 }
