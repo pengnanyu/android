@@ -39,7 +39,7 @@ Copy-Item "e:\APP\ui\src\<path>" "e:\APP\android\src\<path>" -Force
 ## BLE 透传机制
 
 ### 连接流程
-1. 用户点击连接 → 扫描 BLE 设备（名称前缀 `DCSF+`）
+1. 用户点击连接 → 扫描 BLE 设备（名称前缀 `DCSF`）
 2. 连接 GATT → 发现 Service（0xFF00）→ 使能 Notify（0xFF01）
 3. 连接成功 → WebView 推送 `bms:connection-status(connected)`
 
