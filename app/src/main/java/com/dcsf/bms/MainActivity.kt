@@ -93,7 +93,10 @@ object LogCollector {
         if (tag == "BLE" && (msg.contains("Found") || msg.contains("Mfg") || msg.contains("Adv"))) {
             return LogCategory.BROADCAST
         }
-        // Data: raw data pushes, frame sends, TX
+        // Data: raw data receive/transmit, frame sends, TX/RX
+        if (tag == "BLE" && (msg.startsWith("RX ") || msg.startsWith("TX "))) {
+            return LogCategory.DATA
+        }
         if (tag == "UI" && (msg.contains("push bms:raw-data") || msg.contains("TX "))) {
             return LogCategory.DATA
         }
@@ -197,10 +200,7 @@ private var pushLogCounter = 0
 
 fun pushToUi(webView: MutableState<WebView?>, type: String, payloadJson: String) {
     val wv = webView.value ?: return
-    // Only log every 10th raw-data push to avoid flooding
-    if (type != "bms:raw-data" || pushLogCounter++ % 10 == 0) {
-        LogCollector.log("UI", "push $type ${payloadJson.take(60)}")
-    }
+    LogCollector.log("UI", "push $type ${payloadJson.take(60)}")
     try {
         val escapedType = type.replace("'", "\\'")
         val js = "try{if(window.__APP_BRIDGE__&&window.__APP_BRIDGE__._handler){window.__APP_BRIDGE__._handler({type:'" + escapedType + "',payload:" + payloadJson + "})}}catch(e){console.log('BRIDGE:push_error:'+e.message)}"
@@ -446,9 +446,8 @@ class BleManager {
     private var bluetoothAdapter: BluetoothAdapter? = null
     private var bleConnection: BleConnection? = null
     private var pendingDataCallback: ((ByteArray) -> Unit)? = null
-    private val scannedAddresses = mutableSetOf<String>()
+    private val backgroundScanCache = mutableListOf<BleDevice>()
     private val missCount = mutableMapOf<String, Int>()
-    private var lastScanCycleTime = 0L
 
     companion object {
         const val SERVICE_UUID = "0000ff00-0000-1000-8000-00805f9b34fb"
@@ -520,14 +519,14 @@ class BleManager {
                 LogCollector.log("BLE", "No scan record")
             }
 
-            val existing = devices.indexOfFirst { it.address == result.device.address }
             val device = BleDevice(name, result.device.address, result.rssi, soc, voltage, current, safety, System.currentTimeMillis())
-            scannedAddresses.add(result.device.address)
 
-            if (existing >= 0) {
-                devices[existing] = device
-            } else if (devices.size < MAX_DEVICES) {
-                devices.add(device)
+            // Add to background cache (will be compared to display list in processScanCycle)
+            val cacheIdx = backgroundScanCache.indexOfFirst { it.address == result.device.address }
+            if (cacheIdx >= 0) {
+                backgroundScanCache[cacheIdx] = device
+            } else {
+                backgroundScanCache.add(device)
             }
         }
 
@@ -571,9 +570,10 @@ class BleManager {
             return
         }
 
-        devices.clear()
+        // Do NOT clear devices list - let processScanCycle handle removal
+        // This preserves connected/remembered devices across scan restarts
         missCount.clear()
-        scannedAddresses.clear()
+        backgroundScanCache.clear()
         scanning.value = true
         scanStatus.value = "Scanning..."
         // Don't use ScanFilter.setDeviceName - it does exact match, not prefix match.
@@ -590,31 +590,57 @@ class BleManager {
     }
 
     fun processScanCycle() {
+        // Build a map of scanned addresses for quick lookup
+        val cacheMap = backgroundScanCache.associateBy { it.address }
+        
         val toRemove = mutableListOf<BleDevice>()
+        
+        // Check existing display devices against cache
         for (dev in devices) {
             val isProtected = connectedDevice.value?.address == dev.address || isRemembered(dev.address)
-            if (dev.address !in scannedAddresses) {
+            val cached = cacheMap[dev.address]
+            
+            if (cached != null) {
+                // Device found in cache - update it and reset miss count
+                val idx = devices.indexOfFirst { it.address == dev.address }
+                if (idx >= 0) {
+                    devices[idx] = cached
+                }
+                missCount[dev.address] = 0
+            } else {
+                // Device not in cache - increment miss count
                 val count = (missCount[dev.address] ?: 0) + 1
                 missCount[dev.address] = count
-                if (count > 5 && !isProtected) {
-                    toRemove.add(dev)
-                    missCount.remove(dev.address)
-                } else if (isProtected && count > 5) {
-                    // For protected devices, just clear RSSI but keep in list
-                    val idx = devices.indexOfFirst { it.address == dev.address }
-                    if (idx >= 0) {
-                        devices[idx] = dev.copy(rssi = 0)
+                if (count > 5) {
+                    if (!isProtected) {
+                        toRemove.add(dev)
+                        missCount.remove(dev.address)
+                    } else {
+                        // For protected devices, just clear RSSI but keep in list
+                        val idx = devices.indexOfFirst { it.address == dev.address }
+                        if (idx >= 0) {
+                            devices[idx] = dev.copy(rssi = 0)
+                        }
+                        missCount[dev.address] = 0
                     }
-                    missCount[dev.address] = 0
                 }
-            } else {
-                missCount[dev.address] = 0
             }
         }
+        
+        // Add new devices from cache that aren't in display list yet
+        for (cached in backgroundScanCache) {
+            if (devices.none { it.address == cached.address } && devices.size < MAX_DEVICES) {
+                devices.add(cached)
+                missCount[cached.address] = 0
+            }
+        }
+        
         if (toRemove.isNotEmpty()) {
             devices.removeAll(toRemove)
         }
-        scannedAddresses.clear()
+        
+        // Clear cache for next cycle
+        backgroundScanCache.clear()
     }
 
     fun stopScan() {
