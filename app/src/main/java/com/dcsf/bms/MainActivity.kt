@@ -625,8 +625,10 @@ class BleManager {
     fun connect(context: Context, device: BleDevice, onResult: (Boolean) -> Unit) {
         stopScan()
         connectingDevice.value = device
-        val adapter = bluetoothAdapter ?: { connectingDevice.value = null; return onResult(false) }()
-        val btDevice = adapter?.getRemoteDevice(device.address) ?: { connectingDevice.value = null; return onResult(false) }()
+        val adapter = bluetoothAdapter
+        if (adapter == null) { connectingDevice.value = null; onResult(false); return }
+        val btDevice = adapter.getRemoteDevice(device.address)
+        if (btDevice == null) { connectingDevice.value = null; onResult(false); return }
 
         bleConnection?.disconnect()
         bleConnection = null
@@ -1184,7 +1186,7 @@ fun BmsApp(
                 }
                 // Tab bar
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, bottom = 4.dp),
+                    modifier = Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, bottom = 4.dp),
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     listOf("全部", "广播", "数据").forEachIndexed { idx, label ->
