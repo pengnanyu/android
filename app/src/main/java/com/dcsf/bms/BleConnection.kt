@@ -23,10 +23,12 @@ class BleConnection(
     private val writeUuid: String,
 ) {
     var onDataReceived: ((ByteArray) -> Unit)? = null
+    var onDisconnected: (() -> Unit)? = null
     private var gatt: BluetoothGatt? = null
     private var notifyChar: BluetoothGattCharacteristic? = null
     private var writeChar: BluetoothGattCharacteristic? = null
     private val handler = Handler(Looper.getMainLooper())
+    private var connectionEstablished = false
 
     private val idleBuffer = mutableListOf<Byte>()
     private var idleTimer: Runnable? = null
@@ -41,7 +43,14 @@ class BleConnection(
                     gatt.requestMtu(256)
                 } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                     LogCollector.log("BLE", "GATT disconnected status=$status")
-                    handler.post { onResult(false) }
+                    handler.post {
+                        if (connectionEstablished) {
+                            connectionEstablished = false
+                            onDisconnected?.invoke()
+                        } else {
+                            onResult(false)
+                        }
+                    }
                 }
             }
 
@@ -87,6 +96,7 @@ class BleConnection(
                     }
                 }
 
+                connectionEstablished = true
                 handler.post { onResult(true) }
                 LogCollector.log("BLE", "BLE ready, notifications enabled")
             }
@@ -179,6 +189,7 @@ class BleConnection(
     }
 
     fun disconnect() {
+        connectionEstablished = false
         idleTimer?.let { handler.removeCallbacks(it) }
         idleTimer = null
         synchronized(idleBuffer) { idleBuffer.clear() }

@@ -47,6 +47,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Terminal
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -548,6 +549,10 @@ class BleManager {
 
         bleConnection = BleConnection(btDevice, SERVICE_UUID, NOTIFY_UUID, WRITE_UUID)
         pendingDataCallback?.let { bleConnection?.onDataReceived = it }
+        bleConnection?.onDisconnected = {
+            connected.value = false
+            connectedDevice.value = null
+        }
         bleConnection?.connect(context) { success ->
             if (success) {
                 connectedDevice.value = device
