@@ -262,6 +262,7 @@ class MainActivity : ComponentActivity() {
                     onRequestPermissions = { requestPermissions() },
                     onConnectDevice = { device -> connectDevice(device) },
                     onDisconnect = { disconnect() },
+                    onWebViewCreated = { wv -> mainWebView = wv },
                 )
             }
         }
@@ -610,6 +611,7 @@ fun BmsApp(
     onRequestPermissions: () -> Unit,
     onConnectDevice: (BleDevice) -> Unit,
     onDisconnect: () -> Unit,
+    onWebViewCreated: (WebView) -> Unit = {},
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     var sidebarVisible by rememberSaveable { mutableStateOf(true) }
@@ -836,7 +838,7 @@ fun BmsApp(
             }, "__NativeBridge__")
             loadUrl("https://ui.bms.pub")
             webView.value = this
-            mainWebView = this
+            onWebViewCreated(this)
         }
     }
 
