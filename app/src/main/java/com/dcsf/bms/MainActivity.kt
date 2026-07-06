@@ -329,6 +329,7 @@ data class BleDevice(
     val voltage: Int = 0,
     val current: Int = 0,
     val safety: Int = 0,
+    val lastSeen: Long = System.currentTimeMillis(),
 ) {
     fun voltageV(): Float = voltage / 100f
     fun currentA(): Float = current / 10f
@@ -491,7 +492,7 @@ class BleManager {
             }
 
             val existing = devices.indexOfFirst { it.address == result.device.address }
-            val device = BleDevice(name, result.device.address, result.rssi, soc, voltage, current, safety)
+            val device = BleDevice(name, result.device.address, result.rssi, soc, voltage, current, safety, System.currentTimeMillis())
 
             if (existing >= 0) {
                 devices[existing] = device
@@ -553,6 +554,14 @@ class BleManager {
         } catch (e: SecurityException) {
             scanStatus.value = "SecurityException: ${e.message}"
             scanning.value = false
+        }
+    }
+
+    fun cleanupStaleDevices(maxAgeMs: Long = 5000L) {
+        val now = System.currentTimeMillis()
+        val toRemove = devices.filter { now - it.lastSeen > maxAgeMs }
+        if (toRemove.isNotEmpty()) {
+            devices.removeAll(toRemove)
         }
     }
 
@@ -1047,6 +1056,79 @@ fun BmsApp(
             }
         }
     }
+
+    // Floating debug panel
+    var showDebug by remember { mutableStateOf(false) }
+    if (showDebug) {
+        val logListState = rememberLazyListState()
+        val logsList = LogCollector.logs
+        LaunchedEffect(logsList.size) {
+            if (logsList.isNotEmpty()) {
+                logListState.animateScrollToItem(logsList.lastIndex)
+            }
+        }
+        Card(
+            shape = RoundedCornerShape(8.dp),
+            colors = CardDefaults.cardColors(containerColor = colors.surface),
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(8.dp)
+                .fillMaxWidth(0.92f)
+                .heightIn(max = 350.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+        ) {
+            Column {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(Icons.Default.Terminal, contentDescription = null, tint = colors.fg2, modifier = Modifier.size(14.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("调试日志 (${logsList.size})", fontSize = 12.sp, color = colors.fg2, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
+                    TextButton(onClick = { LogCollector.clear() }) { Text("清除", fontSize = 11.sp, color = colors.danger) }
+                    IconButton(onClick = { showDebug = false }, modifier = Modifier.size(24.dp)) {
+                        Text("✕", fontSize = 14.sp, color = colors.fg2)
+                    }
+                }
+                if (logsList.isEmpty()) {
+                    Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
+                        Text("暂无日志", fontSize = 12.sp, color = colors.fg3)
+                    }
+                } else {
+                    LazyColumn(
+                        state = logListState,
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp).padding(bottom = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                    ) {
+                        items(logsList.toList()) { log ->
+                            val tagColor = when {
+                                log.contains(" BLE ") -> Color(0xFF60A5FA)
+                                log.contains(" JS ") -> Color(0xFFA78BFA)
+                                log.contains(" UI ") -> Color(0xFF34D399)
+                                else -> colors.fg3
+                            }
+                            Text(log, fontSize = 10.sp, fontFamily = FontFamily.Monospace, color = tagColor, lineHeight = 14.sp)
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        Card(
+            shape = RoundedCornerShape(8.dp),
+            colors = CardDefaults.cardColors(containerColor = colors.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(12.dp)
+                .size(40.dp)
+                .clickable { showDebug = true },
+        ) {
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                Icon(Icons.Default.Terminal, contentDescription = "调试", tint = colors.fg2, modifier = Modifier.size(18.dp))
+            }
+        }
+    }
     }
 }
 
@@ -1063,33 +1145,23 @@ fun BluetoothPage(
 ) {
     val context = LocalContext.current
     val listState = rememberLazyListState()
-    var pullOffset by remember { mutableStateOf(0f) }
-    val refreshThreshold = 200f
 
-    fun doRefresh() {
-        if (bleManager.scanning.value) return
-        if (bleManager.connected.value) onDisconnect()
-        if (hasBlePermissions(context)) bleManager.startScan(context) else onRequestPermissions()
+    // Auto-scan whenever BluetoothPage is visible
+    LaunchedEffect(Unit) {
+        if (!bleManager.scanning.value && !bleManager.connected.value) {
+            if (hasBlePermissions(context)) {
+                bleManager.startScan(context)
+            } else {
+                onRequestPermissions()
+            }
+        }
     }
 
-    val nestedScrollConnection = remember {
-        object : NestedScrollConnection {
-            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                val atTop = listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
-                if (atTop && available.y > 0 && !bleManager.scanning.value) {
-                    pullOffset = (pullOffset + available.y).coerceAtMost(refreshThreshold * 1.5f)
-                }
-                return Offset.Zero
-            }
-            override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
-                if (available.y < 0) pullOffset = (pullOffset + available.y).coerceAtLeast(0f)
-                return super.onPostScroll(consumed, available, source)
-            }
-            override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
-                if (pullOffset >= refreshThreshold && !bleManager.scanning.value) doRefresh()
-                pullOffset = 0f
-                return super.onPostFling(consumed, available)
-            }
+    // Periodic cleanup of stale devices (>5 seconds not seen)
+    LaunchedEffect(Unit) {
+        while (true) {
+            kotlinx.coroutines.delay(2000L)
+            bleManager.cleanupStaleDevices(5000L)
         }
     }
 
@@ -1110,15 +1182,13 @@ fun BluetoothPage(
                 fontWeight = FontWeight.SemiBold,
                 color = colors.fg,
             )
-        }
-
-        if (bleManager.scanning.value) {
-            LinearProgressIndicator(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                color = colors.primary,
-            )
+            if (bleManager.scanning.value) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp),
+                    strokeWidth = 2.dp,
+                    color = colors.primary,
+                )
+            }
         }
 
         if (bleManager.devices.isEmpty() && !bleManager.scanning.value) {
@@ -1137,7 +1207,9 @@ fun BluetoothPage(
                     Text("未发现设备", color = colors.fg3, fontSize = 14.sp)
                     Spacer(Modifier.height(16.dp))
                     Button(
-                        onClick = { doRefresh() },
+                        onClick = {
+                            if (hasBlePermissions(context)) bleManager.startScan(context) else onRequestPermissions()
+                        },
                         colors = ButtonDefaults.buttonColors(containerColor = colors.primary),
                         shape = RoundedCornerShape(8.dp),
                     ) {
@@ -1157,8 +1229,7 @@ fun BluetoothPage(
             LazyColumn(
                 state = listState,
                 modifier = Modifier
-                    .fillMaxSize()
-                    .nestedScroll(nestedScrollConnection),
+                    .fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 if (remembered.isNotEmpty()) {
