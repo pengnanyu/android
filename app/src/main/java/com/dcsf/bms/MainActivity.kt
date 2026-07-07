@@ -1170,7 +1170,7 @@ fun BluetoothPage(
                         tint = colors.fg3,
                     )
                     Spacer(Modifier.height(8.dp))
-                    Text("鏈彂鐜拌澶?, color = colors.fg3, fontSize = 14.sp)
+                    Text("鏈彂鐜拌澶", color = colors.fg3, fontSize = 14.sp)
                     Spacer(Modifier.height(16.dp))
                     Button(
                         onClick = {
@@ -1181,7 +1181,7 @@ fun BluetoothPage(
                     ) {
                         Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text("寮€濮嬫壂鎻?)
+                        Text("寮€濮嬫壂鎻")
                     }
                 }
             }
@@ -1231,7 +1231,7 @@ fun BluetoothPage(
                 if (newDevs.isNotEmpty()) {
                     item {
                         Text(
-                            "鏂拌澶?,
+                            "鏂拌澶",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
                             color = colors.fg2,
