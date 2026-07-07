@@ -143,7 +143,6 @@ private var pushLogCounter = 0
 
 fun pushToUi(webView: MutableState<WebView?>, type: String, payloadJson: String) {
     val wv = webView.value ?: return
-}")
     try {
         val escapedType = type.replace("'", "\\'")
         val js = "try{if(window.__APP_BRIDGE__){if(window.__APP_BRIDGE__._handler){window.__APP_BRIDGE__._handler({type:'" + escapedType + "',payload:" + payloadJson + "})}else{console.log('BRIDGE:_handler_not_set for " + escapedType + "')}}else{console.log('BRIDGE:__APP_BRIDGE__ not found')}}catch(e){console.log('BRIDGE:push_error:'+e.message)}"
