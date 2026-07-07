@@ -1,15 +1,21 @@
 .row {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 60px;
-  gap: 8px;
-  align-items: center;
-  padding: 6px 0;
-  border-bottom: 1px solid var(--color-border);
+  display: contents;
   font-size: 13px;
 }
 
-.rowPending {
+.row > * {
+  padding: 0 4px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.rowPending > * {
   background: rgba(255,235,194,0.5);
+}
+
+.rowPending > :first-child {
   border-left: 3px solid var(--color-primary);
   padding-left: 5px;
 }
@@ -24,9 +30,12 @@
 .currentValue {
   color: var(--color-muted-foreground);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .unit {
   color: var(--color-muted-foreground);
   font-size: 13px;
+  white-space: nowrap;
+  padding-right: 8px;
 }
