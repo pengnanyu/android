@@ -1,0 +1,1301 @@
+﻿2026-07-07T04:08:35.3118296Z Current runner version: '2.335.1'
+2026-07-07T04:08:35.3151832Z ##[group]Runner Image Provisioner
+2026-07-07T04:08:35.3153137Z Hosted Compute Agent
+2026-07-07T04:08:35.3154272Z Version: 20260624.560
+2026-07-07T04:08:35.3155319Z Commit: 925d229a51159bc391ae97e54a2dd1fe20af789d
+2026-07-07T04:08:35.3156489Z Build Date: 2026-06-24T18:26:47Z
+2026-07-07T04:08:35.3157530Z Worker ID: {63fcba90-453f-403b-b8e2-1d6d6129b688}
+2026-07-07T04:08:35.3158717Z Azure Region: eastus2
+2026-07-07T04:08:35.3159619Z ##[endgroup]
+2026-07-07T04:08:35.3161757Z ##[group]Operating System
+2026-07-07T04:08:35.3162713Z Ubuntu
+2026-07-07T04:08:35.3163720Z 24.04.4
+2026-07-07T04:08:35.3164562Z LTS
+2026-07-07T04:08:35.3165366Z ##[endgroup]
+2026-07-07T04:08:35.3166137Z ##[group]Runner Image
+2026-07-07T04:08:35.3167050Z Image: ubuntu-24.04
+2026-07-07T04:08:35.3167895Z Version: 20260628.225.1
+2026-07-07T04:08:35.3169930Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260628.225/images/ubuntu/Ubuntu2404-Readme.md
+2026-07-07T04:08:35.3172470Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260628.225
+2026-07-07T04:08:35.3174218Z ##[endgroup]
+2026-07-07T04:08:35.3175934Z ##[group]GITHUB_TOKEN Permissions
+2026-07-07T04:08:35.3178769Z Contents: read
+2026-07-07T04:08:35.3179584Z Metadata: read
+2026-07-07T04:08:35.3181084Z Packages: read
+2026-07-07T04:08:35.3181909Z ##[endgroup]
+2026-07-07T04:08:35.3185364Z Secret source: Actions
+2026-07-07T04:08:35.3186912Z Prepare workflow directory
+2026-07-07T04:08:35.3636329Z Prepare all required actions
+2026-07-07T04:08:35.3690015Z Getting action download info
+2026-07-07T04:08:35.5766447Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+2026-07-07T04:08:35.6477422Z Download action repository 'actions/setup-java@v4' (SHA:c1e323688fd81a25caa38c78aa6df2d33d3e20d9)
+2026-07-07T04:08:35.9234407Z Download action repository 'gradle/actions@v4' (SHA:ed408507eac070d1f99cc633dbcf757c94c7933a)
+2026-07-07T04:08:36.6388578Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-07-07T04:08:36.9157914Z Complete job name: build
+2026-07-07T04:08:37.0041379Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-07T04:08:37.0053045Z ##[group]Run actions/checkout@v4
+2026-07-07T04:08:37.0054696Z with:
+2026-07-07T04:08:37.0055583Z   repository: pengnanyu/android
+2026-07-07T04:08:37.0064603Z   token: ***
+2026-07-07T04:08:37.0065494Z   ssh-strict: true
+2026-07-07T04:08:37.0066392Z   ssh-user: git
+2026-07-07T04:08:37.0067292Z   persist-credentials: true
+2026-07-07T04:08:37.0068271Z   clean: true
+2026-07-07T04:08:37.0069172Z   sparse-checkout-cone-mode: true
+2026-07-07T04:08:37.0070227Z   fetch-depth: 1
+2026-07-07T04:08:37.0071140Z   fetch-tags: false
+2026-07-07T04:08:37.0072065Z   show-progress: true
+2026-07-07T04:08:37.0072990Z   lfs: false
+2026-07-07T04:08:37.0074012Z   submodules: false
+2026-07-07T04:08:37.0074935Z   set-safe-directory: true
+2026-07-07T04:08:37.0076181Z ##[endgroup]
+2026-07-07T04:08:37.1091891Z Syncing repository: pengnanyu/android
+2026-07-07T04:08:37.1094855Z ##[group]Getting Git version info
+2026-07-07T04:08:37.1096250Z Working directory is '/home/runner/work/android/android'
+2026-07-07T04:08:37.1098223Z [command]/usr/bin/git version
+2026-07-07T04:08:37.1171951Z git version 2.54.0
+2026-07-07T04:08:37.1195299Z ##[endgroup]
+2026-07-07T04:08:37.1210482Z Temporarily overriding HOME='/home/runner/work/_temp/f8e5aefd-e1e6-48bb-909e-8affa042d6b5' before making global git config changes
+2026-07-07T04:08:37.1214151Z Adding repository directory to the temporary git global config as a safe directory
+2026-07-07T04:08:37.1218510Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/android/android
+2026-07-07T04:08:37.1275578Z Deleting the contents of '/home/runner/work/android/android'
+2026-07-07T04:08:37.1281568Z ##[group]Initializing the repository
+2026-07-07T04:08:37.1286832Z [command]/usr/bin/git init /home/runner/work/android/android
+2026-07-07T04:08:37.1384220Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-07-07T04:08:37.1387297Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-07-07T04:08:37.1390449Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-07-07T04:08:37.1392827Z hint: call:
+2026-07-07T04:08:37.1394203Z hint:
+2026-07-07T04:08:37.1395985Z hint: 	git config --global init.defaultBranch <name>
+2026-07-07T04:08:37.1398051Z hint:
+2026-07-07T04:08:37.1399881Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-07-07T04:08:37.1402841Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-07-07T04:08:37.1405536Z hint:
+2026-07-07T04:08:37.1406826Z hint: 	git branch -m <name>
+2026-07-07T04:08:37.1408247Z hint:
+2026-07-07T04:08:37.1410449Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-07-07T04:08:37.1413476Z Initialized empty Git repository in /home/runner/work/android/android/.git/
+2026-07-07T04:08:37.1418171Z [command]/usr/bin/git remote add origin https://github.com/pengnanyu/android
+2026-07-07T04:08:37.1455404Z ##[endgroup]
+2026-07-07T04:08:37.1457294Z ##[group]Disabling automatic garbage collection
+2026-07-07T04:08:37.1459250Z [command]/usr/bin/git config --local gc.auto 0
+2026-07-07T04:08:37.1492924Z ##[endgroup]
+2026-07-07T04:08:37.1495137Z ##[group]Setting up auth
+2026-07-07T04:08:37.1500463Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-07-07T04:08:37.1538450Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-07-07T04:08:37.1914185Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-07-07T04:08:37.1954795Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-07-07T04:08:37.2206612Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-07-07T04:08:37.2245837Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-07-07T04:08:37.2486558Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-07-07T04:08:37.2527305Z ##[endgroup]
+2026-07-07T04:08:37.2529419Z ##[group]Fetching the repository
+2026-07-07T04:08:37.2537464Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +da36e87a5064273e0e039ce4e5ca432123f5775f:refs/remotes/origin/main
+2026-07-07T04:08:37.6920669Z From https://github.com/pengnanyu/android
+2026-07-07T04:08:37.6922097Z  * [new ref]         da36e87a5064273e0e039ce4e5ca432123f5775f -> origin/main
+2026-07-07T04:08:37.6955445Z ##[endgroup]
+2026-07-07T04:08:37.6956158Z ##[group]Determining the checkout info
+2026-07-07T04:08:37.6958409Z ##[endgroup]
+2026-07-07T04:08:37.6964187Z [command]/usr/bin/git sparse-checkout disable
+2026-07-07T04:08:37.7015017Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-07-07T04:08:37.7047574Z ##[group]Checking out the ref
+2026-07-07T04:08:37.7051768Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-07-07T04:08:37.7187997Z Switched to a new branch 'main'
+2026-07-07T04:08:37.7190896Z branch 'main' set up to track 'origin/main'.
+2026-07-07T04:08:37.7197155Z ##[endgroup]
+2026-07-07T04:08:37.7243807Z [command]/usr/bin/git log -1 --format=%H
+2026-07-07T04:08:37.7279855Z da36e87a5064273e0e039ce4e5ca432123f5775f
+2026-07-07T04:08:37.7550783Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-07T04:08:37.7552577Z ##[group]Run actions/setup-java@v4
+2026-07-07T04:08:37.7552900Z with:
+2026-07-07T04:08:37.7553156Z   java-version: 17
+2026-07-07T04:08:37.7553624Z   distribution: temurin
+2026-07-07T04:08:37.7553919Z   java-package: jdk
+2026-07-07T04:08:37.7554187Z   check-latest: false
+2026-07-07T04:08:37.7554465Z   server-id: github
+2026-07-07T04:08:37.7554739Z   server-username: GITHUB_ACTOR
+2026-07-07T04:08:37.7555068Z   server-password: GITHUB_TOKEN
+2026-07-07T04:08:37.7555384Z   overwrite-settings: true
+2026-07-07T04:08:37.7555683Z   job-status: success
+2026-07-07T04:08:37.7558393Z   token: ***
+2026-07-07T04:08:37.7558671Z ##[endgroup]
+2026-07-07T04:08:37.9130036Z ##[group]Installed distributions
+2026-07-07T04:08:37.9191795Z Resolved Java 17.0.19+10 from tool-cache
+2026-07-07T04:08:37.9192603Z Setting Java 17.0.19+10 as the default
+2026-07-07T04:08:37.9202721Z (node:2292) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-07-07T04:08:37.9204597Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-07-07T04:08:37.9207002Z Creating toolchains.xml for JDK version 17 from temurin
+2026-07-07T04:08:37.9284771Z Writing to /home/runner/.m2/toolchains.xml
+2026-07-07T04:08:37.9294265Z 
+2026-07-07T04:08:37.9294763Z Java configuration:
+2026-07-07T04:08:37.9299700Z   Distribution: temurin
+2026-07-07T04:08:37.9300640Z   Version: 17.0.19+10
+2026-07-07T04:08:37.9301642Z   Path: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.19-10/x64
+2026-07-07T04:08:37.9302496Z 
+2026-07-07T04:08:37.9303562Z ##[endgroup]
+2026-07-07T04:08:37.9322040Z Creating settings.xml with server-id: github
+2026-07-07T04:08:37.9323487Z Writing to /home/runner/.m2/settings.xml
+2026-07-07T04:08:37.9633704Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-07T04:08:37.9635231Z ##[group]Run gradle/actions/setup-gradle@v4
+2026-07-07T04:08:37.9635653Z with:
+2026-07-07T04:08:37.9635982Z   cache-read-only: false
+2026-07-07T04:08:37.9636277Z   cache-disabled: false
+2026-07-07T04:08:37.9636555Z   cache-write-only: false
+2026-07-07T04:08:37.9636852Z   cache-overwrite-existing: false
+2026-07-07T04:08:37.9637175Z   cache-cleanup: on-success
+2026-07-07T04:08:37.9637531Z   gradle-home-cache-includes: caches
+notifications
+
+2026-07-07T04:08:37.9637904Z   add-job-summary: always
+2026-07-07T04:08:37.9638385Z   add-job-summary-as-pr-comment: never
+2026-07-07T04:08:37.9638941Z   dependency-graph: disabled
+2026-07-07T04:08:37.9639558Z   dependency-graph-report-dir: dependency-graph-reports
+2026-07-07T04:08:37.9640228Z   dependency-graph-continue-on-failure: true
+2026-07-07T04:08:37.9640795Z   build-scan-publish: false
+2026-07-07T04:08:37.9641250Z   validate-wrappers: true
+2026-07-07T04:08:37.9641726Z   allow-snapshot-wrappers: false
+2026-07-07T04:08:37.9642240Z   gradle-home-cache-strict-match: false
+2026-07-07T04:08:37.9642763Z   workflow-job-context: null
+2026-07-07T04:08:37.9647981Z   github-token: ***
+2026-07-07T04:08:37.9648399Z env:
+2026-07-07T04:08:37.9648963Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.19-10/x64
+2026-07-07T04:08:37.9649860Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.19-10/x64
+2026-07-07T04:08:37.9650460Z ##[endgroup]
+2026-07-07T04:08:38.3725690Z Merged default JDK locations into /home/runner/.m2/toolchains.xml
+2026-07-07T04:08:38.3727946Z Preparing cache for cleanup.
+2026-07-07T04:08:38.3753690Z ##[group]Restore Gradle state from cache
+2026-07-07T04:08:38.4451021Z Cache hit for restore-key: gradle-home-v1|Linux-X64|build[e080f0fdc288b6f0c5023fd4b86f7a10]-e4e9afb933e1aecb6ef32800a5af1963d5a02947
+2026-07-07T04:08:39.0915074Z Received 122071184 of 122071184 (100.0%), 188.7 MBs/sec
+2026-07-07T04:08:39.0916782Z Cache Size: ~116 MB (122071184 B)
+2026-07-07T04:08:39.1013386Z [command]/usr/bin/tar -xf /home/runner/work/_temp/8ee01d90-f97a-451d-8d73-5a3315d86fce/cache.tzst -P -C /home/runner/work/android/android --use-compress-program unzstd
+2026-07-07T04:08:39.8618599Z Cache restored successfully
+2026-07-07T04:08:39.8677197Z Restored cache entry with key gradle-home-v1|Linux-X64|build[e080f0fdc288b6f0c5023fd4b86f7a10]-da36e87a5064273e0e039ce4e5ca432123f5775f to /home/runner/.gradle/caches,/home/runner/.gradle/notifications,/home/runner/.gradle/.setup-gradle in 1493ms
+2026-07-07T04:08:39.9998160Z Cache hit for: gradle-instrumented-jars-v1-7882d234ab1a32e20b2cfeb9b9f9738d
+2026-07-07T04:08:40.0025626Z Cache hit for: gradle-groovy-dsl-v1-26be4c2963e8a34cd7f37ee0c0428250
+2026-07-07T04:08:40.0042468Z Cache hit for: gradle-kotlin-dsl-v1-95e787361dfb383e38c44717dfd23297
+2026-07-07T04:08:40.0046175Z Cache hit for: gradle-generated-gradle-jars-v1-fa001ab82c3596b4e27ec78f191b889f
+2026-07-07T04:08:40.0050128Z Cache hit for: gradle-dependencies-v1-0555fcfd6a416cccc1b37f36f6125a73
+2026-07-07T04:08:40.0055961Z Cache hit for: gradle-transforms-v1-ebf8a75e7d1f22b2cbe405d36ef5a902
+2026-07-07T04:08:40.0092804Z Cache hit for: gradle-wrapper-zips-v1-e89a30cff1b7b918cfe1273c9c8e4a34
+2026-07-07T04:08:40.0127645Z Cache hit for: gradle-generated-gradle-jars-v1-aab574994eb421acff6809687eadd5de
+2026-07-07T04:08:40.0685256Z Received 105871 of 105871 (100.0%), 1.8 MBs/sec
+2026-07-07T04:08:40.0685837Z Cache Size: ~0 MB (105871 B)
+2026-07-07T04:08:40.3254127Z Received 214166 of 214166 (100.0%), 0.8 MBs/sec
+2026-07-07T04:08:40.3256438Z Cache Size: ~0 MB (214166 B)
+2026-07-07T04:08:40.4087563Z [command]/usr/bin/tar -xf /home/runner/work/_temp/b59ea055-aa4e-42a5-9901-51303903d847/cache.tzst -P -C /home/runner/work/android/android --use-compress-program unzstd
+2026-07-07T04:08:40.4862699Z Cache restored successfully
+2026-07-07T04:08:40.5269829Z Restored cache entry with key gradle-groovy-dsl-v1-26be4c2963e8a34cd7f37ee0c0428250 to /home/runner/.gradle/caches/*/groovy-dsl/*/ in 656ms
+2026-07-07T04:08:40.7042149Z [command]/usr/bin/tar -xf /home/runner/work/_temp/7f3e7cbe-fd93-4816-949d-14a4a3b14d43/cache.tzst -P -C /home/runner/work/android/android --use-compress-program unzstd
+2026-07-07T04:08:40.8624749Z Cache restored successfully
+2026-07-07T04:08:40.8827911Z Restored cache entry with key gradle-kotlin-dsl-v1-95e787361dfb383e38c44717dfd23297 to /home/runner/.gradle/caches/*/kotlin-dsl/accessors/*/,/home/runner/.gradle/caches/*/kotlin-dsl/scripts/*/ in 1012ms
+2026-07-07T04:08:40.9661479Z Received 89813638 of 89813638 (100.0%), 91.5 MBs/sec
+2026-07-07T04:08:40.9662014Z Cache Size: ~86 MB (89813638 B)
+2026-07-07T04:08:41.0464783Z Received 20007366 of 36784582 (54.4%), 19.1 MBs/sec
+2026-07-07T04:08:41.0725023Z Received 16777216 of 93106640 (18.0%), 15.9 MBs/sec
+2026-07-07T04:08:41.0847477Z Received 25381458 of 42158674 (60.2%), 24.1 MBs/sec
+2026-07-07T04:08:41.0931891Z Received 36784582 of 36784582 (100.0%), 33.5 MBs/sec
+2026-07-07T04:08:41.0932625Z Cache Size: ~35 MB (36784582 B)
+2026-07-07T04:08:41.0935289Z [command]/usr/bin/tar -xf /home/runner/work/_temp/19a7afde-9f30-4dd2-bd1d-cbe120f28074/cache.tzst -P -C /home/runner/work/android/android --use-compress-program unzstd
+2026-07-07T04:08:41.1168688Z Received 16777216 of 332039705 (5.1%), 15.6 MBs/sec
+2026-07-07T04:08:41.1169687Z Received 20971520 of 131975973 (15.9%), 19.8 MBs/sec
+2026-07-07T04:08:41.2658141Z Received 42158674 of 42158674 (100.0%), 33.9 MBs/sec
+2026-07-07T04:08:41.2658762Z Cache Size: ~40 MB (42158674 B)
+2026-07-07T04:08:41.2713699Z [command]/usr/bin/tar -xf /home/runner/work/_temp/9abbe7ac-ac74-4b05-8be0-68f3eccd5767/cache.tzst -P -C /home/runner/work/android/android --use-compress-program unzstd
+2026-07-07T04:08:41.5595794Z [command]/usr/bin/tar -xf /home/runner/work/_temp/361dcf81-7e05-4a6b-b888-edd991c7b220/cache.tzst -P -C /home/runner/work/android/android --use-compress-program unzstd
+2026-07-07T04:08:41.7546684Z Cache restored successfully
+2026-07-07T04:08:41.7755501Z Restored cache entry with key gradle-generated-gradle-jars-v1-fa001ab82c3596b4e27ec78f191b889f to /home/runner/.gradle/caches/8.5/generated-gradle-jars/gradle-api-8.5.jar in 1904ms
+2026-07-07T04:08:41.8375451Z Received 93106640 of 93106640 (100.0%), 50.2 MBs/sec
+2026-07-07T04:08:41.8413811Z Cache Size: ~89 MB (93106640 B)
+2026-07-07T04:08:42.0515018Z [command]/usr/bin/tar -xf /home/runner/work/_temp/69c7c16b-93d8-4f66-acb4-a748dafea288/cache.tzst -P -C /home/runner/work/android/android --use-compress-program unzstd
+2026-07-07T04:08:42.1614075Z Received 134217728 of 332039705 (40.4%), 61.8 MBs/sec
+2026-07-07T04:08:42.1614840Z Received 113246208 of 131975973 (85.8%), 52.6 MBs/sec
+2026-07-07T04:08:42.1839638Z Cache restored successfully
+2026-07-07T04:08:42.1875978Z Restored cache entry with key gradle-generated-gradle-jars-v1-aab574994eb421acff6809687eadd5de to /home/runner/.gradle/caches/9.6.1/generated-gradle-jars/gradle-api-9.6.1.jar in 2319ms
+2026-07-07T04:08:42.2442048Z Received 131975973 of 131975973 (100.0%), 58.9 MBs/sec
+2026-07-07T04:08:42.2447104Z Cache Size: ~126 MB (131975973 B)
+2026-07-07T04:08:42.3455824Z [command]/usr/bin/tar -xf /home/runner/work/_temp/7197108b-4183-42ed-afae-b3b3de51df9a/cache.tzst -P -C /home/runner/work/android/android --use-compress-program unzstd
+2026-07-07T04:08:42.4127762Z Cache restored successfully
+2026-07-07T04:08:42.4437494Z Restored cache entry with key gradle-instrumented-jars-v1-7882d234ab1a32e20b2cfeb9b9f9738d to /home/runner/.gradle/caches/jars-*/*/ in 2571ms
+2026-07-07T04:08:42.9233181Z Cache restored successfully
+2026-07-07T04:08:42.9345659Z Restored cache entry with key gradle-wrapper-zips-v1-e89a30cff1b7b918cfe1273c9c8e4a34 to /home/runner/.gradle/wrapper/dists/gradle-8.5-bin/5t9huq95ubn472n8rpzujfbqh in 3065ms
+2026-07-07T04:08:43.0535339Z Received 332039705 of 332039705 (100.0%), 106.9 MBs/sec
+2026-07-07T04:08:43.0563873Z Cache Size: ~317 MB (332039705 B)
+2026-07-07T04:08:43.0707747Z [command]/usr/bin/tar -xf /home/runner/work/_temp/dab1dd81-4a12-4a67-9d40-965edccdacca/cache.tzst -P -C /home/runner/work/android/android --use-compress-program unzstd
+2026-07-07T04:08:43.5198116Z Cache restored successfully
+2026-07-07T04:08:43.7449174Z Cache restored successfully
+2026-07-07T04:08:43.7600766Z Restored cache entry with key gradle-dependencies-v1-0555fcfd6a416cccc1b37f36f6125a73 to /home/runner/.gradle/caches/modules-*/files-*/*/*/*/* in 3890ms
+2026-07-07T04:08:43.9645681Z Restored cache entry with key gradle-transforms-v1-ebf8a75e7d1f22b2cbe405d36ef5a902 to /home/runner/.gradle/caches/transforms-4/*/,/home/runner/.gradle/caches/*/transforms/*/ in 4092ms
+2026-07-07T04:08:43.9804465Z ##[endgroup]
+2026-07-07T04:08:43.9885540Z ##[group]All Gradle Wrapper jars are valid
+2026-07-07T04:08:43.9889055Z 
+2026-07-07T04:08:43.9889455Z ##[endgroup]
+2026-07-07T04:08:44.0830647Z ##[group]Run gradle wrapper --gradle-version 8.5
+2026-07-07T04:08:44.0831164Z [36;1mgradle wrapper --gradle-version 8.5[0m
+2026-07-07T04:08:44.4707680Z shell: /usr/bin/bash -e {0}
+2026-07-07T04:08:44.4708201Z env:
+2026-07-07T04:08:44.4708797Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.19-10/x64
+2026-07-07T04:08:44.4709745Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.19-10/x64
+2026-07-07T04:08:44.4710773Z   GRADLE_ACTION_ID: gradle/actions/setup-gradle
+2026-07-07T04:08:44.4711373Z   GRADLE_USER_HOME: /home/runner/.gradle
+2026-07-07T04:08:44.4711949Z   GRADLE_BUILD_ACTION_SETUP_COMPLETED: true
+2026-07-07T04:08:44.4712522Z   GRADLE_BUILD_ACTION_CACHE_RESTORED: true
+2026-07-07T04:08:44.4713796Z   DEVELOCITY_INJECTION_INIT_SCRIPT_NAME: gradle-actions.inject-develocity.init.gradle
+2026-07-07T04:08:44.4714712Z   DEVELOCITY_INJECTION_CUSTOM_VALUE: gradle-actions
+2026-07-07T04:08:44.4715607Z   GITHUB_DEPENDENCY_GRAPH_ENABLED: false
+2026-07-07T04:08:44.4716209Z ##[endgroup]
+2026-07-07T04:08:52.2747317Z Starting a Gradle Daemon (subsequent builds will be faster)
+2026-07-07T04:09:11.2751873Z > Task :wrapper
+2026-07-07T04:09:11.4749370Z gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run-1783397342175.json
+2026-07-07T04:09:11.4775260Z 
+2026-07-07T04:09:11.4779533Z [Incubating] Problems report is available at: file:///home/runner/work/android/android/build/reports/problems/problems-report.html
+2026-07-07T04:09:11.4814049Z 
+2026-07-07T04:09:11.4844540Z Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+2026-07-07T04:09:11.4893964Z 
+2026-07-07T04:09:11.4904300Z You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+2026-07-07T04:09:11.4930096Z 
+2026-07-07T04:09:11.4947073Z For more on this, please refer to https://docs.gradle.org/9.6.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+2026-07-07T04:09:11.4964073Z 
+2026-07-07T04:09:11.4978647Z BUILD SUCCESSFUL in 26s
+2026-07-07T04:09:11.4982345Z 1 actionable task: 1 executed
+2026-07-07T04:09:11.4983707Z Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.1/userguide/configuration_cache_enabling.html
+2026-07-07T04:09:11.8157534Z ##[group]Run ./gradlew assembleDebug assembleRelease
+2026-07-07T04:09:11.8158025Z [36;1m./gradlew assembleDebug assembleRelease[0m
+2026-07-07T04:09:11.8192901Z shell: /usr/bin/bash -e {0}
+2026-07-07T04:09:11.8193408Z env:
+2026-07-07T04:09:11.8193826Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.19-10/x64
+2026-07-07T04:09:11.8194386Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.19-10/x64
+2026-07-07T04:09:11.8194889Z   GRADLE_ACTION_ID: gradle/actions/setup-gradle
+2026-07-07T04:09:11.8195282Z   GRADLE_USER_HOME: /home/runner/.gradle
+2026-07-07T04:09:11.8195659Z   GRADLE_BUILD_ACTION_SETUP_COMPLETED: true
+2026-07-07T04:09:11.8196013Z   GRADLE_BUILD_ACTION_CACHE_RESTORED: true
+2026-07-07T04:09:11.8196510Z   DEVELOCITY_INJECTION_INIT_SCRIPT_NAME: gradle-actions.inject-develocity.init.gradle
+2026-07-07T04:09:11.8197036Z   DEVELOCITY_INJECTION_CUSTOM_VALUE: gradle-actions
+2026-07-07T04:09:11.8197416Z   GITHUB_DEPENDENCY_GRAPH_ENABLED: false
+2026-07-07T04:09:11.8197779Z ##[endgroup]
+2026-07-07T04:09:12.4255739Z Starting a Gradle Daemon (subsequent builds will be faster)
+2026-07-07T04:09:20.5284392Z > Task :app:preBuild UP-TO-DATE
+2026-07-07T04:09:20.5333918Z > Task :app:preDebugBuild UP-TO-DATE
+2026-07-07T04:09:20.5351365Z > Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+2026-07-07T04:09:20.5388005Z > Task :app:checkKotlinGradlePluginConfigurationErrors
+2026-07-07T04:09:21.0242844Z > Task :app:generateDebugResValues
+2026-07-07T04:09:21.0264114Z > Task :app:checkDebugAarMetadata
+2026-07-07T04:09:21.0303890Z > Task :app:mapDebugSourceSetPaths
+2026-07-07T04:09:21.0323995Z > Task :app:generateDebugResources
+2026-07-07T04:09:22.2244610Z > Task :app:packageDebugResources
+2026-07-07T04:09:22.3224433Z > Task :app:createDebugCompatibleScreenManifests
+2026-07-07T04:09:22.4209441Z > Task :app:extractDeepLinksDebug
+2026-07-07T04:09:22.7224539Z > Task :app:parseDebugLocalResources
+2026-07-07T04:09:22.8234670Z > Task :app:mergeDebugResources
+2026-07-07T04:09:22.9210945Z > Task :app:processDebugMainManifest
+2026-07-07T04:09:23.0208415Z > Task :app:processDebugManifest
+2026-07-07T04:09:23.0219033Z > Task :app:javaPreCompileDebug
+2026-07-07T04:09:23.0219824Z > Task :app:mergeDebugShaders
+2026-07-07T04:09:23.0220533Z > Task :app:compileDebugShaders NO-SOURCE
+2026-07-07T04:09:23.0221273Z > Task :app:generateDebugAssets UP-TO-DATE
+2026-07-07T04:09:23.1213164Z > Task :app:mergeDebugAssets
+2026-07-07T04:09:23.1214509Z > Task :app:compressDebugAssets
+2026-07-07T04:09:23.1216815Z > Task :app:desugarDebugFileDependencies
+2026-07-07T04:09:23.2219384Z > Task :app:mergeDebugJniLibFolders
+2026-07-07T04:09:23.2264430Z > Task :app:mergeDebugNativeLibs NO-SOURCE
+2026-07-07T04:09:23.2288194Z > Task :app:stripDebugDebugSymbols NO-SOURCE
+2026-07-07T04:09:23.3214176Z > Task :app:checkDebugDuplicateClasses
+2026-07-07T04:09:23.9224335Z > Task :app:validateSigningDebug
+2026-07-07T04:09:24.1277154Z > Task :app:processDebugManifestForPackage
+2026-07-07T04:09:24.1295514Z > Task :app:mergeLibDexDebug
+2026-07-07T04:09:24.3217191Z > Task :app:writeDebugAppMetadata
+2026-07-07T04:09:24.4224476Z > Task :app:writeDebugSigningConfigVersions
+2026-07-07T04:09:25.1236895Z > Task :app:processDebugResources
+2026-07-07T04:09:25.9269131Z > Task :app:generateReleaseKeystore
+2026-07-07T04:09:27.0229749Z > Task :app:buildKotlinToolingMetadata
+2026-07-07T04:09:27.0284320Z > Task :app:preReleaseBuild UP-TO-DATE
+2026-07-07T04:09:27.1264477Z > Task :app:checkReleaseAarMetadata
+2026-07-07T04:09:27.1316693Z > Task :app:generateReleaseResValues
+2026-07-07T04:09:27.1343873Z > Task :app:mapReleaseSourceSetPaths
+2026-07-07T04:09:27.1403883Z > Task :app:generateReleaseResources
+2026-07-07T04:09:28.1214708Z > Task :app:packageReleaseResources
+2026-07-07T04:09:29.3234347Z > Task :app:parseReleaseLocalResources
+2026-07-07T04:09:29.4224603Z > Task :app:createReleaseCompatibleScreenManifests
+2026-07-07T04:09:29.4284395Z > Task :app:extractDeepLinksRelease
+2026-07-07T04:09:29.6211577Z > Task :app:processReleaseMainManifest
+2026-07-07T04:09:29.6213467Z > Task :app:processReleaseManifest
+2026-07-07T04:09:29.6214322Z > Task :app:processReleaseManifestForPackage
+2026-07-07T04:09:29.6215109Z > Task :app:javaPreCompileRelease
+2026-07-07T04:09:29.6215800Z > Task :app:mergeReleaseResources
+2026-07-07T04:09:29.6216490Z > Task :app:extractProguardFiles
+2026-07-07T04:09:29.7220573Z > Task :app:mergeReleaseJniLibFolders
+2026-07-07T04:09:29.7243663Z > Task :app:mergeReleaseNativeLibs NO-SOURCE
+2026-07-07T04:09:29.7267114Z > Task :app:stripReleaseDebugSymbols NO-SOURCE
+2026-07-07T04:09:29.7293926Z > Task :app:extractReleaseNativeSymbolTables NO-SOURCE
+2026-07-07T04:09:29.7323861Z > Task :app:mergeReleaseNativeDebugMetadata NO-SOURCE
+2026-07-07T04:09:30.0215785Z > Task :app:processReleaseResources
+2026-07-07T04:09:30.0238323Z > Task :app:checkReleaseDuplicateClasses
+2026-07-07T04:09:40.1265218Z > Task :app:mergeReleaseArtProfile
+2026-07-07T04:09:40.1304095Z > Task :app:mergeReleaseShaders
+2026-07-07T04:09:40.1374026Z > Task :app:compileReleaseShaders NO-SOURCE
+2026-07-07T04:09:40.1430706Z > Task :app:generateReleaseAssets UP-TO-DATE
+2026-07-07T04:09:40.1475347Z > Task :app:mergeReleaseAssets
+2026-07-07T04:09:40.1475961Z > Task :app:compressReleaseAssets
+2026-07-07T04:09:40.1551746Z > Task :app:processApplicationManifestReleaseForBundle
+2026-07-07T04:09:40.3224439Z > Task :app:mergeExtDexDebug
+2026-07-07T04:09:40.5244229Z > Task :app:collectReleaseDependencies
+2026-07-07T04:09:40.7222230Z > Task :app:bundleReleaseResources
+2026-07-07T04:09:40.7233956Z > Task :app:sdkReleaseDependencyData
+2026-07-07T04:09:40.7294030Z > Task :app:validateSigningRelease
+2026-07-07T04:09:40.8209873Z > Task :app:writeReleaseAppMetadata
+2026-07-07T04:09:40.8210793Z > Task :app:writeReleaseSigningConfigVersions
+2026-07-07T04:09:44.8255666Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:257:17 Unexpected tokens (use ';' to separate expressions on the same line)
+2026-07-07T04:09:44.8324682Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:434:2 Unexpected tokens (use ';' to separate expressions on the same line)
+2026-07-07T04:09:44.8325782Z 
+2026-07-07T04:09:44.8327001Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:439:2 Unexpected tokens (use ';' to separate expressions on the same line)
+2026-07-07T04:09:44.8383889Z > Task :app:compileDebugKotlin
+2026-07-07T04:09:44.8464845Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:446:17 Expecting member declaration
+2026-07-07T04:09:44.8467181Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:446:20 Expecting member declaration
+2026-07-07T04:09:44.8506969Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:446:21 Expecting member declaration
+2026-07-07T04:09:44.8534528Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:446:25 Expecting member declaration
+2026-07-07T04:09:44.8607776Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:446:28 Expecting member declaration
+2026-07-07T04:09:44.8643926Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:446:30 Expecting member declaration
+2026-07-07T04:09:44.8704512Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:446:33 Expecting member declaration
+2026-07-07T04:09:44.8706106Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:446:41 Expecting member declaration
+2026-07-07T04:09:44.8728211Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:446:44 Expecting member declaration
+2026-07-07T04:09:44.8754681Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:446:45 Expecting member declaration
+2026-07-07T04:09:44.8769561Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:446:47 Expecting member declaration
+2026-07-07T04:09:44.8775653Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:454:1 Expecting an element
+2026-07-07T04:09:44.8777412Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:454:7 Expecting an element
+2026-07-07T04:09:44.8778971Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:454:13 Expecting an element
+2026-07-07T04:09:44.8780777Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:454:14 Unexpected tokens (use ';' to separate expressions on the same line)
+2026-07-07T04:09:44.8782573Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:457:3 Expecting '"'
+2026-07-07T04:09:44.8784417Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:463:15 Property getter or setter expected
+2026-07-07T04:09:44.8786094Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:463:20 Expecting member declaration
+2026-07-07T04:09:44.8787702Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:471:13 Expecting member declaration
+2026-07-07T04:09:44.8789091Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:471:16 Expecting member declaration
+2026-07-07T04:09:44.8790532Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:471:17 Expecting member declaration
+2026-07-07T04:09:44.8791952Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:471:24 Expecting member declaration
+2026-07-07T04:09:44.8793044Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:471:27 Expecting member declaration
+2026-07-07T04:09:44.8794189Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:471:28 Expecting member declaration
+2026-07-07T04:09:44.8795051Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:471:30 Expecting member declaration
+2026-07-07T04:09:44.8795902Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:477:13 Expecting member declaration
+2026-07-07T04:09:44.8796922Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:477:16 Expecting member declaration
+2026-07-07T04:09:44.8798340Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:477:17 Expecting member declaration
+2026-07-07T04:09:44.8809757Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:477:26 Expecting member declaration
+2026-07-07T04:09:44.8811256Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:477:29 Expecting member declaration
+2026-07-07T04:09:44.8812757Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:477:30 Expecting member declaration
+2026-07-07T04:09:44.8814480Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:477:32 Expecting member declaration
+2026-07-07T04:09:44.8815923Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:479:15 Expecting member declaration
+2026-07-07T04:09:44.8817390Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:479:20 Expecting member declaration
+2026-07-07T04:09:44.8818900Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:489:5 Expecting a top level declaration
+2026-07-07T04:09:44.8820434Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:654:1 Expecting a top level declaration
+2026-07-07T04:09:44.8822386Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:786:10 Unexpected tokens (use ';' to separate expressions on the same line)
+2026-07-07T04:09:44.8824413Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:820:13 Expecting '"'
+2026-07-07T04:09:44.8825740Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:821:33 Expecting '->'
+2026-07-07T04:09:44.8827073Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:821:42 Expecting an expression
+2026-07-07T04:09:44.8828450Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:821:42 Expecting '->'
+2026-07-07T04:09:44.8829794Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:821:53 Expecting an expression
+2026-07-07T04:09:44.8831145Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:821:53 Expecting '->'
+2026-07-07T04:09:44.8832493Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:821:54 Expecting an expression
+2026-07-07T04:09:44.8834218Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:821:55 Expecting an expression
+2026-07-07T04:09:44.8835551Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:821:55 Expecting '->'
+2026-07-07T04:09:44.8836853Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:833:24 Expecting '->'
+2026-07-07T04:09:44.8838201Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:833:25 Expecting an expression
+2026-07-07T04:09:44.8839509Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:833:25 Expecting '->'
+2026-07-07T04:09:44.8840774Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:833:26 Expecting an expression
+2026-07-07T04:09:44.8842110Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:833:26 Expecting '->'
+2026-07-07T04:09:44.8843657Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:833:26 Expecting an element
+2026-07-07T04:09:44.8845338Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:834:35 Unexpected tokens (use ';' to separate expressions on the same line)
+2026-07-07T04:09:44.8847015Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:837:30 Expecting 'catch' or 'finally'
+2026-07-07T04:09:44.8849579Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:838:50 Unexpected tokens (use ';' to separate expressions on the same line)
+2026-07-07T04:09:44.8851520Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:844:44 Unexpected tokens (use ';' to separate expressions on the same line)
+2026-07-07T04:09:44.8853980Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:850:49 Unexpected tokens (use ';' to separate expressions on the same line)
+2026-07-07T04:09:44.8855777Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:866:32 Expecting ')'
+2026-07-07T04:09:44.8857118Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:866:32 Unexpected type specification
+2026-07-07T04:09:44.8858793Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:897:14 Unexpected tokens (use ';' to separate expressions on the same line)
+2026-07-07T04:09:44.8860339Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:902:5 Expecting a top level declaration
+2026-07-07T04:09:44.8861920Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:908:5 Expecting a top level declaration
+2026-07-07T04:09:44.8864516Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:908:8 Expecting a top level declaration
+2026-07-07T04:09:44.8865551Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:908:9 Expecting a top level declaration
+2026-07-07T04:09:44.8866484Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:908:18 Expecting a top level declaration
+2026-07-07T04:09:44.8867389Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:908:20 Expecting a top level declaration
+2026-07-07T04:09:44.8868269Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:908:28 Expecting a top level declaration
+2026-07-07T04:09:44.8869161Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:908:29 Expecting a top level declaration
+2026-07-07T04:09:44.8870036Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:908:40 Expecting a top level declaration
+2026-07-07T04:09:44.8870898Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:908:41 Expecting a top level declaration
+2026-07-07T04:09:44.8871789Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:908:42 Expecting a top level declaration
+2026-07-07T04:09:44.8872667Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:908:44 Expecting a top level declaration
+2026-07-07T04:09:44.8874802Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1053:79 Expecting '"'
+2026-07-07T04:09:44.8875672Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1054:35 Expecting an element
+2026-07-07T04:09:44.8876500Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1054:36 Expecting ','
+2026-07-07T04:09:44.8877278Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1097:36 Expecting '"'
+2026-07-07T04:09:44.8878153Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1098:35 Expecting an element
+2026-07-07T04:09:44.8878944Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1098:36 Expecting ','
+2026-07-07T04:09:44.8879694Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1176:74 Expecting '"'
+2026-07-07T04:09:44.8880435Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1181:26 Expecting ')'
+2026-07-07T04:09:44.8881436Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1187:39 Expecting '"'
+2026-07-07T04:09:44.8882176Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1187:39 Expecting ')'
+2026-07-07T04:09:44.8882911Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1237:36 Expecting '"'
+2026-07-07T04:09:44.8884034Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1238:38 Expecting an element
+2026-07-07T04:09:44.8884807Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1238:39 Expecting ','
+2026-07-07T04:09:44.8885553Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1556:2 Expecting '}'
+2026-07-07T04:09:44.8886385Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:163:36 Unresolved reference: startScan
+2026-07-07T04:09:44.8887786Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:250:20 Unresolved reference: stopScan
+2026-07-07T04:09:44.8888659Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:253:24 Unresolved reference: connect
+2026-07-07T04:09:44.8889802Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:253:48 Cannot infer a type for this parameter. Please specify it explicitly.
+2026-07-07T04:09:44.8890817Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:269:20 Unresolved reference: disconnect
+2026-07-07T04:09:44.8891708Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:274:20 Unresolved reference: stopScan
+2026-07-07T04:09:44.8892592Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:275:20 Unresolved reference: disconnect
+2026-07-07T04:09:44.8894001Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:436:51 Unresolved reference: mfgData
+2026-07-07T04:09:44.8895467Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:440:29 'break' and 'continue' are only allowed inside a loop
+2026-07-07T04:09:44.8897021Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:446:47 Function declaration must have a name
+2026-07-07T04:09:44.8898533Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:447:92 Unresolved reference: scanRecord
+2026-07-07T04:09:44.8899697Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:447:133 Unresolved reference: scanRecord
+2026-07-07T04:09:44.8900579Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:449:58 Unresolved reference: name
+2026-07-07T04:09:44.8901436Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:452:29 Unresolved reference: soc
+2026-07-07T04:09:44.8902314Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:452:46 Unresolved reference: voltage
+2026-07-07T04:09:44.8903710Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:452:67 Unresolved reference: current
+2026-07-07T04:09:44.8904815Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:452:88 Unresolved reference: safety
+2026-07-07T04:09:44.8905658Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:453:68 Unresolved reference: soc
+2026-07-07T04:09:44.8906506Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:453:75 Unresolved reference: voltage
+2026-07-07T04:09:44.8907361Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:453:86 Unresolved reference: current
+2026-07-07T04:09:44.8908797Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:453:102 Unresolved reference: safety
+2026-07-07T04:09:44.8909652Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:454:3 Unresolved reference: soc
+2026-07-07T04:09:44.8911561Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:463:20 Conflicting overloads: public final fun `<no name provided>`(): Unit defined in com.dcsf.bms.BleManager, public final fun `<no name provided>`(): Unit defined in com.dcsf.bms.BleManager, public final fun `<no name provided>`(): Unit defined in com.dcsf.bms.BleManager, public final fun `<no name provided>`(): Unit defined in com.dcsf.bms.BleManager
+2026-07-07T04:09:44.8913608Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:463:20 Function declaration must have a name
+2026-07-07T04:09:44.8914526Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:467:36 Unresolved reference: name
+2026-07-07T04:09:44.8915391Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:467:42 Unresolved reference: result
+2026-07-07T04:09:44.8916243Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:467:65 Unresolved reference: result
+2026-07-07T04:09:44.8917235Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:467:78 Unresolved reference: soc
+2026-07-07T04:09:44.8918097Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:467:83 Unresolved reference: voltage
+2026-07-07T04:09:44.8918960Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:467:92 Unresolved reference: current
+2026-07-07T04:09:44.8919823Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:467:101 Unresolved reference: safety
+2026-07-07T04:09:44.8921655Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:471:30 Conflicting overloads: public final fun `<no name provided>`(): Unit defined in com.dcsf.bms.BleManager, public final fun `<no name provided>`(): Unit defined in com.dcsf.bms.BleManager, public final fun `<no name provided>`(): Unit defined in com.dcsf.bms.BleManager, public final fun `<no name provided>`(): Unit defined in com.dcsf.bms.BleManager
+2026-07-07T04:09:44.8924004Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:471:30 Function declaration must have a name
+2026-07-07T04:09:44.8924923Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:476:77 Unresolved reference: result
+2026-07-07T04:09:44.8927785Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:477:32 Conflicting overloads: public final fun `<no name provided>`(): Unit defined in com.dcsf.bms.BleManager, public final fun `<no name provided>`(): Unit defined in com.dcsf.bms.BleManager, public final fun `<no name provided>`(): Unit defined in com.dcsf.bms.BleManager, public final fun `<no name provided>`(): Unit defined in com.dcsf.bms.BleManager
+2026-07-07T04:09:44.8929587Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:477:32 Function declaration must have a name
+2026-07-07T04:09:44.8935279Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:479:20 Conflicting overloads: public final fun `<no name provided>`(): Unit defined in com.dcsf.bms.BleManager, public final fun `<no name provided>`(): Unit defined in com.dcsf.bms.BleManager, public final fun `<no name provided>`(): Unit defined in com.dcsf.bms.BleManager, public final fun `<no name provided>`(): Unit defined in com.dcsf.bms.BleManager
+2026-07-07T04:09:44.8942587Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:479:20 Function declaration must have a name
+2026-07-07T04:09:44.8944945Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:484:9 Modifier 'override' is not applicable to 'top level function'
+2026-07-07T04:09:44.8946691Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:485:13 Unresolved reference: scanning
+2026-07-07T04:09:44.8948095Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:485:22 Variable expected
+2026-07-07T04:09:44.8949080Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:486:13 Unresolved reference: scanStatus
+2026-07-07T04:09:44.8950519Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:486:24 Variable expected
+2026-07-07T04:09:44.8951454Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:493:9 Unresolved reference: bluetoothAdapter
+2026-07-07T04:09:44.8952415Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:495:13 Unresolved reference: bluetoothAdapter
+2026-07-07T04:09:44.8953605Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:496:13 Unresolved reference: scanStatus
+2026-07-07T04:09:44.8954685Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:496:24 Variable expected
+2026-07-07T04:09:44.8955523Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:497:13 Unresolved reference: scanning
+2026-07-07T04:09:44.8956360Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:497:22 Variable expected
+2026-07-07T04:09:44.8957235Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:500:13 Unresolved reference: bluetoothAdapter
+2026-07-07T04:09:44.8958131Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:501:13 Unresolved reference: scanStatus
+2026-07-07T04:09:44.8958976Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:501:24 Variable expected
+2026-07-07T04:09:44.8959788Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:502:13 Unresolved reference: scanning
+2026-07-07T04:09:44.8960601Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:502:22 Variable expected
+2026-07-07T04:09:44.8961420Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:512:13 Unresolved reference: scanStatus
+2026-07-07T04:09:44.8962274Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:512:24 Variable expected
+2026-07-07T04:09:44.8963085Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:513:13 Unresolved reference: scanning
+2026-07-07T04:09:44.8964558Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:513:22 Variable expected
+2026-07-07T04:09:44.8966022Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:517:23 Unresolved reference: bluetoothAdapter
+2026-07-07T04:09:44.8967565Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:519:13 Unresolved reference: scanStatus
+2026-07-07T04:09:44.8969247Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:519:24 Variable expected
+2026-07-07T04:09:44.8971104Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:520:13 Unresolved reference: scanning
+2026-07-07T04:09:44.8972832Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:520:22 Variable expected
+2026-07-07T04:09:44.8974854Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:526:9 Unresolved reference: missCount
+2026-07-07T04:09:44.8977597Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:527:9 Unresolved reference: backgroundScanCache
+2026-07-07T04:09:44.8979603Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:528:9 Unresolved reference: scanning
+2026-07-07T04:09:44.8981299Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:528:18 Variable expected
+2026-07-07T04:09:44.8983170Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:529:9 Unresolved reference: scanStatus
+2026-07-07T04:09:44.8985062Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:529:20 Variable expected
+2026-07-07T04:09:44.9002964Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:536:54 Unresolved reference: scanCallback
+2026-07-07T04:09:44.9005099Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:538:13 Unresolved reference: scanStatus
+2026-07-07T04:09:44.9006604Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:538:24 Variable expected
+2026-07-07T04:09:44.9008069Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:539:13 Unresolved reference: scanning
+2026-07-07T04:09:44.9009819Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:539:22 Variable expected
+2026-07-07T04:09:44.9011378Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:545:24 Unresolved reference: backgroundScanCache
+2026-07-07T04:09:44.9012968Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:545:58 Unresolved reference: it
+2026-07-07T04:09:44.9025075Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:550:21 Unresolved reference: devices
+2026-07-07T04:09:44.9026686Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:551:31 Unresolved reference: connectedDevice
+2026-07-07T04:09:44.9028269Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:551:80 Unresolved reference: isRemembered
+2026-07-07T04:09:44.9029830Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:556:27 Unresolved reference: devices
+2026-07-07T04:09:44.9031360Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:556:50 Unresolved reference: it
+2026-07-07T04:09:44.9032824Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:558:21 Unresolved reference: devices
+2026-07-07T04:09:44.9034566Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:560:17 Unresolved reference: missCount
+2026-07-07T04:09:44.9036066Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:563:30 Unresolved reference: missCount
+2026-07-07T04:09:44.9037622Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:564:17 Unresolved reference: missCount
+2026-07-07T04:09:44.9039190Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:568:25 Unresolved reference: missCount
+2026-07-07T04:09:44.9040740Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:571:35 Unresolved reference: devices
+2026-07-07T04:09:44.9042250Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:571:58 Unresolved reference: it
+2026-07-07T04:09:44.9044084Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:573:29 Unresolved reference: devices
+2026-07-07T04:09:44.9045630Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:575:25 Unresolved reference: missCount
+2026-07-07T04:09:44.9047551Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:582:24 Unresolved reference: backgroundScanCache
+2026-07-07T04:09:44.9049181Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:583:17 Unresolved reference: devices
+2026-07-07T04:09:44.9050702Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:583:32 Unresolved reference: it
+2026-07-07T04:09:44.9052163Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:583:66 Unresolved reference: devices
+2026-07-07T04:09:44.9238659Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:583:81 Unresolved reference: MAX_DEVICES
+2026-07-07T04:09:44.9279342Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:584:17 Unresolved reference: devices
+2026-07-07T04:09:44.9304631Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:585:17 Unresolved reference: missCount
+2026-07-07T04:09:44.9334426Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:590:13 Unresolved reference: devices
+2026-07-07T04:09:44.9354531Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:594:9 Unresolved reference: backgroundScanCache
+2026-07-07T04:09:44.9355882Z 
+2026-07-07T04:09:44.9364466Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:598:9 Unresolved reference: scanning
+2026-07-07T04:09:44.9404035Z > Task :app:compileDebugKotlin FAILED
+2026-07-07T04:09:44.9415110Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:598:18 Variable expected
+2026-07-07T04:09:44.9440474Z 
+2026-07-07T04:09:44.9444428Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:599:9 Unresolved reference: bluetoothAdapter
+2026-07-07T04:09:44.9445699Z > Task :app:compileReleaseKotlin FAILED
+2026-07-07T04:09:44.9464255Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:599:56 Unresolved reference: scanCallback
+2026-07-07T04:09:44.9484911Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:604:9 Unresolved reference: connectingDevice
+2026-07-07T04:09:44.9494730Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:604:26 Variable expected
+2026-07-07T04:09:44.9496596Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:605:23 Unresolved reference: bluetoothAdapter
+2026-07-07T04:09:44.9498502Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:606:32 Unresolved reference: connectingDevice
+2026-07-07T04:09:44.9500266Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:606:49 Variable expected
+2026-07-07T04:09:44.9502084Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:608:33 Unresolved reference: connectingDevice
+2026-07-07T04:09:44.9504136Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:608:50 Variable expected
+2026-07-07T04:09:44.9505861Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:611:9 Unresolved reference: bleConnection
+2026-07-07T04:09:44.9507583Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:611:24 Variable expected
+2026-07-07T04:09:44.9509288Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:612:9 Unresolved reference: bleConnection
+2026-07-07T04:09:44.9511093Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:613:9 Unresolved reference: bleConnection
+2026-07-07T04:09:44.9512876Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:617:13 Unresolved reference: connected
+2026-07-07T04:09:44.9544919Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:618:13 Unresolved reference: connected
+2026-07-07T04:09:44.9548662Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:618:23 Variable expected
+2026-07-07T04:09:44.9588280Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:619:13 Unresolved reference: connectedDevice
+2026-07-07T04:09:44.9604591Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:619:29 Variable expected
+2026-07-07T04:09:44.9634398Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:622:9 Unresolved reference: bleConnection
+2026-07-07T04:09:44.9645277Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:622:49 Unresolved reference: SERVICE_UUID
+2026-07-07T04:09:44.9647218Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:622:63 Unresolved reference: NOTIFY_UUID
+2026-07-07T04:09:44.9649090Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:622:76 Unresolved reference: WRITE_UUID
+2026-07-07T04:09:44.9651302Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:623:9 Unresolved reference: pendingDataCallback
+2026-07-07T04:09:44.9684609Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:623:36 Unresolved reference: bleConnection
+2026-07-07T04:09:44.9704628Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:623:51 Variable expected
+2026-07-07T04:09:44.9744469Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:623:68 Unresolved reference: it
+2026-07-07T04:09:44.9746425Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:624:9 Unresolved reference: bleConnection
+2026-07-07T04:09:44.9774438Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:624:24 Variable expected
+2026-07-07T04:09:44.9795443Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:625:13 Unresolved reference: connected
+2026-07-07T04:09:44.9808360Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:625:23 Variable expected
+2026-07-07T04:09:44.9824383Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:626:13 Unresolved reference: connectedDevice
+2026-07-07T04:09:44.9864257Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:626:29 Variable expected
+2026-07-07T04:09:44.9884457Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:628:9 Unresolved reference: bleConnection
+2026-07-07T04:09:44.9894749Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:628:43 Cannot infer a type for this parameter. Please specify it explicitly.
+2026-07-07T04:09:44.9927308Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:629:13 Unresolved reference: connectingDevice
+2026-07-07T04:09:44.9941907Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:629:30 Variable expected
+2026-07-07T04:09:44.9974573Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:631:17 Unresolved reference: connectedDevice
+2026-07-07T04:09:45.0000097Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:631:33 Variable expected
+2026-07-07T04:09:45.0024582Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:632:17 Unresolved reference: connectionError
+2026-07-07T04:09:45.0029229Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:632:33 Variable expected
+2026-07-07T04:09:45.0031818Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:639:9 Unresolved reference: bleConnection
+2026-07-07T04:09:45.0033976Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:640:9 Unresolved reference: bleConnection
+2026-07-07T04:09:45.0036058Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:641:9 Unresolved reference: connected
+2026-07-07T04:09:45.0037964Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:641:19 Variable expected
+2026-07-07T04:09:45.0039653Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:642:9 Unresolved reference: connectedDevice
+2026-07-07T04:09:45.0041291Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:642:25 Variable expected
+2026-07-07T04:09:45.0042893Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:646:14 Unresolved reference: connected
+2026-07-07T04:09:45.0044854Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:647:16 Unresolved reference: bleConnection
+2026-07-07T04:09:45.0046960Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:651:9 Unresolved reference: pendingDataCallback
+2026-07-07T04:09:45.0049263Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:652:9 Unresolved reference: bleConnection
+2026-07-07T04:09:45.0051020Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:652:24 Variable expected
+2026-07-07T04:09:45.0052791Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:717:20 Unresolved reference: setOnDataReceived
+2026-07-07T04:09:45.0055036Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:717:40 Cannot infer a type for this parameter. Please specify it explicitly.
+2026-07-07T04:09:45.0057014Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:719:64 Unresolved reference: it
+2026-07-07T04:09:45.0058880Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:728:24 Unresolved reference: processScanCycle
+2026-07-07T04:09:45.0095214Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:786:2 Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+2026-07-07T04:09:45.0124279Z public fun <T> Array<out TypeVariable(T)>.take(n: Int): List<TypeVariable(T)> defined in kotlin.collections
+2026-07-07T04:09:45.0154132Z public fun BooleanArray.take(n: Int): List<Boolean> defined in kotlin.collections
+2026-07-07T04:09:45.0160570Z public fun ByteArray.take(n: Int): List<Byte> defined in kotlin.collections
+2026-07-07T04:09:45.0184091Z public fun CharArray.take(n: Int): List<Char> defined in kotlin.collections
+2026-07-07T04:09:45.0204371Z public fun CharSequence.take(n: Int): CharSequence defined in kotlin.text
+2026-07-07T04:09:45.0224240Z public fun DoubleArray.take(n: Int): List<Double> defined in kotlin.collections
+2026-07-07T04:09:45.0254203Z public fun FloatArray.take(n: Int): List<Float> defined in kotlin.collections
+2026-07-07T04:09:45.0262651Z public fun IntArray.take(n: Int): List<Int> defined in kotlin.collections
+2026-07-07T04:09:45.0284969Z public fun LongArray.take(n: Int): List<Long> defined in kotlin.collections
+2026-07-07T04:09:45.0286053Z public fun ShortArray.take(n: Int): List<Short> defined in kotlin.collections
+2026-07-07T04:09:45.0297941Z public fun String.take(n: Int): String defined in kotlin.text
+2026-07-07T04:09:45.0298997Z public fun UByteArray.take(n: Int): List<UByte> defined in kotlin.collections
+2026-07-07T04:09:45.0300090Z public fun UIntArray.take(n: Int): List<UInt> defined in kotlin.collections
+2026-07-07T04:09:45.0301491Z public fun ULongArray.take(n: Int): List<ULong> defined in kotlin.collections
+2026-07-07T04:09:45.0302589Z public fun UShortArray.take(n: Int): List<UShort> defined in kotlin.collections
+2026-07-07T04:09:45.0304033Z public fun <T> Iterable<TypeVariable(T)>.take(n: Int): List<TypeVariable(T)> defined in kotlin.collections
+2026-07-07T04:09:45.0305416Z public fun <T> Sequence<TypeVariable(T)>.take(n: Int): Sequence<TypeVariable(T)> defined in kotlin.sequences
+2026-07-07T04:09:45.0307417Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:820:2 Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+2026-07-07T04:09:45.0309403Z public fun <T> Array<out TypeVariable(T)>.take(n: Int): List<TypeVariable(T)> defined in kotlin.collections
+2026-07-07T04:09:45.0310688Z public fun BooleanArray.take(n: Int): List<Boolean> defined in kotlin.collections
+2026-07-07T04:09:45.0311816Z public fun ByteArray.take(n: Int): List<Byte> defined in kotlin.collections
+2026-07-07T04:09:45.0312882Z public fun CharArray.take(n: Int): List<Char> defined in kotlin.collections
+2026-07-07T04:09:45.0314106Z public fun CharSequence.take(n: Int): CharSequence defined in kotlin.text
+2026-07-07T04:09:45.0315251Z public fun DoubleArray.take(n: Int): List<Double> defined in kotlin.collections
+2026-07-07T04:09:45.0316614Z public fun FloatArray.take(n: Int): List<Float> defined in kotlin.collections
+2026-07-07T04:09:45.0317716Z public fun IntArray.take(n: Int): List<Int> defined in kotlin.collections
+2026-07-07T04:09:45.0318768Z public fun LongArray.take(n: Int): List<Long> defined in kotlin.collections
+2026-07-07T04:09:45.0319876Z public fun ShortArray.take(n: Int): List<Short> defined in kotlin.collections
+2026-07-07T04:09:45.0320907Z public fun String.take(n: Int): String defined in kotlin.text
+2026-07-07T04:09:45.0321973Z public fun UByteArray.take(n: Int): List<UByte> defined in kotlin.collections
+2026-07-07T04:09:45.0323150Z public fun UIntArray.take(n: Int): List<UInt> defined in kotlin.collections
+2026-07-07T04:09:45.0331693Z public fun ULongArray.take(n: Int): List<ULong> defined in kotlin.collections
+2026-07-07T04:09:45.0333416Z public fun UShortArray.take(n: Int): List<UShort> defined in kotlin.collections
+2026-07-07T04:09:45.0334708Z public fun <T> Iterable<TypeVariable(T)>.take(n: Int): List<TypeVariable(T)> defined in kotlin.collections
+2026-07-07T04:09:45.0336153Z public fun <T> Sequence<TypeVariable(T)>.take(n: Int): Sequence<TypeVariable(T)> defined in kotlin.sequences
+2026-07-07T04:09:45.0337691Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:821:37 Unresolved reference: frame
+2026-07-07T04:09:45.0339538Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:821:44 Function invocation 'ByteArray(...)' expected
+2026-07-07T04:09:45.0341518Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:821:44 None of the following functions can be called with the arguments supplied: 
+2026-07-07T04:09:45.0344348Z public constructor ByteArray(size: Int) defined in kotlin.ByteArray
+2026-07-07T04:09:45.0345776Z public constructor ByteArray(size: Int, init: (Int) -> Byte) defined in kotlin.ByteArray
+2026-07-07T04:09:45.0347285Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:821:63 Unresolved reference: frameVal
+2026-07-07T04:09:45.0349160Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:823:51 Unresolved reference: frameVal
+2026-07-07T04:09:45.0351100Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:823:72 Unresolved reference: frameVal
+2026-07-07T04:09:45.0353014Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:826:45 Unresolved reference: frameVal
+2026-07-07T04:09:45.0354817Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:827:56 Unresolved reference: frameVal
+2026-07-07T04:09:45.0356737Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:827:79 Unresolved reference: frameVal
+2026-07-07T04:09:45.0358574Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:831:33 'if' must have both main and 'else' branches if used as an expression
+2026-07-07T04:09:45.0360485Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:831:33 Incompatible types: Unit and String!
+2026-07-07T04:09:45.0362188Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:831:37 Unresolved reference: frame
+2026-07-07T04:09:45.0363978Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:832:48 Unresolved reference: send
+2026-07-07T04:09:45.0365603Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:832:53 Unresolved reference: frame
+2026-07-07T04:09:45.0367287Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:833:18 Unresolved reference: it
+2026-07-07T04:09:45.0368951Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:851:48 Unresolved reference: payload
+2026-07-07T04:09:45.0370861Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:852:47 Unresolved reference: payload
+2026-07-07T04:09:45.0372540Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:853:48 Unresolved reference: payload
+2026-07-07T04:09:45.0374371Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:866:23 Unresolved reference: catch
+2026-07-07T04:09:45.0376012Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:866:30 Unresolved reference: _e
+2026-07-07T04:09:45.0377930Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:866:45 Type mismatch: inferred type is () -> Unit but String was expected
+2026-07-07T04:09:45.0379852Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:876:32 Unresolved reference: send
+2026-07-07T04:09:45.0381588Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:884:17 Expected a value of type WebView
+2026-07-07T04:09:45.0383570Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:898:13 Unresolved reference: loadUrl
+2026-07-07T04:09:45.0391966Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:899:29 'this' is not defined in this context
+2026-07-07T04:09:45.0394445Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:900:30 'this' is not defined in this context
+2026-07-07T04:09:45.0401186Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:906:27 Unresolved reference: bleManager
+2026-07-07T04:09:45.0402871Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:906:57 Unresolved reference: selectedTab
+2026-07-07T04:09:45.0405449Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:908:44 Functions which invoke @Composable functions must be marked with the @Composable annotation
+2026-07-07T04:09:45.0407606Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:908:44 Function declaration must have a name
+2026-07-07T04:09:45.0409373Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:910:13 Unresolved reference: isWideScreen
+2026-07-07T04:09:45.0411605Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:910:29 Unresolved reference: sidebarVisible
+2026-07-07T04:09:45.0413783Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:911:13 @Composable invocations can only happen from the context of a @Composable function
+2026-07-07T04:09:45.0416049Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:914:22 Unresolved reference: align
+2026-07-07T04:09:45.0417734Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:922:38 Unresolved reference: bleManager
+2026-07-07T04:09:45.0419419Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:923:34 Unresolved reference: colors
+2026-07-07T04:09:45.0424814Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:924:48 Unresolved reference: onRequestPermissions
+2026-07-07T04:09:45.0426638Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:925:43 Unresolved reference: onConnectDevice
+2026-07-07T04:09:45.0428371Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:926:40 Unresolved reference: onDisconnect
+2026-07-07T04:09:45.0430114Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:927:46 Unresolved reference: selectedTab
+2026-07-07T04:09:45.0431804Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:935:37 Unresolved reference: colors
+2026-07-07T04:09:45.0434175Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:941:1 @Composable invocations can only happen from the context of a @Composable function
+2026-07-07T04:09:45.0456733Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:944:22 Unresolved reference: isWideScreen
+2026-07-07T04:09:45.0458596Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:944:38 Unresolved reference: sidebarVisible
+2026-07-07T04:09:45.0460360Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:945:24 Unresolved reference: isWideScreen
+2026-07-07T04:09:45.0462107Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:946:21 Unresolved reference: isWideScreen
+2026-07-07T04:09:45.0463990Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:946:37 Unresolved reference: bleManager
+2026-07-07T04:09:45.0465826Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:948:13 Not enough information to infer type variable T
+2026-07-07T04:09:45.0467720Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:949:27 Unresolved reference: createWebView
+2026-07-07T04:09:45.0469497Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:954:18 Unresolved reference: bleManager
+2026-07-07T04:09:45.0471143Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:956:66 Unresolved reference: colors
+2026-07-07T04:09:45.0472800Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:960:130 Unresolved reference: colors
+2026-07-07T04:09:45.0474605Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:962:54 Unresolved reference: colors
+2026-07-07T04:09:45.0476133Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:968:18 Unresolved reference: isWideScreen
+2026-07-07T04:09:45.0477699Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:968:34 Unresolved reference: bleManager
+2026-07-07T04:09:45.0479252Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:973:37 Unresolved reference: colors
+2026-07-07T04:09:45.0480750Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:974:38 Unresolved reference: selectedTab
+2026-07-07T04:09:45.0482252Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:981:32 Unresolved reference: colors
+2026-07-07T04:09:45.0484332Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:986:25 Unresolved reference: bleManager
+2026-07-07T04:09:45.0485957Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:989:33 Unresolved reference: colors
+2026-07-07T04:09:45.0487723Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:996:14 Unresolved reference: isWideScreen
+2026-07-07T04:09:45.0489370Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:996:31 Unresolved reference: selectedTab
+2026-07-07T04:09:45.0490941Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:996:52 Unresolved reference: bleManager
+2026-07-07T04:09:45.0492796Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:997:13 @Composable invocations can only happen from the context of a @Composable function
+2026-07-07T04:09:45.0494906Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:998:30 Unresolved reference: bleManager
+2026-07-07T04:09:45.0496499Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:999:26 Unresolved reference: colors
+2026-07-07T04:09:45.0498498Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1000:40 Unresolved reference: onRequestPermissions
+2026-07-07T04:09:45.0509796Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1001:35 Unresolved reference: onConnectDevice
+2026-07-07T04:09:45.0511728Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1002:32 Unresolved reference: onDisconnect
+2026-07-07T04:09:45.0513752Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1003:38 Unresolved reference: selectedTab
+2026-07-07T04:09:45.0515528Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1011:13 Unresolved reference: isWideScreen
+2026-07-07T04:09:45.0517524Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1012:13 @Composable invocations can only happen from the context of a @Composable function
+2026-07-07T04:09:45.0519758Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1014:39 @Composable invocations can only happen from the context of a @Composable function
+2026-07-07T04:09:45.0521732Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1014:67 Unresolved reference: colors
+2026-07-07T04:09:45.0523838Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1015:42 @Composable invocations can only happen from the context of a @Composable function
+2026-07-07T04:09:45.0525813Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1017:22 Unresolved reference: align
+2026-07-07T04:09:45.0527537Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1018:37 Unresolved reference: sidebarVisible
+2026-07-07T04:09:45.0529321Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1020:34 Unresolved reference: sidebarVisible
+2026-07-07T04:09:45.0531068Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1020:52 Unresolved reference: sidebarVisible
+2026-07-07T04:09:45.0532797Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1024:29 Unresolved reference: sidebarVisible
+2026-07-07T04:09:45.0534702Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1025:50 Unresolved reference: sidebarVisible
+2026-07-07T04:09:45.0536370Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1026:32 Unresolved reference: colors
+2026-07-07T04:09:45.0538365Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1034:14 Unresolved reference: isWideScreen
+2026-07-07T04:09:45.0540363Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1035:13 @Composable invocations can only happen from the context of a @Composable function
+2026-07-07T04:09:45.0542346Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1036:34 Unresolved reference: colors
+2026-07-07T04:09:45.0544126Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1038:37 Unresolved reference: align
+2026-07-07T04:09:45.0545733Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1041:32 Unresolved reference: selectedTab
+2026-07-07T04:09:45.0547353Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1042:33 Unresolved reference: selectedTab
+2026-07-07T04:09:45.0549142Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1044:25 None of the following functions can be called with the arguments supplied: 
+2026-07-07T04:09:45.0551056Z public fun Icon(bitmap: ImageBitmap, contentDescription: String?, modifier: Modifier = ..., tint: Color = ...): Unit defined in androidx.compose.material3
+2026-07-07T04:09:45.0553119Z public fun Icon(painter: Painter, contentDescription: String?, modifier: Modifier = ..., tint: Color = ...): Unit defined in androidx.compose.material3
+2026-07-07T04:09:45.0555256Z public fun Icon(imageVector: ImageVector, contentDescription: String?, modifier: Modifier = ..., tint: Color = ...): Unit defined in androidx.compose.material3
+2026-07-07T04:09:45.0557048Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1045:33 Unresolved reference: bleManager
+2026-07-07T04:09:45.0558713Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1048:40 Unresolved reference: selectedTab
+2026-07-07T04:09:45.0560423Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1048:58 Unresolved reference: colors
+2026-07-07T04:09:45.0564320Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1048:78 Unresolved reference: colors
+2026-07-07T04:09:45.0566070Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1052:25 None of the following functions can be called with the arguments supplied: 
+2026-07-07T04:09:45.0570048Z public fun Text(text: AnnotatedString, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., inlineContent: Map<String, InlineTextContent> = ..., onTextLayout: (TextLayoutResult) -> Unit = ..., style: TextStyle = ...): Unit defined in androidx.compose.material3
+2026-07-07T04:09:45.0575248Z public fun Text(text: String, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., onTextLayout: ((TextLayoutResult) -> Unit)? = ..., style: TextStyle = ...): Unit defined in androidx.compose.material3
+2026-07-07T04:09:45.0578409Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1053:29 'if' must have both main and 'else' branches if used as an expression
+2026-07-07T04:09:45.0579965Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1053:33 Unresolved reference: bleManager
+2026-07-07T04:09:45.0582023Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1053:74 Unresolved reference: 钃濈墮
+2026-07-07T04:09:45.0583694Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1053:74 Unsupported [literal prefixes and suffixes]
+2026-07-07T04:09:45.0587647Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1054:41 Unresolved reference: selectedTab
+2026-07-07T04:09:45.0589377Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1054:59 Unresolved reference: colors
+2026-07-07T04:09:45.0591085Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1054:79 Unresolved reference: colors
+2026-07-07T04:09:45.0592726Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1066:45 Unresolved reference: colors
+2026-07-07T04:09:45.0594568Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1072:40 Unresolved reference: colors
+2026-07-07T04:09:45.0596236Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1080:37 Unresolved reference: colors
+2026-07-07T04:09:45.0598169Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1086:32 Unresolved reference: selectedTab
+2026-07-07T04:09:45.0599936Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1087:37 Unresolved reference: bleManager
+2026-07-07T04:09:45.0601633Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1087:65 Unresolved reference: selectedTab
+2026-07-07T04:09:45.0603713Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1089:25 None of the following functions can be called with the arguments supplied: 
+2026-07-07T04:09:45.0605831Z public fun Icon(bitmap: ImageBitmap, contentDescription: String?, modifier: Modifier = ..., tint: Color = ...): Unit defined in androidx.compose.material3
+2026-07-07T04:09:45.0607739Z public fun Icon(painter: Painter, contentDescription: String?, modifier: Modifier = ..., tint: Color = ...): Unit defined in androidx.compose.material3
+2026-07-07T04:09:45.0609654Z public fun Icon(imageVector: ImageVector, contentDescription: String?, modifier: Modifier = ..., tint: Color = ...): Unit defined in androidx.compose.material3
+2026-07-07T04:09:45.0611396Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1092:40 Unresolved reference: selectedTab
+2026-07-07T04:09:45.0612945Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1092:58 Unresolved reference: colors
+2026-07-07T04:09:45.0617861Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1092:78 Unresolved reference: colors
+2026-07-07T04:09:45.0619922Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1096:25 None of the following functions can be called with the arguments supplied: 
+2026-07-07T04:09:45.0624497Z public fun Text(text: AnnotatedString, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., inlineContent: Map<String, InlineTextContent> = ..., onTextLayout: (TextLayoutResult) -> Unit = ..., style: TextStyle = ...): Unit defined in androidx.compose.material3
+2026-07-07T04:09:45.0630422Z public fun Text(text: String, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., onTextLayout: ((TextLayoutResult) -> Unit)? = ..., style: TextStyle = ...): Unit defined in androidx.compose.material3
+2026-07-07T04:09:45.0634582Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1098:29 Unresolved reference: color
+2026-07-07T04:09:45.0636183Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1098:41 Unresolved reference: selectedTab
+2026-07-07T04:09:45.0637748Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1098:59 Unresolved reference: colors
+2026-07-07T04:09:45.0639380Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1098:79 Unresolved reference: colors
+2026-07-07T04:09:45.0641010Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1128:28 Unresolved reference: startScan
+2026-07-07T04:09:45.0642864Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1176:21 None of the following functions can be called with the arguments supplied: 
+2026-07-07T04:09:45.0647464Z public fun Text(text: AnnotatedString, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., inlineContent: Map<String, InlineTextContent> = ..., onTextLayout: (TextLayoutResult) -> Unit = ..., style: TextStyle = ...): Unit defined in androidx.compose.material3
+2026-07-07T04:09:45.0653590Z public fun Text(text: String, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., onTextLayout: ((TextLayoutResult) -> Unit)? = ..., style: TextStyle = ...): Unit defined in androidx.compose.material3
+2026-07-07T04:09:45.0657328Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1177:21 Unresolved reference: Spacer
+2026-07-07T04:09:45.0659052Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1179:25 Unresolved reference: onClick
+2026-07-07T04:09:45.0661023Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1179:25 Assignments are not expressions, and only expressions are allowed in this context
+2026-07-07T04:09:45.0663017Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1180:72 Unresolved reference: startScan
+2026-07-07T04:09:45.0665371Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1185:25 @Composable invocations can only happen from the context of a @Composable function
+2026-07-07T04:09:45.0675624Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1186:25 @Composable invocations can only happen from the context of a @Composable function
+2026-07-07T04:09:45.0678407Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1187:25 @Composable invocations can only happen from the context of a @Composable function
+2026-07-07T04:09:45.0680226Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1220:25 Unresolved reference: SwipeDeviceCard
+2026-07-07T04:09:45.0682307Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1236:25 None of the following functions can be called with the arguments supplied: 
+2026-07-07T04:09:45.0686149Z public fun Text(text: AnnotatedString, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., inlineContent: Map<String, InlineTextContent> = ..., onTextLayout: (TextLayoutResult) -> Unit = ..., style: TextStyle = ...): Unit defined in androidx.compose.material3
+2026-07-07T04:09:45.0692144Z public fun Text(text: String, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., onTextLayout: ((TextLayoutResult) -> Unit)? = ..., style: TextStyle = ...): Unit defined in androidx.compose.material3
+2026-07-07T04:09:45.0696048Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1238:29 Unresolved reference: fontSize
+2026-07-07T04:09:45.0697628Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1247:25 Unresolved reference: SwipeDeviceCard
+2026-07-07T04:09:45.0699192Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1317:17 Unresolved reference: ConnectedCard
+2026-07-07T04:09:45.0700712Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1319:17 Unresolved reference: DeviceCard
+2026-07-07T04:09:45.0702229Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1331:13 Unresolved reference: ConnectedCard
+2026-07-07T04:09:45.0704068Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1333:13 Unresolved reference: DeviceCard
+2026-07-07T04:09:45.0705556Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1350:13 Unresolved reference: SocCircle
+2026-07-07T04:09:45.0707033Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1362:25 Unresolved reference: RssiIndicator
+2026-07-07T04:09:45.0708528Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1375:17 Unresolved reference: SafetyFlagRow
+2026-07-07T04:09:45.0709981Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1403:21 Unresolved reference: SocCircle
+2026-07-07T04:09:45.0711711Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1411:29 Unresolved reference: RssiIndicator
+2026-07-07T04:09:45.0713347Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1424:21 Unresolved reference: SafetyFlagRow
+2026-07-07T04:09:45.0714933Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:257:17 Unexpected tokens (use ';' to separate expressions on the same line)
+2026-07-07T04:09:45.0716675Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:434:2 Unexpected tokens (use ';' to separate expressions on the same line)
+2026-07-07T04:09:45.0718335Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:439:2 Unexpected tokens (use ';' to separate expressions on the same line)
+2026-07-07T04:09:45.0719909Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:446:17 Expecting member declaration
+2026-07-07T04:09:45.0721193Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:446:20 Expecting member declaration
+2026-07-07T04:09:45.0722705Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:446:21 Expecting member declaration
+2026-07-07T04:09:45.0724184Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:446:25 Expecting member declaration
+2026-07-07T04:09:45.0725382Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:446:28 Expecting member declaration
+2026-07-07T04:09:45.0726571Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:446:30 Expecting member declaration
+2026-07-07T04:09:45.0727753Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:446:33 Expecting member declaration
+2026-07-07T04:09:45.0728937Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:446:41 Expecting member declaration
+2026-07-07T04:09:45.0730145Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:446:44 Expecting member declaration
+2026-07-07T04:09:45.0731336Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:446:45 Expecting member declaration
+2026-07-07T04:09:45.0732703Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:446:47 Expecting member declaration
+2026-07-07T04:09:45.0734033Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:454:1 Expecting an element
+2026-07-07T04:09:45.0735145Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:454:7 Expecting an element
+2026-07-07T04:09:45.0736253Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:454:13 Expecting an element
+2026-07-07T04:09:45.0737590Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:454:14 Unexpected tokens (use ';' to separate expressions on the same line)
+2026-07-07T04:09:45.0738904Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:457:3 Expecting '"'
+2026-07-07T04:09:45.0740067Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:463:15 Property getter or setter expected
+2026-07-07T04:09:45.0741319Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:463:20 Expecting member declaration
+2026-07-07T04:09:45.0742678Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:471:13 Expecting member declaration
+2026-07-07T04:09:45.0744180Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:471:16 Expecting member declaration
+2026-07-07T04:09:45.0745563Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:471:17 Expecting member declaration
+2026-07-07T04:09:45.0746950Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:471:24 Expecting member declaration
+2026-07-07T04:09:45.0748305Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:471:27 Expecting member declaration
+2026-07-07T04:09:45.0749660Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:471:28 Expecting member declaration
+2026-07-07T04:09:45.0751013Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:471:30 Expecting member declaration
+2026-07-07T04:09:45.0752351Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:477:13 Expecting member declaration
+2026-07-07T04:09:45.0753833Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:477:16 Expecting member declaration
+2026-07-07T04:09:45.0755173Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:477:17 Expecting member declaration
+2026-07-07T04:09:45.0756719Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:477:26 Expecting member declaration
+2026-07-07T04:09:45.0758071Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:477:29 Expecting member declaration
+2026-07-07T04:09:45.0759413Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:477:30 Expecting member declaration
+2026-07-07T04:09:45.0760734Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:477:32 Expecting member declaration
+2026-07-07T04:09:45.0762053Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:479:15 Expecting member declaration
+2026-07-07T04:09:45.0763529Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:479:20 Expecting member declaration
+2026-07-07T04:09:45.0764921Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:489:5 Expecting a top level declaration
+2026-07-07T04:09:45.0766371Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:654:1 Expecting a top level declaration
+2026-07-07T04:09:45.0768152Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:786:10 Unexpected tokens (use ';' to separate expressions on the same line)
+2026-07-07T04:09:45.0769644Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:820:13 Expecting '"'
+2026-07-07T04:09:45.0770865Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:821:33 Expecting '->'
+2026-07-07T04:09:45.0772116Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:821:42 Expecting an expression
+2026-07-07T04:09:45.0773515Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:821:42 Expecting '->'
+2026-07-07T04:09:45.0774720Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:821:53 Expecting an expression
+2026-07-07T04:09:45.0776255Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:821:53 Expecting '->'
+2026-07-07T04:09:45.0777509Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:821:54 Expecting an expression
+2026-07-07T04:09:45.0778818Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:821:55 Expecting an expression
+2026-07-07T04:09:45.0780004Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:821:55 Expecting '->'
+2026-07-07T04:09:45.0781245Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:833:24 Expecting '->'
+2026-07-07T04:09:45.0782487Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:833:25 Expecting an expression
+2026-07-07T04:09:45.0783960Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:833:25 Expecting '->'
+2026-07-07T04:09:45.0785547Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:833:26 Expecting an expression
+2026-07-07T04:09:45.0786821Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:833:26 Expecting '->'
+2026-07-07T04:09:45.0788091Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:833:26 Expecting an element
+2026-07-07T04:09:45.0789742Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:834:35 Unexpected tokens (use ';' to separate expressions on the same line)
+2026-07-07T04:09:45.0791567Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:837:30 Expecting 'catch' or 'finally'
+2026-07-07T04:09:45.0793789Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:838:50 Unexpected tokens (use ';' to separate expressions on the same line)
+2026-07-07T04:09:45.0795666Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:844:44 Unexpected tokens (use ';' to separate expressions on the same line)
+2026-07-07T04:09:45.0797535Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:850:49 Unexpected tokens (use ';' to separate expressions on the same line)
+2026-07-07T04:09:45.0799092Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:866:32 Expecting ')'
+2026-07-07T04:09:45.0800473Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:866:32 Unexpected type specification
+2026-07-07T04:09:45.0802172Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:897:14 Unexpected tokens (use ';' to separate expressions on the same line)
+2026-07-07T04:09:45.0804001Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:902:5 Expecting a top level declaration
+2026-07-07T04:09:45.0805445Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:908:5 Expecting a top level declaration
+2026-07-07T04:09:45.0807084Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:908:8 Expecting a top level declaration
+2026-07-07T04:09:45.0808490Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:908:9 Expecting a top level declaration
+2026-07-07T04:09:45.0809899Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:908:18 Expecting a top level declaration
+2026-07-07T04:09:45.0811323Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:908:20 Expecting a top level declaration
+2026-07-07T04:09:45.0813116Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:908:28 Expecting a top level declaration
+2026-07-07T04:09:45.0814653Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:908:29 Expecting a top level declaration
+2026-07-07T04:09:45.0816071Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:908:40 Expecting a top level declaration
+2026-07-07T04:09:45.0817830Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:908:41 Expecting a top level declaration
+2026-07-07T04:09:45.0819197Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:908:42 Expecting a top level declaration
+2026-07-07T04:09:45.0820753Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:908:44 Expecting a top level declaration
+2026-07-07T04:09:45.0822187Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1053:79 Expecting '"'
+2026-07-07T04:09:45.0823949Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1054:35 Expecting an element
+2026-07-07T04:09:45.0825370Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1054:36 Expecting ','
+2026-07-07T04:09:45.0826688Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1097:36 Expecting '"'
+2026-07-07T04:09:45.0828069Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1098:35 Expecting an element
+2026-07-07T04:09:45.0829425Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1098:36 Expecting ','
+2026-07-07T04:09:45.0830772Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1176:74 Expecting '"'
+2026-07-07T04:09:45.0832125Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1181:26 Expecting ')'
+2026-07-07T04:09:45.0833776Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1187:39 Expecting '"'
+2026-07-07T04:09:45.0835122Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1187:39 Expecting ')'
+2026-07-07T04:09:45.0836407Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1237:36 Expecting '"'
+2026-07-07T04:09:45.0837713Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1238:38 Expecting an element
+2026-07-07T04:09:45.0839079Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1238:39 Expecting ','
+2026-07-07T04:09:45.0840391Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1556:2 Expecting '}'
+2026-07-07T04:09:45.0841740Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:163:36 Unresolved reference: startScan
+2026-07-07T04:09:45.0843179Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:250:20 Unresolved reference: stopScan
+2026-07-07T04:09:45.0844816Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:253:24 Unresolved reference: connect
+2026-07-07T04:09:45.0846761Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:253:48 Cannot infer a type for this parameter. Please specify it explicitly.
+2026-07-07T04:09:45.0848534Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:269:20 Unresolved reference: disconnect
+2026-07-07T04:09:45.0850043Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:274:20 Unresolved reference: stopScan
+2026-07-07T04:09:45.0851682Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:275:20 Unresolved reference: disconnect
+2026-07-07T04:09:45.0853422Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:436:51 Unresolved reference: mfgData
+2026-07-07T04:09:45.0855109Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:440:29 'break' and 'continue' are only allowed inside a loop
+2026-07-07T04:09:45.0856833Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:446:47 Function declaration must have a name
+2026-07-07T04:09:45.0858386Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:447:92 Unresolved reference: scanRecord
+2026-07-07T04:09:45.0859943Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:447:133 Unresolved reference: scanRecord
+2026-07-07T04:09:45.0861444Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:449:58 Unresolved reference: name
+2026-07-07T04:09:45.0862893Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:452:29 Unresolved reference: soc
+2026-07-07T04:09:45.0864656Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:452:46 Unresolved reference: voltage
+2026-07-07T04:09:45.0866226Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:452:67 Unresolved reference: current
+2026-07-07T04:09:45.0867819Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:452:88 Unresolved reference: safety
+2026-07-07T04:09:45.0869385Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:453:68 Unresolved reference: soc
+2026-07-07T04:09:45.0870929Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:453:75 Unresolved reference: voltage
+2026-07-07T04:09:45.0872411Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:453:86 Unresolved reference: current
+2026-07-07T04:09:45.0874272Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:453:102 Unresolved reference: safety
+2026-07-07T04:09:45.0876074Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:454:3 Unresolved reference: soc
+2026-07-07T04:09:45.0879275Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:463:20 Conflicting overloads: public final fun `<no name provided>`(): Unit defined in com.dcsf.bms.BleManager, public final fun `<no name provided>`(): Unit defined in com.dcsf.bms.BleManager, public final fun `<no name provided>`(): Unit defined in com.dcsf.bms.BleManager, public final fun `<no name provided>`(): Unit defined in com.dcsf.bms.BleManager
+2026-07-07T04:09:45.0882671Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:463:20 Function declaration must have a name
+2026-07-07T04:09:45.0884354Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:467:36 Unresolved reference: name
+2026-07-07T04:09:45.0885863Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:467:42 Unresolved reference: result
+2026-07-07T04:09:45.0887324Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:467:65 Unresolved reference: result
+2026-07-07T04:09:45.0889036Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:467:78 Unresolved reference: soc
+2026-07-07T04:09:45.0890513Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:467:83 Unresolved reference: voltage
+2026-07-07T04:09:45.0892004Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:467:92 Unresolved reference: current
+2026-07-07T04:09:45.0893746Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:467:101 Unresolved reference: safety
+2026-07-07T04:09:45.0896956Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:471:30 Conflicting overloads: public final fun `<no name provided>`(): Unit defined in com.dcsf.bms.BleManager, public final fun `<no name provided>`(): Unit defined in com.dcsf.bms.BleManager, public final fun `<no name provided>`(): Unit defined in com.dcsf.bms.BleManager, public final fun `<no name provided>`(): Unit defined in com.dcsf.bms.BleManager
+2026-07-07T04:09:45.0900086Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:471:30 Function declaration must have a name
+2026-07-07T04:09:45.0901671Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:476:77 Unresolved reference: result
+2026-07-07T04:09:45.0904888Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:477:32 Conflicting overloads: public final fun `<no name provided>`(): Unit defined in com.dcsf.bms.BleManager, public final fun `<no name provided>`(): Unit defined in com.dcsf.bms.BleManager, public final fun `<no name provided>`(): Unit defined in com.dcsf.bms.BleManager, public final fun `<no name provided>`(): Unit defined in com.dcsf.bms.BleManager
+2026-07-07T04:09:45.0908123Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:477:32 Function declaration must have a name
+2026-07-07T04:09:45.0911276Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:479:20 Conflicting overloads: public final fun `<no name provided>`(): Unit defined in com.dcsf.bms.BleManager, public final fun `<no name provided>`(): Unit defined in com.dcsf.bms.BleManager, public final fun `<no name provided>`(): Unit defined in com.dcsf.bms.BleManager, public final fun `<no name provided>`(): Unit defined in com.dcsf.bms.BleManager
+2026-07-07T04:09:45.0915142Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:479:20 Function declaration must have a name
+2026-07-07T04:09:45.0917288Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:484:9 Modifier 'override' is not applicable to 'top level function'
+2026-07-07T04:09:45.0918955Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:485:13 Unresolved reference: scanning
+2026-07-07T04:09:45.0920403Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:485:22 Variable expected
+2026-07-07T04:09:45.0921780Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:486:13 Unresolved reference: scanStatus
+2026-07-07T04:09:45.0923398Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:486:24 Variable expected
+2026-07-07T04:09:45.0924888Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:493:9 Unresolved reference: bluetoothAdapter
+2026-07-07T04:09:45.0926531Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:495:13 Unresolved reference: bluetoothAdapter
+2026-07-07T04:09:45.0928116Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:496:13 Unresolved reference: scanStatus
+2026-07-07T04:09:45.0929675Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:496:24 Variable expected
+2026-07-07T04:09:45.0931038Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:497:13 Unresolved reference: scanning
+2026-07-07T04:09:45.0932406Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:497:22 Variable expected
+2026-07-07T04:09:45.0933969Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:500:13 Unresolved reference: bluetoothAdapter
+2026-07-07T04:09:45.0935569Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:501:13 Unresolved reference: scanStatus
+2026-07-07T04:09:45.0936949Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:501:24 Variable expected
+2026-07-07T04:09:45.0938397Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:502:13 Unresolved reference: scanning
+2026-07-07T04:09:45.0939877Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:502:22 Variable expected
+2026-07-07T04:09:45.0941365Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:512:13 Unresolved reference: scanStatus
+2026-07-07T04:09:45.0942819Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:512:24 Variable expected
+2026-07-07T04:09:45.0944411Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:513:13 Unresolved reference: scanning
+2026-07-07T04:09:45.0945747Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:513:22 Variable expected
+2026-07-07T04:09:45.0947221Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:517:23 Unresolved reference: bluetoothAdapter
+2026-07-07T04:09:45.0948678Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:519:13 Unresolved reference: scanStatus
+2026-07-07T04:09:45.0950143Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:519:24 Variable expected
+2026-07-07T04:09:45.0951634Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:520:13 Unresolved reference: scanning
+2026-07-07T04:09:45.0953087Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:520:22 Variable expected
+2026-07-07T04:09:45.0954690Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:526:9 Unresolved reference: missCount
+2026-07-07T04:09:45.0956420Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:527:9 Unresolved reference: backgroundScanCache
+2026-07-07T04:09:45.0958600Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:528:9 Unresolved reference: scanning
+2026-07-07T04:09:45.0960033Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:528:18 Variable expected
+2026-07-07T04:09:45.0961509Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:529:9 Unresolved reference: scanStatus
+2026-07-07T04:09:45.0962947Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:529:20 Variable expected
+2026-07-07T04:09:45.0964774Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:536:54 Unresolved reference: scanCallback
+2026-07-07T04:09:45.0966332Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:538:13 Unresolved reference: scanStatus
+2026-07-07T04:09:45.0967775Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:538:24 Variable expected
+2026-07-07T04:09:45.0969215Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:539:13 Unresolved reference: scanning
+2026-07-07T04:09:45.0970886Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:539:22 Variable expected
+2026-07-07T04:09:45.0972389Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:545:24 Unresolved reference: backgroundScanCache
+2026-07-07T04:09:45.0974097Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:545:58 Unresolved reference: it
+2026-07-07T04:09:45.0975855Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:550:21 Unresolved reference: devices
+2026-07-07T04:09:45.0978064Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:551:31 Unresolved reference: connectedDevice
+2026-07-07T04:09:45.0979941Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:551:80 Unresolved reference: isRemembered
+2026-07-07T04:09:45.0981665Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:556:27 Unresolved reference: devices
+2026-07-07T04:09:45.0983882Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:556:50 Unresolved reference: it
+2026-07-07T04:09:45.0985481Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:558:21 Unresolved reference: devices
+2026-07-07T04:09:45.1007817Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:560:17 Unresolved reference: missCount
+2026-07-07T04:09:45.1009481Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:563:30 Unresolved reference: missCount
+2026-07-07T04:09:45.1011097Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:564:17 Unresolved reference: missCount
+2026-07-07T04:09:45.1012651Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:568:25 Unresolved reference: missCount
+2026-07-07T04:09:45.1014743Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:571:35 Unresolved reference: devices
+2026-07-07T04:09:45.1016242Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:571:58 Unresolved reference: it
+2026-07-07T04:09:45.1017617Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:573:29 Unresolved reference: devices
+2026-07-07T04:09:45.1019058Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:575:25 Unresolved reference: missCount
+2026-07-07T04:09:45.1020887Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:582:24 Unresolved reference: backgroundScanCache
+2026-07-07T04:09:45.1022437Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:583:17 Unresolved reference: devices
+2026-07-07T04:09:45.1024032Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:583:32 Unresolved reference: it
+2026-07-07T04:09:45.1025448Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:583:66 Unresolved reference: devices
+2026-07-07T04:09:45.1026917Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:583:81 Unresolved reference: MAX_DEVICES
+2026-07-07T04:09:45.1028410Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:584:17 Unresolved reference: devices
+2026-07-07T04:09:45.1029855Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:585:17 Unresolved reference: missCount
+2026-07-07T04:09:45.1031333Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:590:13 Unresolved reference: devices
+2026-07-07T04:09:45.1032877Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:594:9 Unresolved reference: backgroundScanCache
+2026-07-07T04:09:45.1035287Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:598:9 Unresolved reference: scanning
+2026-07-07T04:09:45.1036660Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:598:18 Variable expected
+2026-07-07T04:09:45.1038061Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:599:9 Unresolved reference: bluetoothAdapter
+2026-07-07T04:09:45.1039545Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:599:56 Unresolved reference: scanCallback
+2026-07-07T04:09:45.1041042Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:604:9 Unresolved reference: connectingDevice
+2026-07-07T04:09:45.1042451Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:604:26 Variable expected
+2026-07-07T04:09:45.1044037Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:605:23 Unresolved reference: bluetoothAdapter
+2026-07-07T04:09:45.1045678Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:606:32 Unresolved reference: connectingDevice
+2026-07-07T04:09:45.1047193Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:606:49 Variable expected
+2026-07-07T04:09:45.1048679Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:608:33 Unresolved reference: connectingDevice
+2026-07-07T04:09:45.1050190Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:608:50 Variable expected
+2026-07-07T04:09:45.1051532Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:611:9 Unresolved reference: bleConnection
+2026-07-07T04:09:45.1052849Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:611:24 Variable expected
+2026-07-07T04:09:45.1054435Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:612:9 Unresolved reference: bleConnection
+2026-07-07T04:09:45.1055896Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:613:9 Unresolved reference: bleConnection
+2026-07-07T04:09:45.1057228Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:617:13 Unresolved reference: connected
+2026-07-07T04:09:45.1058555Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:618:13 Unresolved reference: connected
+2026-07-07T04:09:45.1060177Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:618:23 Variable expected
+2026-07-07T04:09:45.1061495Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:619:13 Unresolved reference: connectedDevice
+2026-07-07T04:09:45.1064082Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:619:29 Variable expected
+2026-07-07T04:09:45.1065604Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:622:9 Unresolved reference: bleConnection
+2026-07-07T04:09:45.1067157Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:622:49 Unresolved reference: SERVICE_UUID
+2026-07-07T04:09:45.1068710Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:622:63 Unresolved reference: NOTIFY_UUID
+2026-07-07T04:09:45.1071182Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:622:76 Unresolved reference: WRITE_UUID
+2026-07-07T04:09:45.1072810Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:623:9 Unresolved reference: pendingDataCallback
+2026-07-07T04:09:45.1074618Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:623:36 Unresolved reference: bleConnection
+2026-07-07T04:09:45.1076380Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:623:51 Variable expected
+2026-07-07T04:09:45.1079276Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:623:68 Unresolved reference: it
+2026-07-07T04:09:45.1080824Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:624:9 Unresolved reference: bleConnection
+2026-07-07T04:09:45.1082320Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:624:24 Variable expected
+2026-07-07T04:09:45.1083968Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:625:13 Unresolved reference: connected
+2026-07-07T04:09:45.1085454Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:625:23 Variable expected
+2026-07-07T04:09:45.1086950Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:626:13 Unresolved reference: connectedDevice
+2026-07-07T04:09:45.1088443Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:626:29 Variable expected
+2026-07-07T04:09:45.1089917Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:628:9 Unresolved reference: bleConnection
+2026-07-07T04:09:45.1091662Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:628:43 Cannot infer a type for this parameter. Please specify it explicitly.
+2026-07-07T04:09:45.1094716Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:629:13 Unresolved reference: connectingDevice
+2026-07-07T04:09:45.1096273Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:629:30 Variable expected
+2026-07-07T04:09:45.1097732Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:631:17 Unresolved reference: connectedDevice
+2026-07-07T04:09:45.1099202Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:631:33 Variable expected
+2026-07-07T04:09:45.1100774Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:632:17 Unresolved reference: connectionError
+2026-07-07T04:09:45.1102316Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:632:33 Variable expected
+2026-07-07T04:09:45.1103996Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:639:9 Unresolved reference: bleConnection
+2026-07-07T04:09:45.1105960Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:640:9 Unresolved reference: bleConnection
+2026-07-07T04:09:45.1107459Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:641:9 Unresolved reference: connected
+2026-07-07T04:09:45.1108861Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:641:19 Variable expected
+2026-07-07T04:09:45.1110324Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:642:9 Unresolved reference: connectedDevice
+2026-07-07T04:09:45.1111822Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:642:25 Variable expected
+2026-07-07T04:09:45.1113425Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:646:14 Unresolved reference: connected
+2026-07-07T04:09:45.1115344Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:647:16 Unresolved reference: bleConnection
+2026-07-07T04:09:45.1116930Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:651:9 Unresolved reference: pendingDataCallback
+2026-07-07T04:09:45.1118607Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:652:9 Unresolved reference: bleConnection
+2026-07-07T04:09:45.1120334Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:652:24 Variable expected
+2026-07-07T04:09:45.1121860Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:717:20 Unresolved reference: setOnDataReceived
+2026-07-07T04:09:45.1123929Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:717:40 Cannot infer a type for this parameter. Please specify it explicitly.
+2026-07-07T04:09:45.1125637Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:719:64 Unresolved reference: it
+2026-07-07T04:09:45.1127193Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:728:24 Unresolved reference: processScanCycle
+2026-07-07T04:09:45.1129105Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:786:2 Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+2026-07-07T04:09:45.1130816Z public fun <T> Array<out TypeVariable(T)>.take(n: Int): List<TypeVariable(T)> defined in kotlin.collections
+2026-07-07T04:09:45.1131950Z public fun BooleanArray.take(n: Int): List<Boolean> defined in kotlin.collections
+2026-07-07T04:09:45.1132920Z public fun ByteArray.take(n: Int): List<Byte> defined in kotlin.collections
+2026-07-07T04:09:45.1134155Z public fun CharArray.take(n: Int): List<Char> defined in kotlin.collections
+2026-07-07T04:09:45.1135294Z public fun CharSequence.take(n: Int): CharSequence defined in kotlin.text
+2026-07-07T04:09:45.1136223Z public fun DoubleArray.take(n: Int): List<Double> defined in kotlin.collections
+2026-07-07T04:09:45.1137208Z public fun FloatArray.take(n: Int): List<Float> defined in kotlin.collections
+2026-07-07T04:09:45.1138118Z public fun IntArray.take(n: Int): List<Int> defined in kotlin.collections
+2026-07-07T04:09:45.1139022Z public fun LongArray.take(n: Int): List<Long> defined in kotlin.collections
+2026-07-07T04:09:45.1139943Z public fun ShortArray.take(n: Int): List<Short> defined in kotlin.collections
+2026-07-07T04:09:45.1140815Z public fun String.take(n: Int): String defined in kotlin.text
+2026-07-07T04:09:45.1141676Z public fun UByteArray.take(n: Int): List<UByte> defined in kotlin.collections
+2026-07-07T04:09:45.1142600Z public fun UIntArray.take(n: Int): List<UInt> defined in kotlin.collections
+2026-07-07T04:09:45.1144061Z public fun ULongArray.take(n: Int): List<ULong> defined in kotlin.collections
+2026-07-07T04:09:45.1145022Z public fun UShortArray.take(n: Int): List<UShort> defined in kotlin.collections
+2026-07-07T04:09:45.1146336Z public fun <T> Iterable<TypeVariable(T)>.take(n: Int): List<TypeVariable(T)> defined in kotlin.collections
+2026-07-07T04:09:45.1147593Z public fun <T> Sequence<TypeVariable(T)>.take(n: Int): Sequence<TypeVariable(T)> defined in kotlin.sequences
+2026-07-07T04:09:45.1149517Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:820:2 Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+2026-07-07T04:09:45.1151365Z public fun <T> Array<out TypeVariable(T)>.take(n: Int): List<TypeVariable(T)> defined in kotlin.collections
+2026-07-07T04:09:45.1152476Z public fun BooleanArray.take(n: Int): List<Boolean> defined in kotlin.collections
+2026-07-07T04:09:45.1153684Z public fun ByteArray.take(n: Int): List<Byte> defined in kotlin.collections
+2026-07-07T04:09:45.1154587Z public fun CharArray.take(n: Int): List<Char> defined in kotlin.collections
+2026-07-07T04:09:45.1155481Z public fun CharSequence.take(n: Int): CharSequence defined in kotlin.text
+2026-07-07T04:09:45.1156429Z public fun DoubleArray.take(n: Int): List<Double> defined in kotlin.collections
+2026-07-07T04:09:45.1157393Z public fun FloatArray.take(n: Int): List<Float> defined in kotlin.collections
+2026-07-07T04:09:45.1158266Z public fun IntArray.take(n: Int): List<Int> defined in kotlin.collections
+2026-07-07T04:09:45.1159288Z public fun LongArray.take(n: Int): List<Long> defined in kotlin.collections
+2026-07-07T04:09:45.1160170Z public fun ShortArray.take(n: Int): List<Short> defined in kotlin.collections
+2026-07-07T04:09:45.1161133Z public fun String.take(n: Int): String defined in kotlin.text
+2026-07-07T04:09:45.1162309Z public fun UByteArray.take(n: Int): List<UByte> defined in kotlin.collections
+2026-07-07T04:09:45.1163365Z public fun UIntArray.take(n: Int): List<UInt> defined in kotlin.collections
+2026-07-07T04:09:45.1164311Z public fun ULongArray.take(n: Int): List<ULong> defined in kotlin.collections
+2026-07-07T04:09:45.1165254Z public fun UShortArray.take(n: Int): List<UShort> defined in kotlin.collections
+2026-07-07T04:09:45.1166346Z public fun <T> Iterable<TypeVariable(T)>.take(n: Int): List<TypeVariable(T)> defined in kotlin.collections
+2026-07-07T04:09:45.1167574Z public fun <T> Sequence<TypeVariable(T)>.take(n: Int): Sequence<TypeVariable(T)> defined in kotlin.sequences
+2026-07-07T04:09:45.1168965Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:821:37 Unresolved reference: frame
+2026-07-07T04:09:45.1170571Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:821:44 Function invocation 'ByteArray(...)' expected
+2026-07-07T04:09:45.1172489Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:821:44 None of the following functions can be called with the arguments supplied: 
+2026-07-07T04:09:45.1174094Z public constructor ByteArray(size: Int) defined in kotlin.ByteArray
+2026-07-07T04:09:45.1175058Z public constructor ByteArray(size: Int, init: (Int) -> Byte) defined in kotlin.ByteArray
+2026-07-07T04:09:45.1176429Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:821:63 Unresolved reference: frameVal
+2026-07-07T04:09:45.1178368Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:823:51 Unresolved reference: frameVal
+2026-07-07T04:09:45.1179888Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:823:72 Unresolved reference: frameVal
+2026-07-07T04:09:45.1181404Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:826:45 Unresolved reference: frameVal
+2026-07-07T04:09:45.1182910Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:827:56 Unresolved reference: frameVal
+2026-07-07T04:09:45.1184603Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:827:79 Unresolved reference: frameVal
+2026-07-07T04:09:45.1186547Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:831:33 'if' must have both main and 'else' branches if used as an expression
+2026-07-07T04:09:45.1188290Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:831:33 Incompatible types: Unit and String!
+2026-07-07T04:09:45.1189833Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:831:37 Unresolved reference: frame
+2026-07-07T04:09:45.1191316Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:832:48 Unresolved reference: send
+2026-07-07T04:09:45.1192777Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:832:53 Unresolved reference: frame
+2026-07-07T04:09:45.1194377Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:833:18 Unresolved reference: it
+2026-07-07T04:09:45.1195862Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:851:48 Unresolved reference: payload
+2026-07-07T04:09:45.1197455Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:852:47 Unresolved reference: payload
+2026-07-07T04:09:45.1198937Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:853:48 Unresolved reference: payload
+2026-07-07T04:09:45.1200614Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:866:23 Unresolved reference: catch
+2026-07-07T04:09:45.1202069Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:866:30 Unresolved reference: _e
+2026-07-07T04:09:45.1204219Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:866:45 Type mismatch: inferred type is () -> Unit but String was expected
+2026-07-07T04:09:45.1205657Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:876:32 Unresolved reference: send
+2026-07-07T04:09:45.1207050Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:884:17 Expected a value of type WebView
+2026-07-07T04:09:45.1208514Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:898:13 Unresolved reference: loadUrl
+2026-07-07T04:09:45.1210010Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:899:29 'this' is not defined in this context
+2026-07-07T04:09:45.1211522Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:900:30 'this' is not defined in this context
+2026-07-07T04:09:45.1213022Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:906:27 Unresolved reference: bleManager
+2026-07-07T04:09:45.1217916Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:906:57 Unresolved reference: selectedTab
+2026-07-07T04:09:45.1219875Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:908:44 Functions which invoke @Composable functions must be marked with the @Composable annotation
+2026-07-07T04:09:45.1221766Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:908:44 Function declaration must have a name
+2026-07-07T04:09:45.1223545Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:910:13 Unresolved reference: isWideScreen
+2026-07-07T04:09:45.1225088Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:910:29 Unresolved reference: sidebarVisible
+2026-07-07T04:09:45.1226877Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:911:13 @Composable invocations can only happen from the context of a @Composable function
+2026-07-07T04:09:45.1228620Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:914:22 Unresolved reference: align
+2026-07-07T04:09:45.1230444Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:922:38 Unresolved reference: bleManager
+2026-07-07T04:09:45.1231985Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:923:34 Unresolved reference: colors
+2026-07-07T04:09:45.1234104Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:924:48 Unresolved reference: onRequestPermissions
+2026-07-07T04:09:45.1235771Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:925:43 Unresolved reference: onConnectDevice
+2026-07-07T04:09:45.1237393Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:926:40 Unresolved reference: onDisconnect
+2026-07-07T04:09:45.1238966Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:927:46 Unresolved reference: selectedTab
+2026-07-07T04:09:45.1240507Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:935:37 Unresolved reference: colors
+2026-07-07T04:09:45.1242400Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:941:1 @Composable invocations can only happen from the context of a @Composable function
+2026-07-07T04:09:45.1244644Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:944:22 Unresolved reference: isWideScreen
+2026-07-07T04:09:45.1246259Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:944:38 Unresolved reference: sidebarVisible
+2026-07-07T04:09:45.1247852Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:945:24 Unresolved reference: isWideScreen
+2026-07-07T04:09:45.1249376Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:946:21 Unresolved reference: isWideScreen
+2026-07-07T04:09:45.1250925Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:946:37 Unresolved reference: bleManager
+2026-07-07T04:09:45.1252571Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:948:13 Not enough information to infer type variable T
+2026-07-07T04:09:45.1254307Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:949:27 Unresolved reference: createWebView
+2026-07-07T04:09:45.1255818Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:954:18 Unresolved reference: bleManager
+2026-07-07T04:09:45.1257369Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:956:66 Unresolved reference: colors
+2026-07-07T04:09:45.1258899Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:960:130 Unresolved reference: colors
+2026-07-07T04:09:45.1260490Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:962:54 Unresolved reference: colors
+2026-07-07T04:09:45.1262043Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:968:18 Unresolved reference: isWideScreen
+2026-07-07T04:09:45.1263939Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:968:34 Unresolved reference: bleManager
+2026-07-07T04:09:45.1265502Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:973:37 Unresolved reference: colors
+2026-07-07T04:09:45.1267081Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:974:38 Unresolved reference: selectedTab
+2026-07-07T04:09:45.1268625Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:981:32 Unresolved reference: colors
+2026-07-07T04:09:45.1270173Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:986:25 Unresolved reference: bleManager
+2026-07-07T04:09:45.1271786Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:989:33 Unresolved reference: colors
+2026-07-07T04:09:45.1273618Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:996:14 Unresolved reference: isWideScreen
+2026-07-07T04:09:45.1275317Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:996:31 Unresolved reference: selectedTab
+2026-07-07T04:09:45.1276905Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:996:52 Unresolved reference: bleManager
+2026-07-07T04:09:45.1279148Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:997:13 @Composable invocations can only happen from the context of a @Composable function
+2026-07-07T04:09:45.1281011Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:998:30 Unresolved reference: bleManager
+2026-07-07T04:09:45.1282581Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:999:26 Unresolved reference: colors
+2026-07-07T04:09:45.1284339Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1000:40 Unresolved reference: onRequestPermissions
+2026-07-07T04:09:45.1286147Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1001:35 Unresolved reference: onConnectDevice
+2026-07-07T04:09:45.1287640Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1002:32 Unresolved reference: onDisconnect
+2026-07-07T04:09:45.1289194Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1003:38 Unresolved reference: selectedTab
+2026-07-07T04:09:45.1290728Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1011:13 Unresolved reference: isWideScreen
+2026-07-07T04:09:45.1292541Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1012:13 @Composable invocations can only happen from the context of a @Composable function
+2026-07-07T04:09:45.1298608Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1014:39 @Composable invocations can only happen from the context of a @Composable function
+2026-07-07T04:09:45.1301400Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1014:67 Unresolved reference: colors
+2026-07-07T04:09:45.1303190Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1015:42 @Composable invocations can only happen from the context of a @Composable function
+2026-07-07T04:09:45.1305089Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1017:22 Unresolved reference: align
+2026-07-07T04:09:45.1306610Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1018:37 Unresolved reference: sidebarVisible
+2026-07-07T04:09:45.1308156Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1020:34 Unresolved reference: sidebarVisible
+2026-07-07T04:09:45.1309644Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1020:52 Unresolved reference: sidebarVisible
+2026-07-07T04:09:45.1311186Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1024:29 Unresolved reference: sidebarVisible
+2026-07-07T04:09:45.1312775Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1025:50 Unresolved reference: sidebarVisible
+2026-07-07T04:09:45.1314430Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1026:32 Unresolved reference: colors
+2026-07-07T04:09:45.1315894Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1034:14 Unresolved reference: isWideScreen
+2026-07-07T04:09:45.1321218Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1035:13 @Composable invocations can only happen from the context of a @Composable function
+2026-07-07T04:09:45.1322941Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1036:34 Unresolved reference: colors
+2026-07-07T04:09:45.1324748Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1038:37 Unresolved reference: align
+2026-07-07T04:09:45.1326243Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1041:32 Unresolved reference: selectedTab
+2026-07-07T04:09:45.1327843Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1042:33 Unresolved reference: selectedTab
+2026-07-07T04:09:45.1329607Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1044:25 None of the following functions can be called with the arguments supplied: 
+2026-07-07T04:09:45.1331574Z public fun Icon(bitmap: ImageBitmap, contentDescription: String?, modifier: Modifier = ..., tint: Color = ...): Unit defined in androidx.compose.material3
+2026-07-07T04:09:45.1333506Z public fun Icon(painter: Painter, contentDescription: String?, modifier: Modifier = ..., tint: Color = ...): Unit defined in androidx.compose.material3
+2026-07-07T04:09:45.1335541Z public fun Icon(imageVector: ImageVector, contentDescription: String?, modifier: Modifier = ..., tint: Color = ...): Unit defined in androidx.compose.material3
+2026-07-07T04:09:45.1337292Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1045:33 Unresolved reference: bleManager
+2026-07-07T04:09:45.1338869Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1048:40 Unresolved reference: selectedTab
+2026-07-07T04:09:45.1340519Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1048:58 Unresolved reference: colors
+2026-07-07T04:09:45.1342126Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1048:78 Unresolved reference: colors
+2026-07-07T04:09:45.1344067Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1052:25 None of the following functions can be called with the arguments supplied: 
+2026-07-07T04:09:45.1348422Z public fun Text(text: AnnotatedString, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., inlineContent: Map<String, InlineTextContent> = ..., onTextLayout: (TextLayoutResult) -> Unit = ..., style: TextStyle = ...): Unit defined in androidx.compose.material3
+2026-07-07T04:09:45.1354862Z public fun Text(text: String, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., onTextLayout: ((TextLayoutResult) -> Unit)? = ..., style: TextStyle = ...): Unit defined in androidx.compose.material3
+2026-07-07T04:09:45.1358862Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1053:29 'if' must have both main and 'else' branches if used as an expression
+2026-07-07T04:09:45.1360679Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1053:33 Unresolved reference: bleManager
+2026-07-07T04:09:45.1362707Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1053:74 Unresolved reference: 钃濈墮
+2026-07-07T04:09:45.1364776Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1053:74 Unsupported [literal prefixes and suffixes]
+2026-07-07T04:09:45.1366474Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1054:41 Unresolved reference: selectedTab
+2026-07-07T04:09:45.1368133Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1054:59 Unresolved reference: colors
+2026-07-07T04:09:45.1369633Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1054:79 Unresolved reference: colors
+2026-07-07T04:09:45.1371101Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1066:45 Unresolved reference: colors
+2026-07-07T04:09:45.1372572Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1072:40 Unresolved reference: colors
+2026-07-07T04:09:45.1374481Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1080:37 Unresolved reference: colors
+2026-07-07T04:09:45.1376078Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1086:32 Unresolved reference: selectedTab
+2026-07-07T04:09:45.1377953Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1087:37 Unresolved reference: bleManager
+2026-07-07T04:09:45.1388040Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1087:65 Unresolved reference: selectedTab
+2026-07-07T04:09:45.1390047Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1089:25 None of the following functions can be called with the arguments supplied: 
+2026-07-07T04:09:45.1392044Z public fun Icon(bitmap: ImageBitmap, contentDescription: String?, modifier: Modifier = ..., tint: Color = ...): Unit defined in androidx.compose.material3
+2026-07-07T04:09:45.1394008Z public fun Icon(painter: Painter, contentDescription: String?, modifier: Modifier = ..., tint: Color = ...): Unit defined in androidx.compose.material3
+2026-07-07T04:09:45.1395885Z public fun Icon(imageVector: ImageVector, contentDescription: String?, modifier: Modifier = ..., tint: Color = ...): Unit defined in androidx.compose.material3
+2026-07-07T04:09:45.1397649Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1092:40 Unresolved reference: selectedTab
+2026-07-07T04:09:45.1399228Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1092:58 Unresolved reference: colors
+2026-07-07T04:09:45.1400781Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1092:78 Unresolved reference: colors
+2026-07-07T04:09:45.1402615Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1096:25 None of the following functions can be called with the arguments supplied: 
+2026-07-07T04:09:45.1407020Z public fun Text(text: AnnotatedString, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., inlineContent: Map<String, InlineTextContent> = ..., onTextLayout: (TextLayoutResult) -> Unit = ..., style: TextStyle = ...): Unit defined in androidx.compose.material3
+2026-07-07T04:09:45.1413090Z public fun Text(text: String, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., onTextLayout: ((TextLayoutResult) -> Unit)? = ..., style: TextStyle = ...): Unit defined in androidx.compose.material3
+2026-07-07T04:09:45.1418358Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1098:29 Unresolved reference: color
+2026-07-07T04:09:45.1420293Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1098:41 Unresolved reference: selectedTab
+2026-07-07T04:09:45.1421897Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1098:59 Unresolved reference: colors
+2026-07-07T04:09:45.1423633Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1098:79 Unresolved reference: colors
+2026-07-07T04:09:45.1425237Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1128:28 Unresolved reference: startScan
+2026-07-07T04:09:45.1427064Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1176:21 None of the following functions can be called with the arguments supplied: 
+2026-07-07T04:09:45.1431563Z public fun Text(text: AnnotatedString, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., inlineContent: Map<String, InlineTextContent> = ..., onTextLayout: (TextLayoutResult) -> Unit = ..., style: TextStyle = ...): Unit defined in androidx.compose.material3
+2026-07-07T04:09:45.1438054Z public fun Text(text: String, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., onTextLayout: ((TextLayoutResult) -> Unit)? = ..., style: TextStyle = ...): Unit defined in androidx.compose.material3
+2026-07-07T04:09:45.1441716Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1177:21 Unresolved reference: Spacer
+2026-07-07T04:09:45.1443515Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1179:25 Unresolved reference: onClick
+2026-07-07T04:09:45.1445398Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1179:25 Assignments are not expressions, and only expressions are allowed in this context
+2026-07-07T04:09:45.1447282Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1180:72 Unresolved reference: startScan
+2026-07-07T04:09:45.1449187Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1185:25 @Composable invocations can only happen from the context of a @Composable function
+2026-07-07T04:09:45.1451370Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1186:25 @Composable invocations can only happen from the context of a @Composable function
+2026-07-07T04:09:45.1454016Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1187:25 @Composable invocations can only happen from the context of a @Composable function
+2026-07-07T04:09:45.1455946Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1220:25 Unresolved reference: SwipeDeviceCard
+2026-07-07T04:09:45.1457909Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1236:25 None of the following functions can be called with the arguments supplied: 
+2026-07-07T04:09:45.1462397Z public fun Text(text: AnnotatedString, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., inlineContent: Map<String, InlineTextContent> = ..., onTextLayout: (TextLayoutResult) -> Unit = ..., style: TextStyle = ...): Unit defined in androidx.compose.material3
+2026-07-07T04:09:45.1468596Z public fun Text(text: String, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., onTextLayout: ((TextLayoutResult) -> Unit)? = ..., style: TextStyle = ...): Unit defined in androidx.compose.material3
+2026-07-07T04:09:45.1472269Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1238:29 Unresolved reference: fontSize
+2026-07-07T04:09:45.1474360Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1247:25 Unresolved reference: SwipeDeviceCard
+2026-07-07T04:09:45.1476027Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1317:17 Unresolved reference: ConnectedCard
+2026-07-07T04:09:45.1477653Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1319:17 Unresolved reference: DeviceCard
+2026-07-07T04:09:45.1479264Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1331:13 Unresolved reference: ConnectedCard
+2026-07-07T04:09:45.1482677Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1333:13 Unresolved reference: DeviceCard
+2026-07-07T04:09:45.1484522Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1350:13 Unresolved reference: SocCircle
+2026-07-07T04:09:45.1486172Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1362:25 Unresolved reference: RssiIndicator
+2026-07-07T04:09:45.1487839Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1375:17 Unresolved reference: SafetyFlagRow
+2026-07-07T04:09:45.1489460Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1403:21 Unresolved reference: SocCircle
+2026-07-07T04:09:45.1491083Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1411:29 Unresolved reference: RssiIndicator
+2026-07-07T04:09:45.1492734Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1424:21 Unresolved reference: SafetyFlagRow
+2026-07-07T04:09:45.1493812Z 
+2026-07-07T04:09:45.1494051Z FAILURE: Build completed with 2 failures.
+2026-07-07T04:09:45.1494431Z 
+2026-07-07T04:09:45.1494634Z 1: Task failed with an exception.
+2026-07-07T04:09:45.1495130Z -----------
+2026-07-07T04:09:45.1495552Z * What went wrong:
+2026-07-07T04:09:45.1496087Z Execution failed for task ':app:compileDebugKotlin'.
+2026-07-07T04:09:45.1497422Z > A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+2026-07-07T04:09:45.1500691Z    > Compilation error. See log for more details
+2026-07-07T04:09:45.1501109Z 
+2026-07-07T04:09:45.1501279Z * Try:
+2026-07-07T04:09:45.1501749Z > Run with --stacktrace option to get the stack trace.
+2026-07-07T04:09:45.1502466Z > Run with --info or --debug option to get more log output.
+2026-07-07T04:09:45.1503118Z > Run with --scan to get full insights.
+2026-07-07T04:09:45.1503892Z > Get more help at https://help.gradle.org.
+2026-07-07T04:09:45.1504765Z ==============================================================================
+2026-07-07T04:09:45.1505195Z 
+2026-07-07T04:09:45.1505403Z 2: Task failed with an exception.
+2026-07-07T04:09:45.1505891Z -----------
+2026-07-07T04:09:45.1506265Z * What went wrong:
+2026-07-07T04:09:45.1506779Z Execution failed for task ':app:compileReleaseKotlin'.
+2026-07-07T04:09:45.1508089Z > A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+2026-07-07T04:09:45.1509356Z    > Compilation error. See log for more details
+2026-07-07T04:09:45.1509759Z 
+2026-07-07T04:09:45.1509926Z * Try:
+2026-07-07T04:09:45.1510390Z > Run with --stacktrace option to get the stack trace.
+2026-07-07T04:09:45.1511115Z > Run with --info or --debug option to get more log output.
+2026-07-07T04:09:45.1511762Z > Run with --scan to get full insights.
+2026-07-07T04:09:45.1512363Z > Get more help at https://help.gradle.org.
+2026-07-07T04:09:45.1513006Z ==============================================================================
+2026-07-07T04:09:45.1513624Z 
+2026-07-07T04:09:45.1513807Z BUILD FAILED in 33s
+2026-07-07T04:09:45.1514619Z gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_2-1783397354841.json
+2026-07-07T04:09:45.1515583Z 56 actionable tasks: 56 executed
+2026-07-07T04:09:45.5547088Z ##[error]Process completed with exit code 1.
+2026-07-07T04:09:45.5758883Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-07T04:09:45.5760382Z Post job cleanup.
+2026-07-07T04:09:45.8152015Z In post-action step
+2026-07-07T04:09:45.8165254Z ##[group]Stopping Gradle daemons
+2026-07-07T04:09:45.8166056Z Stopping Gradle daemons for /usr/share/gradle-9.6.1
+2026-07-07T04:09:45.8177344Z Stopping Gradle daemons for /home/runner/.gradle/wrapper/dists/gradle-8.5-bin/5t9huq95ubn472n8rpzujfbqh/gradle-8.5
+2026-07-07T04:09:45.8183526Z [command]/usr/share/gradle-9.6.1/bin/gradle --stop
+2026-07-07T04:09:45.8231118Z [command]/home/runner/.gradle/wrapper/dists/gradle-8.5-bin/5t9huq95ubn472n8rpzujfbqh/gradle-8.5/bin/gradle --stop
+2026-07-07T04:09:46.9134260Z Stopping Daemon(s)
+2026-07-07T04:09:46.9158812Z 1 Daemon stopped
+2026-07-07T04:09:47.2589256Z Stopping Daemon(s)
+2026-07-07T04:09:47.2697543Z 1 Daemon stopped
+2026-07-07T04:09:47.2823052Z ##[endgroup]
+2026-07-07T04:09:47.2844191Z Not performing cache-cleanup due to build failure
+2026-07-07T04:09:47.2875220Z ##[group]Caching Gradle state
+2026-07-07T04:09:48.1793546Z [command]/usr/bin/tar --posix -cf cache.tzst --exclude cache.tzst -P -C /home/runner/work/android/android --files-from manifest.txt --use-compress-program zstdmt
+2026-07-07T04:09:50.1048579Z Sent 79822848 of 122078469 (65.4%), 76.0 MBs/sec
+2026-07-07T04:09:51.1043106Z Sent 122078469 of 122078469 (100.0%), 58.2 MBs/sec
+2026-07-07T04:09:51.3349334Z Saved cache entry with key gradle-home-v1|Linux-X64|build[e080f0fdc288b6f0c5023fd4b86f7a10]-da36e87a5064273e0e039ce4e5ca432123f5775f from /home/runner/.gradle/caches,/home/runner/.gradle/notifications,/home/runner/.gradle/.setup-gradle in 3170ms
+2026-07-07T04:09:51.3350668Z ##[endgroup]
+2026-07-07T04:09:51.3357871Z Generating Job Summary
+2026-07-07T04:09:51.3373524Z Completed post-action step
+2026-07-07T04:09:51.3580185Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-07T04:09:51.3581439Z Post job cleanup.
+2026-07-07T04:09:51.4904527Z (node:2941) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-07-07T04:09:51.4905755Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-07-07T04:09:51.5092764Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-07T04:09:51.5094170Z Post job cleanup.
+2026-07-07T04:09:51.6081461Z [command]/usr/bin/git version
+2026-07-07T04:09:51.6159838Z git version 2.54.0
+2026-07-07T04:09:51.6203094Z Temporarily overriding HOME='/home/runner/work/_temp/510eb893-c5bf-44dc-8c75-6a5c69bc961c' before making global git config changes
+2026-07-07T04:09:51.6205243Z Adding repository directory to the temporary git global config as a safe directory
+2026-07-07T04:09:51.6209733Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/android/android
+2026-07-07T04:09:51.6257473Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-07-07T04:09:51.6302027Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-07-07T04:09:51.6564618Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-07-07T04:09:51.6594581Z http.https://github.com/.extraheader
+2026-07-07T04:09:51.6607051Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-07-07T04:09:51.6651814Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-07-07T04:09:51.6928089Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-07-07T04:09:51.6968945Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-07-07T04:09:51.7377097Z Cleaning up orphan processes
+2026-07-07T04:09:51.7730493Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-java@v4, gradle/actions/setup-gradle@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

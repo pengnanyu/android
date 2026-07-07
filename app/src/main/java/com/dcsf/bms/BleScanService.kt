@@ -55,7 +55,7 @@ class BleScanService : Service() {
             Notification.Builder(this)
         }
         builder.setSmallIcon(R.mipmap.ic_launcher)
-            .setContentTitle("\u9502\u536b\u58eb")
+            .setContentTitle("\u9502\u62a4\u536b")
             .setContentText("\u6b63\u5728\u626b\u63cf\u84dd\u7259\u8bbe\u5907...")
             .setOngoing(true)
         return builder.build()

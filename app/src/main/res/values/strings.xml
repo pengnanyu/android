@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">锂卫士</string>
+    <string name="app_name">锂护卫</string>
     <string name="please_connect_ble">请先连接蓝牙设备</string>
     <string name="hide_sidebar">隐藏侧栏</string>
     <string name="show_sidebar">显示侧栏</string>

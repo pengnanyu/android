@@ -1,0 +1,506 @@
+﻿2026-07-07T04:52:28.1548329Z Current runner version: '2.335.1'
+2026-07-07T04:52:28.1568764Z ##[group]Runner Image Provisioner
+2026-07-07T04:52:28.1569629Z Hosted Compute Agent
+2026-07-07T04:52:28.1570408Z Version: 20260624.560
+2026-07-07T04:52:28.1571000Z Commit: 925d229a51159bc391ae97e54a2dd1fe20af789d
+2026-07-07T04:52:28.1571557Z Build Date: 2026-06-24T18:26:47Z
+2026-07-07T04:52:28.1572158Z Worker ID: {824e6695-2962-4a5b-82e4-39a4839b1e3f}
+2026-07-07T04:52:28.1572764Z Azure Region: westcentralus
+2026-07-07T04:52:28.1573275Z ##[endgroup]
+2026-07-07T04:52:28.1574449Z ##[group]Operating System
+2026-07-07T04:52:28.1574941Z Ubuntu
+2026-07-07T04:52:28.1575422Z 24.04.4
+2026-07-07T04:52:28.1575831Z LTS
+2026-07-07T04:52:28.1576224Z ##[endgroup]
+2026-07-07T04:52:28.1576741Z ##[group]Runner Image
+2026-07-07T04:52:28.1577206Z Image: ubuntu-24.04
+2026-07-07T04:52:28.1577729Z Version: 20260628.225.1
+2026-07-07T04:52:28.1578708Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260628.225/images/ubuntu/Ubuntu2404-Readme.md
+2026-07-07T04:52:28.1579985Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260628.225
+2026-07-07T04:52:28.1580998Z ##[endgroup]
+2026-07-07T04:52:28.1581997Z ##[group]GITHUB_TOKEN Permissions
+2026-07-07T04:52:28.1583771Z Contents: read
+2026-07-07T04:52:28.1584243Z Metadata: read
+2026-07-07T04:52:28.1584808Z Packages: read
+2026-07-07T04:52:28.1585253Z ##[endgroup]
+2026-07-07T04:52:28.1587242Z Secret source: Actions
+2026-07-07T04:52:28.1587980Z Prepare workflow directory
+2026-07-07T04:52:28.1854049Z Prepare all required actions
+2026-07-07T04:52:28.1885881Z Getting action download info
+2026-07-07T04:52:28.4754984Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+2026-07-07T04:52:28.5341378Z Download action repository 'actions/setup-java@v4' (SHA:c1e323688fd81a25caa38c78aa6df2d33d3e20d9)
+2026-07-07T04:52:29.4696928Z Download action repository 'gradle/actions@v4' (SHA:ed408507eac070d1f99cc633dbcf757c94c7933a)
+2026-07-07T04:52:31.3962989Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-07-07T04:52:31.7464856Z Complete job name: build
+2026-07-07T04:52:31.7983689Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-07T04:52:31.7989773Z ##[group]Run actions/checkout@v4
+2026-07-07T04:52:31.7990100Z with:
+2026-07-07T04:52:31.7990480Z   repository: pengnanyu/android
+2026-07-07T04:52:31.7992578Z   token: ***
+2026-07-07T04:52:31.7992753Z   ssh-strict: true
+2026-07-07T04:52:31.7992924Z   ssh-user: git
+2026-07-07T04:52:31.7993101Z   persist-credentials: true
+2026-07-07T04:52:31.7993303Z   clean: true
+2026-07-07T04:52:31.7993482Z   sparse-checkout-cone-mode: true
+2026-07-07T04:52:31.7993693Z   fetch-depth: 1
+2026-07-07T04:52:31.7993873Z   fetch-tags: false
+2026-07-07T04:52:31.7994050Z   show-progress: true
+2026-07-07T04:52:31.7994225Z   lfs: false
+2026-07-07T04:52:31.7994413Z   submodules: false
+2026-07-07T04:52:31.7994592Z   set-safe-directory: true
+2026-07-07T04:52:31.7994949Z ##[endgroup]
+2026-07-07T04:52:31.8763330Z Syncing repository: pengnanyu/android
+2026-07-07T04:52:31.8764773Z ##[group]Getting Git version info
+2026-07-07T04:52:31.8765225Z Working directory is '/home/runner/work/android/android'
+2026-07-07T04:52:31.8765944Z [command]/usr/bin/git version
+2026-07-07T04:52:31.8806162Z git version 2.54.0
+2026-07-07T04:52:31.8822505Z ##[endgroup]
+2026-07-07T04:52:31.8835348Z Temporarily overriding HOME='/home/runner/work/_temp/dfac32f6-4cca-4160-90f2-10e8a74f1adf' before making global git config changes
+2026-07-07T04:52:31.8836452Z Adding repository directory to the temporary git global config as a safe directory
+2026-07-07T04:52:31.8839136Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/android/android
+2026-07-07T04:52:31.8868664Z Deleting the contents of '/home/runner/work/android/android'
+2026-07-07T04:52:31.8871749Z ##[group]Initializing the repository
+2026-07-07T04:52:31.8875676Z [command]/usr/bin/git init /home/runner/work/android/android
+2026-07-07T04:52:31.8952795Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-07-07T04:52:31.8953496Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-07-07T04:52:31.8954036Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-07-07T04:52:31.8954357Z hint: call:
+2026-07-07T04:52:31.8954514Z hint:
+2026-07-07T04:52:31.8954763Z hint: 	git config --global init.defaultBranch <name>
+2026-07-07T04:52:31.8955024Z hint:
+2026-07-07T04:52:31.8955262Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-07-07T04:52:31.8955642Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-07-07T04:52:31.8961146Z hint:
+2026-07-07T04:52:31.8971727Z hint: 	git branch -m <name>
+2026-07-07T04:52:31.8972345Z hint:
+2026-07-07T04:52:31.8972865Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-07-07T04:52:31.8973610Z Initialized empty Git repository in /home/runner/work/android/android/.git/
+2026-07-07T04:52:31.8974768Z [command]/usr/bin/git remote add origin https://github.com/pengnanyu/android
+2026-07-07T04:52:31.8991386Z ##[endgroup]
+2026-07-07T04:52:31.8992185Z ##[group]Disabling automatic garbage collection
+2026-07-07T04:52:31.8994439Z [command]/usr/bin/git config --local gc.auto 0
+2026-07-07T04:52:31.9019892Z ##[endgroup]
+2026-07-07T04:52:31.9020527Z ##[group]Setting up auth
+2026-07-07T04:52:31.9026103Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-07-07T04:52:31.9053400Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-07-07T04:52:31.9356226Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-07-07T04:52:31.9393597Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-07-07T04:52:31.9602612Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-07-07T04:52:31.9632539Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-07-07T04:52:31.9822450Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-07-07T04:52:31.9854589Z ##[endgroup]
+2026-07-07T04:52:31.9855061Z ##[group]Fetching the repository
+2026-07-07T04:52:31.9862231Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +988d4064b01bf70c9a70e7a41a4a2d3c7a73d450:refs/remotes/origin/main
+2026-07-07T04:52:32.4962501Z From https://github.com/pengnanyu/android
+2026-07-07T04:52:32.4963157Z  * [new ref]         988d4064b01bf70c9a70e7a41a4a2d3c7a73d450 -> origin/main
+2026-07-07T04:52:32.4989365Z ##[endgroup]
+2026-07-07T04:52:32.4989973Z ##[group]Determining the checkout info
+2026-07-07T04:52:32.4990629Z ##[endgroup]
+2026-07-07T04:52:32.4990953Z [command]/usr/bin/git sparse-checkout disable
+2026-07-07T04:52:32.5026425Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-07-07T04:52:32.5052270Z ##[group]Checking out the ref
+2026-07-07T04:52:32.5056211Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-07-07T04:52:32.5157294Z Switched to a new branch 'main'
+2026-07-07T04:52:32.5159410Z branch 'main' set up to track 'origin/main'.
+2026-07-07T04:52:32.5164206Z ##[endgroup]
+2026-07-07T04:52:32.5203217Z [command]/usr/bin/git log -1 --format=%H
+2026-07-07T04:52:32.5224990Z 988d4064b01bf70c9a70e7a41a4a2d3c7a73d450
+2026-07-07T04:52:32.5439472Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-07T04:52:32.5441065Z ##[group]Run actions/setup-java@v4
+2026-07-07T04:52:32.5441277Z with:
+2026-07-07T04:52:32.5441439Z   java-version: 17
+2026-07-07T04:52:32.5441615Z   distribution: temurin
+2026-07-07T04:52:32.5441797Z   java-package: jdk
+2026-07-07T04:52:32.5441971Z   check-latest: false
+2026-07-07T04:52:32.5442151Z   server-id: github
+2026-07-07T04:52:32.5442326Z   server-username: GITHUB_ACTOR
+2026-07-07T04:52:32.5442534Z   server-password: GITHUB_TOKEN
+2026-07-07T04:52:32.5442727Z   overwrite-settings: true
+2026-07-07T04:52:32.5442914Z   job-status: success
+2026-07-07T04:52:32.5444953Z   token: ***
+2026-07-07T04:52:32.5445134Z ##[endgroup]
+2026-07-07T04:52:32.6694934Z ##[group]Installed distributions
+2026-07-07T04:52:32.6889015Z Resolved Java 17.0.19+10 from tool-cache
+2026-07-07T04:52:32.6889395Z Setting Java 17.0.19+10 as the default
+2026-07-07T04:52:32.6896770Z (node:2088) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-07-07T04:52:32.6897469Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-07-07T04:52:32.6899340Z Creating toolchains.xml for JDK version 17 from temurin
+2026-07-07T04:52:32.6953893Z Writing to /home/runner/.m2/toolchains.xml
+2026-07-07T04:52:32.6954187Z 
+2026-07-07T04:52:32.6954295Z Java configuration:
+2026-07-07T04:52:32.6954561Z   Distribution: temurin
+2026-07-07T04:52:32.6954830Z   Version: 17.0.19+10
+2026-07-07T04:52:32.6955212Z   Path: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.19-10/x64
+2026-07-07T04:52:32.6955563Z 
+2026-07-07T04:52:32.6955915Z ##[endgroup]
+2026-07-07T04:52:32.6972165Z Creating settings.xml with server-id: github
+2026-07-07T04:52:32.6972649Z Writing to /home/runner/.m2/settings.xml
+2026-07-07T04:52:32.7250455Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-07T04:52:32.7252138Z ##[group]Run gradle/actions/setup-gradle@v4
+2026-07-07T04:52:32.7252514Z with:
+2026-07-07T04:52:32.7252778Z   cache-read-only: false
+2026-07-07T04:52:32.7253067Z   cache-disabled: false
+2026-07-07T04:52:32.7253341Z   cache-write-only: false
+2026-07-07T04:52:32.7253631Z   cache-overwrite-existing: false
+2026-07-07T04:52:32.7253946Z   cache-cleanup: on-success
+2026-07-07T04:52:32.7254302Z   gradle-home-cache-includes: caches
+notifications
+
+2026-07-07T04:52:32.7254690Z   add-job-summary: always
+2026-07-07T04:52:32.7254998Z   add-job-summary-as-pr-comment: never
+2026-07-07T04:52:32.7255359Z   dependency-graph: disabled
+2026-07-07T04:52:32.7255859Z   dependency-graph-report-dir: dependency-graph-reports
+2026-07-07T04:52:32.7256313Z   dependency-graph-continue-on-failure: true
+2026-07-07T04:52:32.7256677Z   build-scan-publish: false
+2026-07-07T04:52:32.7256971Z   validate-wrappers: true
+2026-07-07T04:52:32.7257266Z   allow-snapshot-wrappers: false
+2026-07-07T04:52:32.7257627Z   gradle-home-cache-strict-match: false
+2026-07-07T04:52:32.7257981Z   workflow-job-context: null
+2026-07-07T04:52:32.7262123Z   github-token: ***
+2026-07-07T04:52:32.7262389Z env:
+2026-07-07T04:52:32.7262753Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.19-10/x64
+2026-07-07T04:52:32.7263355Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.19-10/x64
+2026-07-07T04:52:32.7263862Z ##[endgroup]
+2026-07-07T04:52:34.0155295Z Merged default JDK locations into /home/runner/.m2/toolchains.xml
+2026-07-07T04:52:34.0157069Z Preparing cache for cleanup.
+2026-07-07T04:52:34.0177403Z ##[group]Restore Gradle state from cache
+2026-07-07T04:52:34.2677531Z Cache hit for restore-key: gradle-home-v1|Linux-X64|build[e080f0fdc288b6f0c5023fd4b86f7a10]-da36e87a5064273e0e039ce4e5ca432123f5775f
+2026-07-07T04:52:35.4942339Z Received 33554432 of 122078469 (27.5%), 32.0 MBs/sec
+2026-07-07T04:52:36.0585318Z Received 122078469 of 122078469 (100.0%), 74.3 MBs/sec
+2026-07-07T04:52:36.0587290Z Cache Size: ~116 MB (122078469 B)
+2026-07-07T04:52:36.0702310Z [command]/usr/bin/tar -xf /home/runner/work/_temp/f247acf1-8602-4e7f-ab65-ca0a1f93c5ae/cache.tzst -P -C /home/runner/work/android/android --use-compress-program unzstd
+2026-07-07T04:52:36.8229012Z Cache restored successfully
+2026-07-07T04:52:36.8280662Z Restored cache entry with key gradle-home-v1|Linux-X64|build[e080f0fdc288b6f0c5023fd4b86f7a10]-988d4064b01bf70c9a70e7a41a4a2d3c7a73d450 to /home/runner/.gradle/caches,/home/runner/.gradle/notifications,/home/runner/.gradle/.setup-gradle in 2811ms
+2026-07-07T04:52:37.0340484Z Cache hit for: gradle-transforms-v1-ebf8a75e7d1f22b2cbe405d36ef5a902
+2026-07-07T04:52:37.0390650Z Cache hit for: gradle-kotlin-dsl-v1-95e787361dfb383e38c44717dfd23297
+2026-07-07T04:52:37.0415279Z Cache hit for: gradle-groovy-dsl-v1-26be4c2963e8a34cd7f37ee0c0428250
+2026-07-07T04:52:37.0417980Z Cache hit for: gradle-instrumented-jars-v1-7882d234ab1a32e20b2cfeb9b9f9738d
+2026-07-07T04:52:37.0446872Z Cache hit for: gradle-dependencies-v1-0555fcfd6a416cccc1b37f36f6125a73
+2026-07-07T04:52:37.0450347Z Cache hit for: gradle-wrapper-zips-v1-e89a30cff1b7b918cfe1273c9c8e4a34
+2026-07-07T04:52:37.0453424Z Cache hit for: gradle-generated-gradle-jars-v1-fa001ab82c3596b4e27ec78f191b889f
+2026-07-07T04:52:37.0562807Z Cache hit for: gradle-generated-gradle-jars-v1-aab574994eb421acff6809687eadd5de
+2026-07-07T04:52:37.6062550Z Received 105871 of 105871 (100.0%), 0.3 MBs/sec
+2026-07-07T04:52:37.6064398Z Cache Size: ~0 MB (105871 B)
+2026-07-07T04:52:37.6089351Z [command]/usr/bin/tar -xf /home/runner/work/_temp/49422881-e4e4-4647-abad-f50178da215a/cache.tzst -P -C /home/runner/work/android/android --use-compress-program unzstd
+2026-07-07T04:52:37.6273630Z Cache restored successfully
+2026-07-07T04:52:37.6280460Z Restored cache entry with key gradle-groovy-dsl-v1-26be4c2963e8a34cd7f37ee0c0428250 to /home/runner/.gradle/caches/*/groovy-dsl/*/ in 797ms
+2026-07-07T04:52:37.7176789Z Received 214166 of 214166 (100.0%), 0.5 MBs/sec
+2026-07-07T04:52:37.7177356Z Cache Size: ~0 MB (214166 B)
+2026-07-07T04:52:37.7191887Z [command]/usr/bin/tar -xf /home/runner/work/_temp/898deb15-4b40-4fb8-a8d9-fb345fd5efdf/cache.tzst -P -C /home/runner/work/android/android --use-compress-program unzstd
+2026-07-07T04:52:37.7754278Z Cache restored successfully
+2026-07-07T04:52:37.7757461Z Restored cache entry with key gradle-kotlin-dsl-v1-95e787361dfb383e38c44717dfd23297 to /home/runner/.gradle/caches/*/kotlin-dsl/accessors/*/,/home/runner/.gradle/caches/*/kotlin-dsl/scripts/*/ in 945ms
+2026-07-07T04:52:38.2413819Z Received 29360128 of 93106640 (31.5%), 28.0 MBs/sec
+2026-07-07T04:52:38.2554116Z Received 29360128 of 89813638 (32.7%), 28.0 MBs/sec
+2026-07-07T04:52:38.2717087Z Received 20971520 of 36784582 (57.0%), 20.0 MBs/sec
+2026-07-07T04:52:38.2825207Z Received 16777216 of 131975973 (12.7%), 16.0 MBs/sec
+2026-07-07T04:52:38.3011931Z Received 12582912 of 42158674 (29.8%), 12.0 MBs/sec
+2026-07-07T04:52:38.3332691Z Received 4194304 of 332039705 (1.3%), 4.0 MBs/sec
+2026-07-07T04:52:38.5687055Z Received 42158674 of 42158674 (100.0%), 31.7 MBs/sec
+2026-07-07T04:52:38.5689597Z Cache Size: ~40 MB (42158674 B)
+2026-07-07T04:52:38.6265165Z [command]/usr/bin/tar -xf /home/runner/work/_temp/19892a8a-c266-4c23-a36e-fc216626704e/cache.tzst -P -C /home/runner/work/android/android --use-compress-program unzstd
+2026-07-07T04:52:38.7486029Z Received 93106640 of 93106640 (100.0%), 58.9 MBs/sec
+2026-07-07T04:52:38.7486620Z Cache Size: ~89 MB (93106640 B)
+2026-07-07T04:52:38.7770573Z [command]/usr/bin/tar -xf /home/runner/work/_temp/e079f9e7-4ed7-472c-b5f7-72c3b1243993/cache.tzst -P -C /home/runner/work/android/android --use-compress-program unzstd
+2026-07-07T04:52:38.9751496Z Received 36784582 of 36784582 (100.0%), 20.6 MBs/sec
+2026-07-07T04:52:38.9752078Z Cache Size: ~35 MB (36784582 B)
+2026-07-07T04:52:38.9757167Z Cache restored successfully
+2026-07-07T04:52:38.9860781Z Restored cache entry with key gradle-generated-gradle-jars-v1-aab574994eb421acff6809687eadd5de to /home/runner/.gradle/caches/9.6.1/generated-gradle-jars/gradle-api-9.6.1.jar in 2156ms
+2026-07-07T04:52:39.0092222Z [command]/usr/bin/tar -xf /home/runner/work/_temp/4433b5f9-3758-49c0-945b-8984e03622c8/cache.tzst -P -C /home/runner/work/android/android --use-compress-program unzstd
+2026-07-07T04:52:39.0776011Z Received 89813638 of 89813638 (100.0%), 47.0 MBs/sec
+2026-07-07T04:52:39.0801279Z Cache Size: ~86 MB (89813638 B)
+2026-07-07T04:52:39.1709661Z Received 131975973 of 131975973 (100.0%), 66.7 MBs/sec
+2026-07-07T04:52:39.1737886Z Cache Size: ~126 MB (131975973 B)
+2026-07-07T04:52:39.1956730Z [command]/usr/bin/tar -xf /home/runner/work/_temp/8b5c1701-d0cf-40f9-878c-9db5fcf3db2f/cache.tzst -P -C /home/runner/work/android/android --use-compress-program unzstd
+2026-07-07T04:52:39.2255461Z [command]/usr/bin/tar -xf /home/runner/work/_temp/11d073f4-7bb9-41ea-a00b-0461c5fd3c31/cache.tzst -P -C /home/runner/work/android/android --use-compress-program unzstd
+2026-07-07T04:52:39.2945909Z Cache restored successfully
+2026-07-07T04:52:39.2962171Z Restored cache entry with key gradle-generated-gradle-jars-v1-fa001ab82c3596b4e27ec78f191b889f to /home/runner/.gradle/caches/8.5/generated-gradle-jars/gradle-api-8.5.jar in 2466ms
+2026-07-07T04:52:39.3340492Z Received 130023424 of 332039705 (39.2%), 61.9 MBs/sec
+2026-07-07T04:52:39.6236921Z Cache restored successfully
+2026-07-07T04:52:39.6433675Z Restored cache entry with key gradle-wrapper-zips-v1-e89a30cff1b7b918cfe1273c9c8e4a34 to /home/runner/.gradle/wrapper/dists/gradle-8.5-bin/5t9huq95ubn472n8rpzujfbqh in 2813ms
+2026-07-07T04:52:39.9671514Z Cache restored successfully
+2026-07-07T04:52:39.9792027Z Restored cache entry with key gradle-transforms-v1-ebf8a75e7d1f22b2cbe405d36ef5a902 to /home/runner/.gradle/caches/transforms-4/*/,/home/runner/.gradle/caches/*/transforms/*/ in 3147ms
+2026-07-07T04:52:40.1221597Z Cache restored successfully
+2026-07-07T04:52:40.3521182Z Received 268435456 of 332039705 (80.8%), 84.8 MBs/sec
+2026-07-07T04:52:40.3531330Z Restored cache entry with key gradle-instrumented-jars-v1-7882d234ab1a32e20b2cfeb9b9f9738d to /home/runner/.gradle/caches/jars-*/*/ in 3520ms
+2026-07-07T04:52:40.8573005Z Received 332039705 of 332039705 (100.0%), 89.9 MBs/sec
+2026-07-07T04:52:40.8600756Z Cache Size: ~317 MB (332039705 B)
+2026-07-07T04:52:40.8655672Z [command]/usr/bin/tar -xf /home/runner/work/_temp/004dd7fd-2bad-4746-a5d0-8dd503f0519a/cache.tzst -P -C /home/runner/work/android/android --use-compress-program unzstd
+2026-07-07T04:52:42.1298956Z Cache restored successfully
+2026-07-07T04:52:42.1423651Z Restored cache entry with key gradle-dependencies-v1-0555fcfd6a416cccc1b37f36f6125a73 to /home/runner/.gradle/caches/modules-*/files-*/*/*/*/* in 5313ms
+2026-07-07T04:52:42.2290298Z ##[endgroup]
+2026-07-07T04:52:42.2342107Z ##[group]All Gradle Wrapper jars are valid
+2026-07-07T04:52:42.2342770Z 
+2026-07-07T04:52:42.2343154Z ##[endgroup]
+2026-07-07T04:52:42.2789984Z ##[group]Run gradle wrapper --gradle-version 8.5
+2026-07-07T04:52:42.2790630Z [36;1mgradle wrapper --gradle-version 8.5[0m
+2026-07-07T04:52:42.3820372Z shell: /usr/bin/bash -e {0}
+2026-07-07T04:52:42.3820696Z env:
+2026-07-07T04:52:42.3821017Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.19-10/x64
+2026-07-07T04:52:42.3821460Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.19-10/x64
+2026-07-07T04:52:42.3821836Z   GRADLE_ACTION_ID: gradle/actions/setup-gradle
+2026-07-07T04:52:42.3822127Z   GRADLE_USER_HOME: /home/runner/.gradle
+2026-07-07T04:52:42.3822406Z   GRADLE_BUILD_ACTION_SETUP_COMPLETED: true
+2026-07-07T04:52:42.3822689Z   GRADLE_BUILD_ACTION_CACHE_RESTORED: true
+2026-07-07T04:52:42.3823308Z   DEVELOCITY_INJECTION_INIT_SCRIPT_NAME: gradle-actions.inject-develocity.init.gradle
+2026-07-07T04:52:42.3823730Z   DEVELOCITY_INJECTION_CUSTOM_VALUE: gradle-actions
+2026-07-07T04:52:42.3824022Z   GITHUB_DEPENDENCY_GRAPH_ENABLED: false
+2026-07-07T04:52:42.3824339Z ##[endgroup]
+2026-07-07T04:52:46.2796052Z Starting a Gradle Daemon (subsequent builds will be faster)
+2026-07-07T04:52:57.6831485Z > Task :wrapper
+2026-07-07T04:52:57.7805401Z gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run-1783399970866.json
+2026-07-07T04:52:57.7806301Z 
+2026-07-07T04:52:57.7818387Z [Incubating] Problems report is available at: file:///home/runner/work/android/android/build/reports/problems/problems-report.html
+2026-07-07T04:52:57.7819385Z 
+2026-07-07T04:52:57.7828107Z Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+2026-07-07T04:52:57.7828844Z 
+2026-07-07T04:52:57.7829647Z You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+2026-07-07T04:52:57.7860671Z 
+2026-07-07T04:52:57.7861508Z For more on this, please refer to https://docs.gradle.org/9.6.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+2026-07-07T04:52:57.7862335Z 
+2026-07-07T04:52:57.7862487Z BUILD SUCCESSFUL in 15s
+2026-07-07T04:52:57.7862869Z 1 actionable task: 1 executed
+2026-07-07T04:52:57.7863748Z Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.1/userguide/configuration_cache_enabling.html
+2026-07-07T04:52:58.1404945Z ##[group]Run ./gradlew assembleDebug assembleRelease
+2026-07-07T04:52:58.1405357Z [36;1m./gradlew assembleDebug assembleRelease[0m
+2026-07-07T04:52:58.1433905Z shell: /usr/bin/bash -e {0}
+2026-07-07T04:52:58.1434155Z env:
+2026-07-07T04:52:58.1434449Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.19-10/x64
+2026-07-07T04:52:58.1434897Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.19-10/x64
+2026-07-07T04:52:58.1435308Z   GRADLE_ACTION_ID: gradle/actions/setup-gradle
+2026-07-07T04:52:58.1435618Z   GRADLE_USER_HOME: /home/runner/.gradle
+2026-07-07T04:52:58.1435897Z   GRADLE_BUILD_ACTION_SETUP_COMPLETED: true
+2026-07-07T04:52:58.1436176Z   GRADLE_BUILD_ACTION_CACHE_RESTORED: true
+2026-07-07T04:52:58.1436575Z   DEVELOCITY_INJECTION_INIT_SCRIPT_NAME: gradle-actions.inject-develocity.init.gradle
+2026-07-07T04:52:58.1436990Z   DEVELOCITY_INJECTION_CUSTOM_VALUE: gradle-actions
+2026-07-07T04:52:58.1437283Z   GITHUB_DEPENDENCY_GRAPH_ENABLED: false
+2026-07-07T04:52:58.1437576Z ##[endgroup]
+2026-07-07T04:52:58.6531426Z Starting a Gradle Daemon (subsequent builds will be faster)
+2026-07-07T04:53:04.7521803Z > Task :app:preBuild UP-TO-DATE
+2026-07-07T04:53:04.7525920Z > Task :app:preDebugBuild UP-TO-DATE
+2026-07-07T04:53:04.8490692Z > Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+2026-07-07T04:53:04.8530943Z > Task :app:checkKotlinGradlePluginConfigurationErrors
+2026-07-07T04:53:05.1488332Z > Task :app:generateDebugResValues
+2026-07-07T04:53:05.1488890Z > Task :app:checkDebugAarMetadata
+2026-07-07T04:53:05.2481491Z > Task :app:mapDebugSourceSetPaths
+2026-07-07T04:53:05.2482527Z > Task :app:generateDebugResources
+2026-07-07T04:53:06.0501355Z > Task :app:packageDebugResources
+2026-07-07T04:53:06.5491239Z > Task :app:createDebugCompatibleScreenManifests
+2026-07-07T04:53:06.5520901Z > Task :app:extractDeepLinksDebug
+2026-07-07T04:53:06.6531265Z > Task :app:mergeDebugResources
+2026-07-07T04:53:06.6580124Z > Task :app:parseDebugLocalResources
+2026-07-07T04:53:06.8477605Z > Task :app:processDebugMainManifest
+2026-07-07T04:53:06.8502998Z > Task :app:processDebugManifest
+2026-07-07T04:53:06.8508033Z > Task :app:javaPreCompileDebug
+2026-07-07T04:53:06.9486880Z > Task :app:mergeDebugShaders
+2026-07-07T04:53:06.9491260Z > Task :app:compileDebugShaders NO-SOURCE
+2026-07-07T04:53:06.9492080Z > Task :app:generateDebugAssets UP-TO-DATE
+2026-07-07T04:53:06.9492755Z > Task :app:mergeDebugAssets
+2026-07-07T04:53:06.9493665Z > Task :app:compressDebugAssets
+2026-07-07T04:53:06.9494288Z > Task :app:desugarDebugFileDependencies
+2026-07-07T04:53:07.0479910Z > Task :app:processDebugManifestForPackage
+2026-07-07T04:53:07.0490975Z > Task :app:checkDebugDuplicateClasses
+2026-07-07T04:53:07.4478487Z > Task :app:mergeDebugJniLibFolders
+2026-07-07T04:53:07.4500021Z > Task :app:mergeLibDexDebug
+2026-07-07T04:53:07.4500932Z > Task :app:mergeDebugNativeLibs NO-SOURCE
+2026-07-07T04:53:07.4501673Z > Task :app:stripDebugDebugSymbols NO-SOURCE
+2026-07-07T04:53:07.5478083Z > Task :app:processDebugResources
+2026-07-07T04:53:08.2477554Z > Task :app:validateSigningDebug
+2026-07-07T04:53:08.6541404Z > Task :app:writeDebugAppMetadata
+2026-07-07T04:53:08.6581248Z > Task :app:writeDebugSigningConfigVersions
+2026-07-07T04:53:10.8491367Z > Task :app:generateReleaseKeystore
+2026-07-07T04:53:10.9535104Z > Task :app:buildKotlinToolingMetadata
+2026-07-07T04:53:10.9603812Z > Task :app:preReleaseBuild UP-TO-DATE
+2026-07-07T04:53:11.0531433Z > Task :app:checkReleaseAarMetadata
+2026-07-07T04:53:11.0590857Z > Task :app:generateReleaseResValues
+2026-07-07T04:53:11.0650765Z > Task :app:mapReleaseSourceSetPaths
+2026-07-07T04:53:11.0651307Z > Task :app:generateReleaseResources
+2026-07-07T04:53:11.8504100Z > Task :app:packageReleaseResources
+2026-07-07T04:53:12.9500709Z > Task :app:parseReleaseLocalResources
+2026-07-07T04:53:13.0541514Z > Task :app:createReleaseCompatibleScreenManifests
+2026-07-07T04:53:13.0600895Z > Task :app:extractDeepLinksRelease
+2026-07-07T04:53:13.0673068Z > Task :app:mergeReleaseResources
+2026-07-07T04:53:13.2495078Z > Task :app:processReleaseMainManifest
+2026-07-07T04:53:13.2509469Z > Task :app:processReleaseManifest
+2026-07-07T04:53:13.2572433Z > Task :app:javaPreCompileRelease
+2026-07-07T04:53:13.2630710Z > Task :app:extractProguardFiles
+2026-07-07T04:53:13.2650792Z > Task :app:mergeReleaseJniLibFolders
+2026-07-07T04:53:13.3515704Z > Task :app:mergeReleaseNativeLibs NO-SOURCE
+2026-07-07T04:53:13.3586204Z > Task :app:stripReleaseDebugSymbols NO-SOURCE
+2026-07-07T04:53:13.3600833Z > Task :app:extractReleaseNativeSymbolTables NO-SOURCE
+2026-07-07T04:53:13.3626935Z > Task :app:mergeReleaseNativeDebugMetadata NO-SOURCE
+2026-07-07T04:53:13.3627915Z > Task :app:processReleaseManifestForPackage
+2026-07-07T04:53:13.3680721Z > Task :app:checkReleaseDuplicateClasses
+2026-07-07T04:53:13.9491251Z > Task :app:processReleaseResources
+2026-07-07T04:53:13.9520974Z > Task :app:mergeReleaseArtProfile
+2026-07-07T04:53:13.9550697Z > Task :app:mergeReleaseShaders
+2026-07-07T04:53:13.9610890Z > Task :app:compileReleaseShaders NO-SOURCE
+2026-07-07T04:53:13.9650370Z > Task :app:generateReleaseAssets UP-TO-DATE
+2026-07-07T04:53:14.0493515Z > Task :app:mergeReleaseAssets
+2026-07-07T04:53:14.0500754Z > Task :app:compressReleaseAssets
+2026-07-07T04:53:14.0501698Z > Task :app:processApplicationManifestReleaseForBundle
+2026-07-07T04:53:20.7481426Z > Task :app:mergeExtDexDebug
+2026-07-07T04:53:20.8496994Z > Task :app:bundleReleaseResources
+2026-07-07T04:53:20.9483232Z > Task :app:collectReleaseDependencies
+2026-07-07T04:53:21.1541327Z > Task :app:sdkReleaseDependencyData
+2026-07-07T04:53:21.1600997Z > Task :app:validateSigningRelease
+2026-07-07T04:53:21.1650960Z > Task :app:writeReleaseAppMetadata
+2026-07-07T04:53:21.1710788Z > Task :app:writeReleaseSigningConfigVersions
+2026-07-07T04:53:23.7485646Z 
+2026-07-07T04:53:23.7505111Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1:1 Expecting a top level declaration
+2026-07-07T04:53:23.7505907Z > Task :app:compileDebugKotlin FAILED
+2026-07-07T04:53:23.7506602Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1:2 Expecting a top level declaration
+2026-07-07T04:53:23.7510886Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:2:1 Expecting a top level declaration
+2026-07-07T04:53:23.7512042Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:2:9 Expecting a top level declaration
+2026-07-07T04:53:23.7513590Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:2:12 Expecting a top level declaration
+2026-07-07T04:53:23.7514720Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:2:13 Expecting a top level declaration
+2026-07-07T04:53:23.7515853Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:2:17 Expecting a top level declaration
+2026-07-07T04:53:23.7517033Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:2:18 Expecting a top level declaration
+2026-07-07T04:53:23.7518123Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:2:21 imports are only allowed in the beginning of file
+2026-07-07T04:53:23.7519161Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1183:39 Expecting '"'
+2026-07-07T04:53:23.7520106Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1183:39 Expecting ')'
+2026-07-07T04:53:23.7521206Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1552:2 Expecting '}'
+2026-07-07T04:53:23.7522236Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:389:32 Unresolved reference: BleConnection
+2026-07-07T04:53:23.7523352Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:608:24 Variable expected
+2026-07-07T04:53:23.7524614Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:619:25 Unresolved reference: BleConnection
+2026-07-07T04:53:23.7525713Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:620:51 Variable expected
+2026-07-07T04:53:23.7526744Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:621:24 Variable expected
+2026-07-07T04:53:23.7527998Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:625:43 Cannot infer a type for this parameter. Please specify it explicitly.
+2026-07-07T04:53:23.7557840Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:649:24 Variable expected
+2026-07-07T04:53:23.7558985Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:917:21 Unresolved reference: BluetoothPage
+2026-07-07T04:53:23.7560321Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:993:13 Unresolved reference: BluetoothPage
+2026-07-07T04:53:23.7561500Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1216:25 Unresolved reference: SwipeDeviceCard
+2026-07-07T04:53:23.7562751Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1243:25 Unresolved reference: SwipeDeviceCard
+2026-07-07T04:53:23.7563936Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1313:17 Unresolved reference: ConnectedCard
+2026-07-07T04:53:23.7565096Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1315:17 Unresolved reference: DeviceCard
+2026-07-07T04:53:23.7566269Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1327:13 Unresolved reference: ConnectedCard
+2026-07-07T04:53:23.7567429Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1329:13 Unresolved reference: DeviceCard
+2026-07-07T04:53:23.7568597Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1346:13 Unresolved reference: SocCircle
+2026-07-07T04:53:23.7569749Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1358:25 Unresolved reference: RssiIndicator
+2026-07-07T04:53:23.7571123Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1371:17 Unresolved reference: SafetyFlagRow
+2026-07-07T04:53:23.7572565Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1399:21 Unresolved reference: SocCircle
+2026-07-07T04:53:23.7573667Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1407:29 Unresolved reference: RssiIndicator
+2026-07-07T04:53:23.7574834Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1420:21 Unresolved reference: SafetyFlagRow
+2026-07-07T04:53:23.7575953Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1:1 Expecting a top level declaration
+2026-07-07T04:53:23.7577065Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1:2 Expecting a top level declaration
+2026-07-07T04:53:23.7578183Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:2:1 Expecting a top level declaration
+2026-07-07T04:53:23.7579281Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:2:9 Expecting a top level declaration
+2026-07-07T04:53:23.7606026Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:2:12 Expecting a top level declaration
+2026-07-07T04:53:23.7607286Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:2:13 Expecting a top level declaration
+2026-07-07T04:53:23.7608652Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:2:17 Expecting a top level declaration
+2026-07-07T04:53:23.7609735Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:2:18 Expecting a top level declaration
+2026-07-07T04:53:23.7611068Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:2:21 imports are only allowed in the beginning of file
+2026-07-07T04:53:23.7612123Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1183:39 Expecting '"'
+2026-07-07T04:53:23.7613097Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1183:39 Expecting ')'
+2026-07-07T04:53:23.7614113Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1552:2 Expecting '}'
+2026-07-07T04:53:23.7615226Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:389:32 Unresolved reference: BleConnection
+2026-07-07T04:53:23.7616345Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:608:24 Variable expected
+2026-07-07T04:53:23.7617429Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:619:25 Unresolved reference: BleConnection
+2026-07-07T04:53:23.7618508Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:620:51 Variable expected
+2026-07-07T04:53:23.7619583Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:621:24 Variable expected
+2026-07-07T04:53:23.7651184Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:625:43 Cannot infer a type for this parameter. Please specify it explicitly.
+2026-07-07T04:53:23.7652514Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:649:24 Variable expected
+2026-07-07T04:53:23.7653621Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:917:21 Unresolved reference: BluetoothPage
+2026-07-07T04:53:23.7654255Z 
+2026-07-07T04:53:23.7654400Z > Task :app:compileReleaseKotlin FAILED
+2026-07-07T04:53:23.7655169Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:993:13 Unresolved reference: BluetoothPage
+2026-07-07T04:53:23.7656290Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1216:25 Unresolved reference: SwipeDeviceCard
+2026-07-07T04:53:23.7657631Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1243:25 Unresolved reference: SwipeDeviceCard
+2026-07-07T04:53:23.7658771Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1313:17 Unresolved reference: ConnectedCard
+2026-07-07T04:53:23.7659937Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1315:17 Unresolved reference: DeviceCard
+2026-07-07T04:53:23.7661265Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1327:13 Unresolved reference: ConnectedCard
+2026-07-07T04:53:23.7662689Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1329:13 Unresolved reference: DeviceCard
+2026-07-07T04:53:23.7664005Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1346:13 Unresolved reference: SocCircle
+2026-07-07T04:53:23.7665200Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1358:25 Unresolved reference: RssiIndicator
+2026-07-07T04:53:23.7666355Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1371:17 Unresolved reference: SafetyFlagRow
+2026-07-07T04:53:23.7667637Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1399:21 Unresolved reference: SocCircle
+2026-07-07T04:53:23.7669102Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1407:29 Unresolved reference: RssiIndicator
+2026-07-07T04:53:23.7670441Z e: file:///home/runner/work/android/android/app/src/main/java/com/dcsf/bms/MainActivity.kt:1420:21 Unresolved reference: SafetyFlagRow
+2026-07-07T04:53:23.8498226Z 
+2026-07-07T04:53:23.8499004Z gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_2-1783399980532.json
+2026-07-07T04:53:23.8499694Z 56 actionable tasks: 56 executed
+2026-07-07T04:53:23.8500665Z FAILURE: Build completed with 2 failures.
+2026-07-07T04:53:23.8504432Z 
+2026-07-07T04:53:23.8509566Z 1: Task failed with an exception.
+2026-07-07T04:53:23.8510000Z -----------
+2026-07-07T04:53:23.8511283Z * What went wrong:
+2026-07-07T04:53:23.8511680Z Execution failed for task ':app:compileDebugKotlin'.
+2026-07-07T04:53:23.8512353Z > A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+2026-07-07T04:53:23.8512960Z    > Compilation error. See log for more details
+2026-07-07T04:53:23.8513177Z 
+2026-07-07T04:53:23.8513267Z * Try:
+2026-07-07T04:53:23.8513509Z > Run with --stacktrace option to get the stack trace.
+2026-07-07T04:53:23.8513856Z > Run with --info or --debug option to get more log output.
+2026-07-07T04:53:23.8514166Z > Run with --scan to get full insights.
+2026-07-07T04:53:23.8514466Z > Get more help at https://help.gradle.org.
+2026-07-07T04:53:23.8514778Z ==============================================================================
+2026-07-07T04:53:23.8515001Z 
+2026-07-07T04:53:23.8515104Z 2: Task failed with an exception.
+2026-07-07T04:53:23.8515349Z -----------
+2026-07-07T04:53:23.8515548Z * What went wrong:
+2026-07-07T04:53:23.8515818Z Execution failed for task ':app:compileReleaseKotlin'.
+2026-07-07T04:53:23.8516408Z > A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+2026-07-07T04:53:23.8516969Z    > Compilation error. See log for more details
+2026-07-07T04:53:23.8517153Z 
+2026-07-07T04:53:23.8517246Z * Try:
+2026-07-07T04:53:23.8517479Z > Run with --stacktrace option to get the stack trace.
+2026-07-07T04:53:23.8517818Z > Run with --info or --debug option to get more log output.
+2026-07-07T04:53:23.8518128Z > Run with --scan to get full insights.
+2026-07-07T04:53:23.8518411Z > Get more help at https://help.gradle.org.
+2026-07-07T04:53:23.8518721Z ==============================================================================
+2026-07-07T04:53:23.8519286Z 
+2026-07-07T04:53:23.8519382Z BUILD FAILED in 25s
+2026-07-07T04:53:24.2277465Z ##[error]Process completed with exit code 1.
+2026-07-07T04:53:24.2461452Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-07T04:53:24.2462441Z Post job cleanup.
+2026-07-07T04:53:24.4249042Z In post-action step
+2026-07-07T04:53:24.4257902Z ##[group]Stopping Gradle daemons
+2026-07-07T04:53:24.4258358Z Stopping Gradle daemons for /usr/share/gradle-9.6.1
+2026-07-07T04:53:24.4267070Z Stopping Gradle daemons for /home/runner/.gradle/wrapper/dists/gradle-8.5-bin/5t9huq95ubn472n8rpzujfbqh/gradle-8.5
+2026-07-07T04:53:24.4271899Z [command]/usr/share/gradle-9.6.1/bin/gradle --stop
+2026-07-07T04:53:24.4309705Z [command]/home/runner/.gradle/wrapper/dists/gradle-8.5-bin/5t9huq95ubn472n8rpzujfbqh/gradle-8.5/bin/gradle --stop
+2026-07-07T04:53:25.2518279Z Stopping Daemon(s)
+2026-07-07T04:53:25.2571529Z 1 Daemon stopped
+2026-07-07T04:53:25.5436414Z Stopping Daemon(s)
+2026-07-07T04:53:25.5440336Z 1 Daemon stopped
+2026-07-07T04:53:25.5561562Z ##[endgroup]
+2026-07-07T04:53:25.5561956Z Not performing cache-cleanup due to build failure
+2026-07-07T04:53:25.5562449Z ##[group]Caching Gradle state
+2026-07-07T04:53:26.2771344Z [command]/usr/bin/tar --posix -cf cache.tzst --exclude cache.tzst -P -C /home/runner/work/android/android --files-from manifest.txt --use-compress-program zstdmt
+2026-07-07T04:53:28.2342768Z Sent 31916032 of 122075050 (26.1%), 30.4 MBs/sec
+2026-07-07T04:53:29.2350844Z Sent 70778880 of 122075050 (58.0%), 33.7 MBs/sec
+2026-07-07T04:53:30.2345479Z Sent 85590016 of 122075050 (70.1%), 27.2 MBs/sec
+2026-07-07T04:53:31.2352222Z Sent 94109696 of 122075050 (77.1%), 22.4 MBs/sec
+2026-07-07T04:53:32.2362837Z Sent 98369536 of 122075050 (80.6%), 18.8 MBs/sec
+2026-07-07T04:53:33.2377502Z Sent 102694912 of 122075050 (84.1%), 16.3 MBs/sec
+2026-07-07T04:53:34.2379058Z Sent 106889216 of 122075050 (87.6%), 14.6 MBs/sec
+2026-07-07T04:53:35.2376086Z Sent 109707264 of 122075050 (89.9%), 13.1 MBs/sec
+2026-07-07T04:53:36.2384613Z Sent 112656384 of 122075050 (92.3%), 11.9 MBs/sec
+2026-07-07T04:53:37.2390927Z Sent 115539968 of 122075050 (94.6%), 11.0 MBs/sec
+2026-07-07T04:53:38.2392302Z Sent 118358016 of 122075050 (97.0%), 10.3 MBs/sec
+2026-07-07T04:53:39.2400633Z Sent 121241600 of 122075050 (99.3%), 9.6 MBs/sec
+2026-07-07T04:53:40.2400840Z Sent 122075050 of 122075050 (100.0%), 9.0 MBs/sec
+2026-07-07T04:53:40.8707375Z Saved cache entry with key gradle-home-v1|Linux-X64|build[e080f0fdc288b6f0c5023fd4b86f7a10]-988d4064b01bf70c9a70e7a41a4a2d3c7a73d450 from /home/runner/.gradle/caches,/home/runner/.gradle/notifications,/home/runner/.gradle/.setup-gradle in 14605ms
+2026-07-07T04:53:40.8708979Z ##[endgroup]
+2026-07-07T04:53:40.8713142Z Generating Job Summary
+2026-07-07T04:53:40.8724382Z Completed post-action step
+2026-07-07T04:53:40.8892827Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-07T04:53:40.8893812Z Post job cleanup.
+2026-07-07T04:53:40.9906623Z (node:2661) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-07-07T04:53:40.9907277Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-07-07T04:53:41.0074620Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-07-07T04:53:41.0075765Z Post job cleanup.
+2026-07-07T04:53:41.0753044Z [command]/usr/bin/git version
+2026-07-07T04:53:41.0820552Z git version 2.54.0
+2026-07-07T04:53:41.0857930Z Temporarily overriding HOME='/home/runner/work/_temp/11d4d1fb-90e8-4fb7-ae9b-4eb4eb27292c' before making global git config changes
+2026-07-07T04:53:41.0860751Z Adding repository directory to the temporary git global config as a safe directory
+2026-07-07T04:53:41.0868822Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/android/android
+2026-07-07T04:53:41.0898880Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-07-07T04:53:41.0935116Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-07-07T04:53:41.1236133Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-07-07T04:53:41.1259173Z http.https://github.com/.extraheader
+2026-07-07T04:53:41.1271856Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-07-07T04:53:41.1309140Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-07-07T04:53:41.1528575Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-07-07T04:53:41.1565027Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-07-07T04:53:41.1889145Z Cleaning up orphan processes
+2026-07-07T04:53:41.2155383Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-java@v4, gradle/actions/setup-gradle@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
