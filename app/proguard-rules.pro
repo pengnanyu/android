@@ -27,5 +27,4 @@
     @android.webkit.JavascriptInterface <methods>;
 }
 
-# R8 full mode
--fullvisibility
+# R8 full mode is enabled via android.enableR8.fullMode=true in gradle.properties
