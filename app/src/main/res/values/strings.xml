@@ -1,6 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">锂卫士</string>
+    <string name="please_connect_ble">请先连接蓝牙设备</string>
+    <string name="hide_sidebar">隐藏侧栏</string>
+    <string name="show_sidebar">显示侧栏</string>
+    <string name="connected">已连接</string>
+    <string name="bluetooth">蓝牙</string>
+    <string name="scan">扫码</string>
+    <string name="console">控制台</string>
+    <string name="nearby_devices">附近设备</string>
+    <string name="no_device_found">未发现设备</string>
+    <string name="start_scan">开始扫描</string>
+    <string name="saved_devices">记忆设备</string>
+    <string name="new_devices">新设备</string>
+    <string name="save_memory">保存记忆</string>
+    <string name="cancel_memory">取消记忆</string>
     <color name="primary">#C8941E</color>
     <color name="primary_dark">#A07616</color>
     <color name="background">#F8F9FA</color>
