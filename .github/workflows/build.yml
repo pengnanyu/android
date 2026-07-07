@@ -1,4 +1,3 @@
-# Copyright (c) 2024 深圳市德诚四方科技有限公司. All rights reserved.
 name: Build Android APK
 
 on:
@@ -29,20 +28,6 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           cache-read-only: false
-
-      - name: Generate Release Keystore
-        run: |
-          if [ ! -f app/release.keystore ]; then
-            keytool -genkeypair -v \
-              -keystore app/release.keystore \
-              -storepass "Fkue@1023" \
-              -alias "dcsf-bms" \
-              -keypass "Fkue@1023" \
-              -keyalg RSA \
-              -keysize 2048 \
-              -validity 10000 \
-              -dname "CN=DCSF, OU=Engineering, O=Shenzhen-Dcsf, L=Shenzhen, ST=Guangdong, C=CN"
-          fi
 
       - name: Generate Gradle Wrapper
         run: gradle wrapper --gradle-version 8.5
