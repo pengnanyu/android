@@ -1,4 +1,4 @@
-// Copyright (c) 2024 深圳市德诚四方科技有限公司. All rights reserved.
+﻿﻿﻿// Copyright (c) 2024 深圳市德诚四方科技有限公司. All rights reserved.
 package com.dcsf.bms
 
 import android.Manifest
@@ -254,7 +254,7 @@ class MainActivity : ComponentActivity() {
                 runOnUiThread {
                     bleManager.connected.value = connected
                     if (!connected) bleManager.connectionError.value = true
- "Connected OK" else "Connection failed")
+                    Log.d("BMS_BLE", if (connected) "Connected OK" else "Connection failed")
                 }
             }
         } catch (e: Exception) {
@@ -431,12 +431,11 @@ class BleManager {
                         val mfgData = mfgDataMap.valueAt(i)
                         val hexStr = mfgData.joinToString("") { "%02x".format(it) }
                         Log.d("BMS_BLE", "MfgData id=0x${mfgId.toString(16)} len=${mfgData.size} data=$hexStr")
-}: $hexStr")
 
                         val parsed = parseMfgData(mfgData)
                         if (parsed != null) {
                             soc = parsed[0]; voltage = parsed[1]; current = parsed[2]; safety = parsed[3]
-}")
+                            Log.d("BMS_BLE", "Parsed mfg: soc=$soc V=$voltage I=$current safety=$safety")
                             break
                         }
                     }
@@ -451,10 +450,8 @@ class BleManager {
                         if (parsed != null) {
                             soc = parsed[0]; voltage = parsed[1]; current = parsed[2]; safety = parsed[3]
                             Log.d("BMS_BLE", "Parsed via raw: soc=$soc V=$voltage I=$current safety=$safety")
-: soc=$soc V=$voltage I=$current")
                         } else {
                             Log.d("BMS_BLE", "parseAdData returned null")
-")
                         }
                     } else {
 
@@ -783,7 +780,6 @@ fun BmsApp(
             webChromeClient = object : WebChromeClient() {
                 override fun onConsoleMessage(consoleMessage: android.webkit.ConsoleMessage): Boolean {
                     Log.d("BMS_JS", "${consoleMessage.message()} -- ${consoleMessage.sourceId()}:${consoleMessage.lineNumber()}")
-.take(80))
                     return true
                 }
                 override fun onShowFileChooser(webView: WebView?, filePathCallback: ValueCallback<Array<Uri>>?, fileChooserParams: FileChooserParams?): Boolean {
@@ -817,7 +813,7 @@ fun BmsApp(
                                     return@postMessage
                                 }
                                 val frameVal = payload?.opt("frame")
-.take(40)}")
+                                Log.d("BMS_BLE", "TX frame: ${frameVal.toString().take(40)}")
                                 val frame: ByteArray? = when (frameVal) {
                                     is org.json.JSONArray -> {
                                         ByteArray(frameVal.length()) { frameVal.getInt(it).toByte() }
@@ -830,7 +826,7 @@ fun BmsApp(
                                 }
                                 if (frame != null) {
                                     bleManager.send(frame)
- { "%02x".format(it) }}")
+                                    Log.d("BMS_BLE", "TX: ${frame.joinToString("") { "%02x".format(it) }}")
                                 } else {
 
                                 }
@@ -1050,7 +1046,7 @@ modifier = Modifier
                     },
                     label = {
                         Text(
-                            if (bleManager.connected.value) "宸茶繛鎺? else "钃濈墮",
+                            if (bleManager.connected.value) "宸茶繛鎺" else "钃濈墮",
                             color = if (selectedTab == 0) colors.primary else colors.fg2,
                             fontSize = 12.sp
                         )
@@ -1094,7 +1090,7 @@ modifier = Modifier
                     },
                     label = {
                         Text(
-                            "鎺у埗鍙?,
+                            "鎺у埗鍙",
                             color = if (selectedTab == 1) colors.primary else colors.fg2,
                             fontSize = 12.sp
                         )
@@ -1173,7 +1169,7 @@ fun BluetoothPage(
                         tint = colors.fg3,
                     )
                     Spacer(Modifier.height(8.dp))
-                    Text("鏈彂鐜拌澶?, color = colors.fg3, fontSize = 14.sp)
+                    Text("鏈彂鐜拌澶", color = colors.fg3, fontSize = 14.sp)
                     Spacer(Modifier.height(16.dp))
                     Button(
                         onClick = {
@@ -1234,7 +1230,7 @@ fun BluetoothPage(
                 if (newDevs.isNotEmpty()) {
                     item {
                         Text(
-                            "鏂拌澶?,
+                            "鏂拌澶",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
                             color = colors.fg2,
