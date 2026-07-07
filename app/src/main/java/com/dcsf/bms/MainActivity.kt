@@ -67,6 +67,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.core.content.ContextCompat
 import androidx.compose.material3.SwipeToDismissBox
@@ -425,7 +426,6 @@ class BleManager {
             val name = result.device.name ?: return
             if (!name.startsWith(NAME_PREFIX)) return
 
-
             var soc = 0; var voltage = 0; var current = 0; var safety = 0
             val scanRecord = result.scanRecord
             if (scanRecord != null) {
@@ -459,12 +459,8 @@ class BleManager {
                         } else {
                             Log.d("BMS_BLE", "parseAdData returned null")
                         }
-                    } else {
-
                     }
                 }
-            } else {
-
             }
 
             val device = BleDevice(name, result.device.address, result.rssi, soc, voltage, current, safety, System.currentTimeMillis())
@@ -906,6 +902,7 @@ fun BmsApp(
 
 
     val showBottomBar = !(bleManager.connected.value && selectedTab == 1)
+    val navBarInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
     Box(modifier = Modifier
         .fillMaxSize()
@@ -947,7 +944,7 @@ Box(
 modifier = Modifier
 .fillMaxSize()
 .padding(start = if (isWideScreen && sidebarVisible) 361.dp else 0.dp)
-.padding(bottom = if (!isWideScreen && showBottomBar) 80.dp else 0.dp)
+.padding(bottom = if (!isWideScreen && showBottomBar) (80.dp + navBarInset) else navBarInset)
 ) {
             AndroidView(
                 factory = createWebView,
@@ -1009,7 +1006,7 @@ modifier = Modifier
                 onConnectedClick = { selectedTab = 1 },
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(bottom = if (showBottomBar) 80.dp else 0.dp),
+                    .padding(bottom = if (showBottomBar) (80.dp + navBarInset) else navBarInset),
             )
         }
 
@@ -1038,11 +1035,17 @@ modifier = Modifier
 
         // ===== Bottom navigation bar (portrait only) =====
         if (!isWideScreen && showBottomBar) {
-            NavigationBar(
-                containerColor = colors.navBg,
-                tonalElevation = 2.dp,
-                modifier = Modifier.align(Alignment.BottomCenter),
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .background(colors.navBg),
             ) {
+                NavigationBar(
+                    containerColor = colors.navBg,
+                    tonalElevation = 2.dp,
+                    modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars),
+                ) {
                 NavigationBarItem(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
@@ -1106,6 +1109,7 @@ modifier = Modifier
                         )
                     },
                 )
+                }
             }
         }
 
@@ -1380,8 +1384,32 @@ fun ConnectedCard(device: BleDevice, colors: AppColors, onDisconnect: () -> Unit
                 ) {
                     Text("%.3fV".format(device.voltageV()), color = colors.fg, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                     Text("${if (device.currentA() > 0) "+" else ""}%.3fA".format(device.currentA()), color = colors.fg, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                    val flags = SafetyBits.activeFlags(device.safety)
+                    if (flags.isNotEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .width(1.dp)
+                                .height(12.dp)
+                                .background(colors.border)
+                        )
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(3.dp),
+                            modifier = Modifier.weight(1f).horizontalScroll(rememberScrollState()),
+                        ) {
+                            flags.forEach { f ->
+                                val isAlarm = f in listOf("ALERT", "P_DSG", "COM_OUT")
+                                val c = if (isAlarm) Color(0xFFEAB308) else Color(0xFFEF4444)
+                                Surface(
+                                    shape = RoundedCornerShape(3.dp),
+                                    color = c.copy(alpha = 0.12f),
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, c.copy(alpha = 0.25f)),
+                                ) {
+                                    Text(f, color = c, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp))
+                                }
+                            }
+                        }
+                    }
                 }
-                SafetyFlagRow(device.safety, colors)
             }
         }
     }
@@ -1429,8 +1457,32 @@ fun DeviceCard(device: BleDevice, colors: AppColors, onClick: () -> Unit, isConn
                     ) {
                         Text("%.3fV".format(device.voltageV()), color = colors.fg, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                         Text("${if (device.currentA() > 0) "+" else ""}%.3fA".format(device.currentA()), color = colors.fg, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                        val flags = SafetyBits.activeFlags(device.safety)
+                        if (flags.isNotEmpty()) {
+                            Box(
+                                modifier = Modifier
+                                    .width(1.dp)
+                                    .height(12.dp)
+                                    .background(colors.border)
+                            )
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(3.dp),
+                                modifier = Modifier.weight(1f).horizontalScroll(rememberScrollState()),
+                            ) {
+                                flags.forEach { f ->
+                                    val isAlarm = f in listOf("ALERT", "P_DSG", "COM_OUT")
+                                    val c = if (isAlarm) Color(0xFFEAB308) else Color(0xFFEF4444)
+                                    Surface(
+                                        shape = RoundedCornerShape(3.dp),
+                                        color = c.copy(alpha = 0.12f),
+                                        border = androidx.compose.foundation.BorderStroke(1.dp, c.copy(alpha = 0.25f)),
+                                    ) {
+                                        Text(f, color = c, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp))
+                                    }
+                                }
+                            }
+                        }
                     }
-                    SafetyFlagRow(device.safety, colors)
                 }
             }
             if (isConnecting) {
@@ -1443,51 +1495,6 @@ fun DeviceCard(device: BleDevice, colors: AppColors, onClick: () -> Unit, isConn
             }
         }
     }
-}
-
-@Composable
-fun SafetyFlagRow(safety: Int, colors: AppColors) {
-    val flags = SafetyBits.activeFlags(safety)
-    if (flags.isNotEmpty()) {
-        Spacer(Modifier.height(3.dp))
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Box(
-                modifier = Modifier
-                    .width(1.dp)
-                    .height(12.dp)
-                    .background(colors.border)
-            )
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(3.dp),
-                modifier = Modifier.weight(1f).horizontalScroll(rememberScrollState()),
-            ) {
-                flags.forEach { f ->
-                    val isAlarm = f in listOf("ALERT", "P_DSG", "COM_OUT")
-                    val c = if (isAlarm) Color(0xFFEAB308) else Color(0xFFEF4444)
-                    Surface(
-                        shape = RoundedCornerShape(3.dp),
-                        color = c.copy(alpha = 0.12f),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, c.copy(alpha = 0.25f)),
-                    ) {
-                        Text(f, color = c, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp))
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun RssiIndicator(rssi: Int, showDbm: Boolean = false, trackColor: Color = Color(0xFFE5E7EB), fg2Color: Color = Color(0xFF6B7280)) {
-    val color = when {
-        rssi > -50 -> Color(0xFF22C55E)
-        rssi > -70 -> Color(0xFFEAB308)
-        else -> Color(0xFFEF4444)
-    }
-    Text("${rssi}dBm", fontSize = 11.sp, fontWeight = FontWeight.Medium, color = color)
 }
 
 @Composable
@@ -1532,6 +1539,16 @@ fun SocCircle(soc: Int, isGlowing: Boolean, trackColor: Color = Color(0xFFE5E7EB
         }
         Text("$soc", color = color, fontSize = 12.sp, fontWeight = FontWeight.Bold)
     }
+}
+
+@Composable
+fun RssiIndicator(rssi: Int, showDbm: Boolean = false, trackColor: Color = Color(0xFFE5E7EB), fg2Color: Color = Color(0xFF6B7280)) {
+    val color = when {
+        rssi > -50 -> Color(0xFF22C55E)
+        rssi > -70 -> Color(0xFFEAB308)
+        else -> Color(0xFFEF4444)
+    }
+    Text("${rssi}dBm", fontSize = 11.sp, fontWeight = FontWeight.Medium, color = color)
 }
 
 @Composable
