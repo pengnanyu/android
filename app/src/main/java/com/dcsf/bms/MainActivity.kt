@@ -1,4 +1,4 @@
-﻿﻿﻿// Copyright (c) 2024 深圳市德诚四方科技有限公司. All rights reserved.
+// Copyright (c) 2024 深圳市德诚四方科技有限公司. All rights reserved.
 package com.dcsf.bms
 
 import android.Manifest
@@ -1099,6 +1099,7 @@ modifier = Modifier
             }
         }
 
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -1169,7 +1170,7 @@ fun BluetoothPage(
                         tint = colors.fg3,
                     )
                     Spacer(Modifier.height(8.dp))
-                    Text("鏈彂鐜拌澶", color = colors.fg3, fontSize = 14.sp)
+                    Text("鏈彂鐜拌澶?, color = colors.fg3, fontSize = 14.sp)
                     Spacer(Modifier.height(16.dp))
                     Button(
                         onClick = {
@@ -1230,7 +1231,7 @@ fun BluetoothPage(
                 if (newDevs.isNotEmpty()) {
                     item {
                         Text(
-                            "鏂拌澶",
+                            "鏂拌澶?,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
                             color = colors.fg2,
@@ -1256,6 +1257,8 @@ fun BluetoothPage(
                 }
             }
         }
+    }
+}
 
 
 @OptIn(ExperimentalMaterial3Api::class)
