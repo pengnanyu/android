@@ -331,7 +331,7 @@ fun getScanRecordBytes(record: android.bluetooth.le.ScanRecord): ByteArray? = re
 
 fun parseMfgData(data: ByteArray): IntArray? {
     Log.d("BMS_BLE", "parseMfgData: ${data.size} bytes: ${data.joinToString("") { "%02x".format(it) }}")
-    // 鏍煎紡1: 9+ bytes (鏃ф牸寮? 鍓?瀛楄妭涓哄墠缂€)
+    // 格式1: 9+ bytes (旧格式, 前2字节为前缀)
     if (data.size >= 9) {
         val soc = data[2].toInt() and 0xFF
         val voltage = ((data[4].toInt() and 0xFF) shl 8) or (data[3].toInt() and 0xFF)
@@ -340,7 +340,7 @@ fun parseMfgData(data: ByteArray): IntArray? {
         Log.d("BMS_BLE", "parseMfgData(fmt1 9B): soc=$soc V=$voltage I=$current safety=0x${safety.toString(16)}")
         return intArrayOf(soc, voltage, current, safety)
     }
-    // 鏍煎紡2: 7 bytes (鏂版牸寮? 鏃犲墠缂€)
+    // 格式2: 7 bytes (新格式, 无前缀)
     if (data.size >= 7) {
         val soc = data[0].toInt() and 0xFF
         val voltage = ((data[2].toInt() and 0xFF) shl 8) or (data[1].toInt() and 0xFF)
@@ -423,7 +423,7 @@ class BleManager {
             var soc = 0; var voltage = 0; var current = 0; var safety = 0
             val scanRecord = result.scanRecord
             if (scanRecord != null) {
-                // 鏂规硶1: 浣跨敤 getManufacturerSpecificData API (API 21+, 鏇村彲闈?
+                // 方法1: 使用 getManufacturerSpecificData API (API 21+, 更可靠
                 val mfgDataMap = scanRecord.manufacturerSpecificData
                 if (mfgDataMap != null && mfgDataMap.size() > 0) {
                     for (i in 0 until mfgDataMap.size()) {
@@ -441,7 +441,7 @@ class BleManager {
                     }
                 }
 
-                // 鏂规硶2: 濡傛灉API鏂规硶澶辫触锛屽皾璇曞師濮嬪瓧鑺傝В鏋?
+                // 方法2: 如果API方法失败，尝试原始字节解析
                 if (soc == 0 && voltage == 0) {
                     val bytes = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) scanRecord.bytes else getScanRecordBytes(scanRecord)
                     if (bytes != null) {
@@ -955,7 +955,7 @@ modifier = Modifier
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(Icons.Default.BluetoothDisabled, contentDescription = null, modifier = Modifier.size(48.dp), tint = colors.fg3)
                         Spacer(Modifier.height(8.dp))
-                        Text("璇峰厛杩炴帴钃濈墮璁惧", color = colors.fg3, fontSize = 14.sp)
+                        Text("请先连接蓝牙设备", color = colors.fg3, fontSize = 14.sp)
                     }
                 }
             }
@@ -1018,7 +1018,7 @@ modifier = Modifier
                 Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
                     Icon(
                         if (sidebarVisible) Icons.Default.ChevronLeft else Icons.Default.ChevronRight,
-                        contentDescription = if (sidebarVisible) "闅愯棌渚ф爮" else "鏄剧ず渚ф爮",
+                        contentDescription = if (sidebarVisible) "隐藏侧栏" else "显示侧栏",
                         tint = colors.fg2,
                         modifier = Modifier.size(16.dp),
                     )
@@ -1046,7 +1046,7 @@ modifier = Modifier
                     },
                     label = {
                         Text(
-                            if (bleManager.connected.value) "宸茶繛鎺" else "钃濈墮",
+                            if (bleManager.connected.value) "已连接" else "蓝牙",
                             color = if (selectedTab == 0) colors.primary else colors.fg2,
                             fontSize = 12.sp
                         )
@@ -1064,7 +1064,7 @@ modifier = Modifier
                         ) {
                             Icon(
                                 Icons.Default.QrCodeScanner,
-                                contentDescription = "鎵爜",
+                                contentDescription = "扫码",
                                 tint = colors.primaryFg,
                                 modifier = Modifier.size(22.dp),
                             )
@@ -1072,7 +1072,7 @@ modifier = Modifier
                     },
                     label = {
                         Text(
-                            "鎵爜",
+                            "扫码",
                             color = colors.fg2,
                             fontSize = 12.sp
                         )
@@ -1090,7 +1090,7 @@ modifier = Modifier
                     },
                     label = {
                         Text(
-                            "鎺у埗鍙",
+                            "控制台",
                             color = if (selectedTab == 1) colors.primary else colors.fg2,
                             fontSize = 12.sp
                         )
@@ -1143,7 +1143,7 @@ fun BluetoothPage(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                "闄勮繎璁惧",
+                "附近设备",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = colors.fg,
@@ -1170,7 +1170,7 @@ fun BluetoothPage(
                         tint = colors.fg3,
                     )
                     Spacer(Modifier.height(8.dp))
-                    Text("鏈彂鐜拌澶", color = colors.fg3, fontSize = 14.sp)
+                    Text("未发现设备", color = colors.fg3, fontSize = 14.sp)
                     Spacer(Modifier.height(16.dp))
                     Button(
                         onClick = {
@@ -1181,7 +1181,7 @@ fun BluetoothPage(
                     ) {
                         Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text("寮€濮嬫壂鎻")
+                        Text("开始扫描")
                     }
                 }
             }
@@ -1204,7 +1204,7 @@ fun BluetoothPage(
                 if (remembered.isNotEmpty()) {
                     item {
                         Text(
-                            "璁板繂璁惧",
+                            "记忆设备",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
                             color = colors.fg2,
@@ -1231,7 +1231,7 @@ fun BluetoothPage(
                 if (newDevs.isNotEmpty()) {
                     item {
                         Text(
-                            "鏂拌澶",
+                            "新设备",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
                             color = colors.fg2,
@@ -1303,7 +1303,7 @@ fun SwipeDeviceCard(
                     contentAlignment = Alignment.CenterEnd,
                 ) {
                     Text(
-                        if (isSave) "淇濆瓨璁板繂" else "鍙栨秷璁板繂",
+                        if (isSave) "保存记忆" else "取消记忆",
                         color = fgColor,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 14.sp,
@@ -1547,7 +1547,7 @@ fun UiPage(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(Icons.Default.BluetoothDisabled, contentDescription = null, modifier = Modifier.size(48.dp), tint = colors.fg3)
                     Spacer(Modifier.height(8.dp))
-                    Text("璇峰厛杩炴帴钃濈墮璁惧", color = colors.fg3, fontSize = 14.sp)
+                    Text("请先连接蓝牙设备", color = colors.fg3, fontSize = 14.sp)
                 }
             }
         }
