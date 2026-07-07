@@ -65,6 +65,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.res.stringResource
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.core.content.ContextCompat
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
@@ -166,6 +169,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Enable edge-to-edge: content draws behind status bar, eliminating white gap
+        window.setDecorFitsSystemWindows(false)
         setContent {
             val darkTheme = isSystemInDarkTheme()
             val c = if (darkTheme) AppColors.Dark else AppColors.Light
@@ -902,7 +907,10 @@ fun BmsApp(
 
     val showBottomBar = !(bleManager.connected.value && selectedTab == 1)
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .windowInsetsPadding(WindowInsets.statusBars)
+    ) {
         // ===== Sidebar (wide screen only) =====
         if (isWideScreen && sidebarVisible) {
             Row(
