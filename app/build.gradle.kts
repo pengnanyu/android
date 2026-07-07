@@ -12,17 +12,16 @@ val keystoreFile = file("release.keystore")
 if (!keystoreFile.exists()) {
     tasks.register("generateReleaseKeystore") {
         doLast {
-            exec {
-                commandLine(
-                    "keytool", "-genkeypair", "-v",
-                    "-keystore", keystoreFile.absolutePath,
-                    "-alias", "dcsf-bms",
-                    "-keyalg", "RSA", "-keysize", "2048", "-validity", "10000",
-                    "-storepass", "Fkue@1023",
-                    "-keypass", "Fkue@1023",
-                    "-dname", "CN=BMS, OU=DCSF, O=DCSF, L=Shenzhen, ST=Guangdong, C=CN"
-                )
-            }
+            val pb = ProcessBuilder(
+                "keytool", "-genkeypair", "-v",
+                "-keystore", keystoreFile.absolutePath,
+                "-alias", "dcsf-bms",
+                "-keyalg", "RSA", "-keysize", "2048", "-validity", "10000",
+                "-storepass", "Fkue@1023",
+                "-keypass", "Fkue@1023",
+                "-dname", "CN=BMS, OU=DCSF, O=DCSF, L=Shenzhen, ST=Guangdong, C=CN"
+            )
+            pb.inheritIO().start().waitFor()
         }
     }
     tasks.matching { it.name.startsWith("assembleRelease") }.configureEach {

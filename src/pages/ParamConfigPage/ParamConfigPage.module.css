@@ -26,9 +26,9 @@
 }
 
 .nav {
-  width: 220px;
-  min-width: 180px;
-  max-width: 280px;
+  width: max-content;
+  min-width: 200px;
+  max-width: 320px;
   background: var(--card-bg);
   backdrop-filter: blur(var(--card-blur));
   -webkit-backdrop-filter: blur(var(--card-blur));
@@ -43,6 +43,7 @@
 
 .navToolbar {
   display: flex;
+  flex-wrap: wrap;
   gap: 4px;
   padding: 8px 8px 6px;
   border-bottom: 1px solid var(--card-border);
@@ -50,10 +51,10 @@
 }
 
 .navBtn {
-  flex: 1;
-  padding: 6px 4px;
-  border-radius: 6px;
-  font-size: 12px;
+  height: var(--btn-height);
+  padding: var(--btn-padding);
+  border-radius: var(--btn-radius);
+  font-size: var(--btn-font-size);
   cursor: pointer;
   border: 1px solid var(--color-border);
   background: var(--color-background);
@@ -61,6 +62,9 @@
   transition: background-color 0.15s;
   white-space: nowrap;
   text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .navBtn:hover {
@@ -68,10 +72,10 @@
 }
 
 .navBtnCancel {
-  flex: 1;
-  padding: 6px 4px;
-  border-radius: 6px;
-  font-size: 12px;
+  height: var(--btn-height);
+  padding: var(--btn-padding);
+  border-radius: var(--btn-radius);
+  font-size: var(--btn-font-size);
   cursor: pointer;
   border: 1px solid var(--color-border);
   background: var(--color-background);
@@ -79,6 +83,9 @@
   transition: background-color 0.15s;
   white-space: nowrap;
   text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .navBtnCancel:hover {
@@ -86,10 +93,10 @@
 }
 
 .navBtnConfirm {
-  flex: 1;
-  padding: 6px 4px;
-  border-radius: 6px;
-  font-size: 12px;
+  height: var(--btn-height);
+  padding: var(--btn-padding);
+  border-radius: var(--btn-radius);
+  font-size: var(--btn-font-size);
   cursor: pointer;
   border: none;
   background: var(--color-primary);
