@@ -470,11 +470,19 @@ class BleManager {
             rememberedDevices.add(device)
         }
         saveRememberedDevices()
+        Log.d("BMS_BLE", "rememberDevice: ${device.name} (${device.address}), total=${rememberedDevices.size}")
     }
 
     fun forgetDevice(address: String) {
         rememberedDevices.removeAll { it.address == address }
+        // Also remove from devices list if not currently connected, so it disappears entirely
+        val connAddr = connectedDevice.value?.address
+        if (connAddr != address) {
+            devices.removeAll { it.address == address }
+            missCount.remove(address)
+        }
         saveRememberedDevices()
+        Log.d("BMS_BLE", "forgetDevice: $address, removed from remembered and devices (conn=$connAddr)")
     }
 
     fun isRemembered(address: String): Boolean = rememberedDevices.any { it.address == address }
@@ -1041,9 +1049,11 @@ fun BmsApp(
 
 
 
-    // Bottom bar is always visible now (device, scan, mine), except when console is fullscreen on narrow
+    // Bottom bar: narrow screen always shows it; wide screen only shows it in sidebar area
     val navBarInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     val showBottomBar = !showConsole || isWideScreen
+    // Wide screen: sidebar width is adaptive - 38% of screen but capped at 340dp
+    val sidebarWidthDp = (configuration.screenWidthDp * 0.38f).toInt().coerceAtMost(340).coerceAtLeast(280)
 
     Box(modifier = Modifier
         .fillMaxSize()
@@ -1058,7 +1068,7 @@ fun BmsApp(
             ) {
                 Box(
                     modifier = Modifier
-                        .width(360.dp)
+                        .width(sidebarWidthDp.dp)
                         .fillMaxHeight()
                 ) {
                     BluetoothPage(
@@ -1068,7 +1078,9 @@ fun BmsApp(
                         onConnectDevice = onConnectDevice,
                         onDisconnect = onDisconnect,
                         onConnectedClick = { showConsole = true },
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(bottom = 80.dp + navBarInset),
                     )
                 }
                 Box(
@@ -1084,24 +1096,33 @@ fun BmsApp(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(start = if (isWideScreen && sidebarVisible) 361.dp else 0.dp)
-                .padding(bottom = if (showBottomBar) (80.dp + navBarInset) else navBarInset)
+                .padding(start = if (isWideScreen && sidebarVisible) (sidebarWidthDp + 1).dp else 0.dp)
+                .padding(bottom = if (!isWideScreen && showBottomBar) (80.dp + navBarInset) else navBarInset)
         ) {
             if (isWideScreen) {
-                // Wide screen: show WebView (console) in the main area
-                AndroidView(
-                    factory = createWebView,
-                    modifier = Modifier.fillMaxSize(),
-                )
-                if (!bleManager.connected.value) {
-                    Box(
-                        modifier = Modifier.fillMaxSize().background(colors.bg),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(Icons.Default.BluetoothDisabled, contentDescription = null, modifier = Modifier.size(48.dp), tint = colors.fg3)
-                            Spacer(Modifier.height(8.dp))
-                            Text(stringResource(R.string.please_connect_ble), color = colors.fg3, fontSize = 14.sp)
+                // Wide screen: show WebView (console) in the main area when sidebar is visible
+                // When sidebar is hidden, show MinePage if selectedTab is 2, otherwise show WebView
+                if (!sidebarVisible && selectedTab == 2) {
+                    MinePage(
+                        colors = colors,
+                        bleManager = bleManager,
+                        onDisconnect = onDisconnect,
+                    )
+                } else {
+                    AndroidView(
+                        factory = createWebView,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                    if (!bleManager.connected.value) {
+                        Box(
+                            modifier = Modifier.fillMaxSize().background(colors.bg),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(Icons.Default.BluetoothDisabled, contentDescription = null, modifier = Modifier.size(48.dp), tint = colors.fg3)
+                                Spacer(Modifier.height(8.dp))
+                                Text(stringResource(R.string.please_connect_ble), color = colors.fg3, fontSize = 14.sp)
+                            }
                         }
                     }
                 }
@@ -1198,7 +1219,7 @@ fun BmsApp(
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                 modifier = Modifier
                     .align(Alignment.CenterStart)
-                    .offset(x = if (sidebarVisible) 349.dp else 0.dp)
+                    .offset(x = if (sidebarVisible) (sidebarWidthDp - 11).dp else 0.dp)
                     .size(width = 24.dp, height = 48.dp)
                     .clickable { sidebarVisible = !sidebarVisible },
             ) {
@@ -1213,12 +1234,19 @@ fun BmsApp(
             }
         }
 
-        // ===== Bottom navigation bar (always visible, except when console is fullscreen on narrow) =====
+        // ===== Bottom navigation bar =====
+        // Narrow screen: full width bottom bar (hidden when console is fullscreen)
+        // Wide screen: bottom bar only in sidebar area (aligned to start)
         if (showBottomBar) {
+            val navBarFraction = if (isWideScreen && sidebarVisible) {
+                (sidebarWidthDp / configuration.screenWidthDp.toFloat()).coerceIn(0.3f, 0.45f)
+            } else {
+                1f
+            }
             Box(
                 modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
+                    .align(Alignment.BottomStart)
+                    .fillMaxWidth(navBarFraction)
                     .background(colors.navBg),
             ) {
                 NavigationBar(
@@ -1227,23 +1255,24 @@ fun BmsApp(
                     modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars),
                 ) {
                     NavigationBarItem(
-                        selected = if (isWideScreen) false else selectedTab == 0 && !showConsole,
+                        selected = if (isWideScreen) sidebarVisible else selectedTab == 0 && !showConsole,
                         onClick = {
                             showConsole = false
                             selectedTab = 0
+                            if (isWideScreen) sidebarVisible = true
                         },
                         icon = {
                             Icon(
                                 if (bleManager.connected.value) Icons.Default.BluetoothConnected
                                 else Icons.Default.Bluetooth,
                                 contentDescription = null,
-                                tint = if (selectedTab == 0 && !showConsole) colors.primary else colors.fg2
+                                tint = if (isWideScreen) (if (sidebarVisible) colors.primary else colors.fg2) else (if (selectedTab == 0 && !showConsole) colors.primary else colors.fg2)
                             )
                         },
                         label = {
                             Text(
                                 stringResource(R.string.device_tab),
-                                color = if (selectedTab == 0 && !showConsole) colors.primary else colors.fg2,
+                                color = if (isWideScreen) (if (sidebarVisible) colors.primary else colors.fg2) else (if (selectedTab == 0 && !showConsole) colors.primary else colors.fg2),
                                 fontSize = 12.sp
                             )
                         },
@@ -1290,18 +1319,19 @@ fun BmsApp(
                         onClick = {
                             showConsole = false
                             selectedTab = 2
+                            if (isWideScreen) sidebarVisible = false
                         },
                         icon = {
                             Icon(
                                 Icons.Default.Person,
                                 contentDescription = null,
-                                tint = if (selectedTab == 2) colors.primary else colors.fg2
+                                tint = if (!isWideScreen && selectedTab == 2) colors.primary else colors.fg2
                             )
                         },
                         label = {
                             Text(
                                 stringResource(R.string.mine_tab),
-                                color = if (selectedTab == 2) colors.primary else colors.fg2,
+                                color = if (isWideScreen) (if (!sidebarVisible && selectedTab == 2) colors.primary else colors.fg2) else (if (selectedTab == 2) colors.primary else colors.fg2),
                                 fontSize = 12.sp
                             )
                         },
@@ -1489,6 +1519,12 @@ fun SwipeDeviceCard(
     val dismissState = rememberSwipeToDismissBoxState()
     val showSwipe = (isConn && !isRemembered) || (!isConn && isRemembered)
 
+    // Use rememberUpdatedState so LaunchedEffect always sees the latest values
+    val currentIsConn by rememberUpdatedState(isConn)
+    val currentIsRemembered by rememberUpdatedState(isRemembered)
+    val currentOnSaveRemember by rememberUpdatedState(onSaveRemember)
+    val currentOnForget by rememberUpdatedState(onForget)
+
     if (showSwipe) {
         SwipeToDismissBox(
             state = dismissState,
@@ -1532,7 +1568,12 @@ fun SwipeDeviceCard(
 
         LaunchedEffect(dismissState.currentValue) {
             if (dismissState.currentValue == SwipeToDismissBoxValue.EndToStart) {
-                if (isConn && !isRemembered) onSaveRemember() else onForget()
+                // Use latest values via rememberUpdatedState
+                if (currentIsConn && !currentIsRemembered) {
+                    currentOnSaveRemember()
+                } else {
+                    currentOnForget()
+                }
                 dismissState.reset()
             }
         }
