@@ -27,6 +27,8 @@
     <string name="new_devices">新设备</string>
     <string name="save_memory">保存记忆</string>
     <string name="cancel_memory">取消记忆</string>
+    <string name="search_devices">搜索设备</string>
+    <string name="no_matching_device">未找到匹配设备</string>
     <color name="primary">#C8941E</color>
     <color name="primary_dark">#A07616</color>
     <color name="background">#F8F9FA</color>

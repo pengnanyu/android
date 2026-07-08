@@ -27,4 +27,6 @@
     <string name="new_devices">New Devices</string>
     <string name="save_memory">Save</string>
     <string name="cancel_memory">Cancel</string>
+    <string name="search_devices">Search devices</string>
+    <string name="no_matching_device">No matching device</string>
 </resources>
