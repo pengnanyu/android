@@ -23,8 +23,6 @@ import android.content.SharedPreferences
 import com.journeyapps.barcodescanner.DecoratedBarcodeView
 import com.journeyapps.barcodescanner.DefaultDecoderFactory
 import com.google.zxing.BarcodeFormat
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.draw.clip
 import java.io.File
 import java.io.FileOutputStream
@@ -32,6 +30,7 @@ import java.io.FileOutputStream
 import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
@@ -76,6 +75,8 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.windowInsetsPadding
+import android.view.View
+import android.view.ViewTreeObserver
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Person
@@ -1123,7 +1124,7 @@ fun BmsApp(
                         onConnectedClick = { showConsole = true },
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(bottom = 48.dp),
+                            .padding(bottom = 48.dp + navBarInset),
                         searchQuery = searchQuery,
                         onSearchQueryChange = { searchQuery = it },
                         qrSearching = qrSearching,
@@ -1144,7 +1145,7 @@ fun BmsApp(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(start = if (isWideScreen && sidebarVisible) (sidebarWidthDp + 1).dp else 0.dp)
-                .padding(bottom = if (showBottomBar) 48.dp else navBarInset)
+                .padding(bottom = if (showBottomBar) 48.dp + navBarInset else navBarInset)
         ) {
             // Always keep WebView in composition to prevent state loss on tab switch / rotation
             // Only show it when appropriate; other pages overlay on top
@@ -1303,8 +1304,8 @@ fun BmsApp(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
                     .fillMaxWidth(navBarFraction)
-                    .height(48.dp)
-                    .windowInsetsPadding(WindowInsets.navigationBars)
+                    .height(48.dp + navBarInset)
+                    .padding(bottom = navBarInset)
                     .background(colors.navBg),
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically,
@@ -1955,7 +1956,7 @@ fun UiPage(
     }
 }
 
-// ===== Embedded QR Scanner Dialog =====
+// ===== Embedded QR Scanner Overlay (full-screen, no Dialog to avoid SurfaceView window issues) =====
 @Composable
 fun QrScannerDialog(
     onScanned: (String) -> Unit,
@@ -1983,11 +1984,27 @@ fun QrScannerDialog(
         }
     }
 
-    // Resume scanner after view is attached
+    BackHandler { onDismiss() }
+
+    // Resume scanner after view is attached and laid out
     LaunchedEffect(scannerView, hasPermission) {
         if (scannerView != null && hasPermission) {
-            kotlinx.coroutines.delay(200)
-            scannerView?.resume()
+            val sv = scannerView!!
+            // Wait for the view to have non-zero dimensions, then resume on next frame
+            sv.post {
+                if (sv.width > 0 && sv.height > 0) {
+                    sv.resume()
+                } else {
+                    sv.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+                        override fun onGlobalLayout() {
+                            if (sv.width > 0 && sv.height > 0) {
+                                sv.viewTreeObserver.removeOnGlobalLayoutListener(this)
+                                sv.post { sv.resume() }
+                            }
+                        }
+                    })
+                }
+            }
         }
     }
 
@@ -1998,74 +2015,65 @@ fun QrScannerDialog(
         }
     }
 
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(
-            usePlatformDefaultWidth = false,
-            dismissOnBackPress = true,
-            dismissOnClickOutside = false,
-        ),
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black),
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black),
-        ) {
-            if (hasPermission) {
-                AndroidView(
-                    factory = { ctx ->
-                        DecoratedBarcodeView(ctx).apply {
-                            barcodeView.decoderFactory = DefaultDecoderFactory(listOf(BarcodeFormat.QR_CODE))
-                            decodeContinuous { result ->
-                                val text = result.text
-                                if (text != null && text.isNotEmpty() && !hasScanned) {
-                                    hasScanned = true
-                                    pause()
-                                    onScanned(text)
-                                }
+        if (hasPermission) {
+            AndroidView(
+                factory = { ctx ->
+                    DecoratedBarcodeView(ctx).apply {
+                        barcodeView.decoderFactory = DefaultDecoderFactory(listOf(BarcodeFormat.QR_CODE))
+                        decodeContinuous { result ->
+                            val text = result.text
+                            if (text != null && text.isNotEmpty() && !hasScanned) {
+                                hasScanned = true
+                                pause()
+                                onScanned(text)
                             }
-                            scannerView = this
                         }
-                    },
-                    modifier = Modifier.fillMaxSize(),
-                )
-            }
-
-            // Top bar with title and close button
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.Black.copy(alpha = 0.6f))
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    stringResource(R.string.scan_qr_code),
-                    color = Color.White,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                )
-                Spacer(Modifier.weight(1f))
-                Icon(
-                    Icons.Default.Close,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier
-                        .size(28.dp)
-                        .clickable { onDismiss() },
-                )
-            }
-
-            // Hint text at bottom
-            Text(
-                "SN / DC",
-                color = Color.White.copy(alpha = 0.7f),
-                fontSize = 13.sp,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 24.dp),
+                        scannerView = this
+                    }
+                },
+                modifier = Modifier.fillMaxSize(),
             )
         }
+
+        // Top bar with title and close button
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.Black.copy(alpha = 0.6f))
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                stringResource(R.string.scan_qr_code),
+                color = Color.White,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Spacer(Modifier.weight(1f))
+            Icon(
+                Icons.Default.Close,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier
+                    .size(28.dp)
+                    .clickable { onDismiss() },
+            )
+        }
+
+        // Hint text at bottom
+        Text(
+            "SN / DC",
+            color = Color.White.copy(alpha = 0.7f),
+            fontSize = 13.sp,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 24.dp),
+        )
     }
 }
 
