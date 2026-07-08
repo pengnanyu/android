@@ -799,6 +799,26 @@ fun BmsApp(
     // File chooser state for import functionality
     val fileChooserCallback = remember { mutableStateOf<ValueCallback<Array<Uri>>?>(null) }
     val context = LocalContext.current
+
+    // File save dialog state for export functionality
+    val pendingFileContent = remember { mutableStateOf<Pair<String, String>?>(null) } // (filename, content)
+    val saveFileLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("text/csv")
+    ) { uri ->
+        val pending = pendingFileContent.value
+        if (uri != null && pending != null) {
+            val (filename, content) = pending
+            try {
+                context.contentResolver.openOutputStream(uri)?.use { os ->
+                    os.write(content.toByteArray(Charsets.UTF_8))
+                }
+                pushToUi(webView, "bms:file-saved", """{"path":"${uri.toString()}","filename":"$filename"}""")
+            } catch (e: Exception) {
+                pushToUi(webView, "bms:file-save-error", """{"error":"${e.message?.replace("\"", "\\\"")}"""")
+            }
+        }
+        pendingFileContent.value = null
+    }
     val fileChooserLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -1023,15 +1043,11 @@ fun BmsApp(
                             "bms:download-file" -> {
                                 val filename = payload?.optString("filename", "download.bin") ?: "download.bin"
                                 val content = payload?.optString("content", "") ?: ""
-                                val mimeType = payload?.optString("mimeType", "application/octet-stream") ?: "application/octet-stream"
+                                pendingFileContent.value = Pair(filename, content)
                                 try {
-                                    val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                                    val file = File(downloadsDir, filename)
-                                    FileOutputStream(file).use { it.write(content.toByteArray(Charsets.UTF_8)) }
-
-                                    pushToUi(webView, "bms:file-saved", """{"path":"${file.absolutePath}","filename":"$filename"}""")
+                                    saveFileLauncher.launch(filename)
                                 } catch (e: Exception) {
-
+                                    pendingFileContent.value = null
                                     pushToUi(webView, "bms:file-save-error", """{"error":"${e.message?.replace("\"", "\\\"")}"}""")
                                 }
                             }
