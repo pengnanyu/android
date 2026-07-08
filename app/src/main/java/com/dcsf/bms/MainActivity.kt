@@ -1092,9 +1092,9 @@ fun BmsApp(
 
 
 
-    // Bottom bar: narrow screen always shows it; wide screen only shows it in sidebar area
+    // Bottom bar: narrow screen shows it when not in console; wide screen shows it only when sidebar is visible
     val navBarInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-    val showBottomBar = !showConsole || isWideScreen
+    val showBottomBar = if (isWideScreen) sidebarVisible else (!showConsole || !bleManager.connected.value)
     // Wide screen: sidebar width is adaptive - 38% of screen but capped at 340dp
     val sidebarWidthDp = (configuration.screenWidthDp * 0.38f).toInt().coerceAtMost(340).coerceAtLeast(280)
 
@@ -1144,23 +1144,59 @@ fun BmsApp(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(start = if (isWideScreen && sidebarVisible) (sidebarWidthDp + 1).dp else 0.dp)
-                .padding(bottom = if (!isWideScreen && showBottomBar) 48.dp else navBarInset)
+                .padding(bottom = if (showBottomBar) 48.dp else navBarInset)
         ) {
-            if (isWideScreen) {
-                // Wide screen: show WebView (console) in the main area when sidebar is visible
-                // When sidebar is hidden, show MinePage if selectedTab is 2, otherwise show WebView
-                if (!sidebarVisible && selectedTab == 2) {
-                    MinePage(
-                        colors = colors,
-                        bleManager = bleManager,
-                        onDisconnect = onDisconnect,
-                    )
-                } else {
+            // Always keep WebView in composition to prevent state loss on tab switch / rotation
+            // Only show it when appropriate; other pages overlay on top
+            val showWebView = if (isWideScreen) {
+                !(!sidebarVisible && selectedTab == 2)
+            } else {
+                showConsole && bleManager.connected.value
+            }
+
+            if (showWebView) {
+                Box(modifier = Modifier.fillMaxSize()) {
                     AndroidView(
                         factory = createWebView,
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(top = if (!isWideScreen && showConsole && bleManager.connected.value) 40.dp else 0.dp),
                     )
-                    if (!bleManager.connected.value) {
+                    // Narrow screen: header bar for console view
+                    if (!isWideScreen && showConsole && bleManager.connected.value) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(40.dp)
+                                .background(colors.bg)
+                                .clickable { showConsole = false }
+                                .padding(horizontal = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                Icons.Default.ArrowBack,
+                                contentDescription = null,
+                                tint = colors.fg2,
+                                modifier = Modifier.size(20.dp),
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Icon(
+                                Icons.Default.BluetoothConnected,
+                                contentDescription = null,
+                                tint = colors.primary,
+                                modifier = Modifier.size(16.dp),
+                            )
+                            Spacer(Modifier.width(6.dp))
+                            Text(
+                                bleManager.connectedDevice.value?.name ?: "BMS",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = colors.fg,
+                            )
+                        }
+                    }
+                    // Disconnected overlay
+                    if (isWideScreen && !bleManager.connected.value) {
                         Box(
                             modifier = Modifier.fillMaxSize().background(colors.bg),
                             contentAlignment = Alignment.Center,
@@ -1173,82 +1209,58 @@ fun BmsApp(
                         }
                     }
                 }
-            } else {
-                // Narrow screen
+            }
+
+            // Overlay pages on top of WebView (narrow screen)
+            if (!isWideScreen) {
                 when {
-                    showConsole && bleManager.connected.value -> {
-                        // Console view (WebView with header bar)
-                        Box(modifier = Modifier.fillMaxSize()) {
-                            AndroidView(
-                                factory = createWebView,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(top = 40.dp),
-                            )
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(40.dp)
-                                    .background(colors.bg)
-                                    .clickable { showConsole = false }
-                                    .padding(horizontal = 12.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Icon(
-                                    Icons.Default.ArrowBack,
-                                    contentDescription = null,
-                                    tint = colors.fg2,
-                                    modifier = Modifier.size(20.dp),
-                                )
-                                Spacer(Modifier.width(8.dp))
-                                Icon(
-                                    Icons.Default.BluetoothConnected,
-                                    contentDescription = null,
-                                    tint = colors.primary,
-                                    modifier = Modifier.size(16.dp),
-                                )
-                                Spacer(Modifier.width(6.dp))
-                                Text(
-                                    bleManager.connectedDevice.value?.name ?: "BMS",
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = colors.fg,
-                                )
+                    !showConsole || !bleManager.connected.value -> {
+                        Box(modifier = Modifier.fillMaxSize().background(colors.bg)) {
+                            when {
+                                selectedTab == 0 -> {
+                                    BluetoothPage(
+                                        bleManager = bleManager,
+                                        colors = colors,
+                                        onRequestPermissions = onRequestPermissions,
+                                        onConnectDevice = onConnectDevice,
+                                        onDisconnect = onDisconnect,
+                                        onConnectedClick = { showConsole = true },
+                                        modifier = Modifier.fillMaxSize(),
+                                        searchQuery = searchQuery,
+                                        onSearchQueryChange = { searchQuery = it },
+                                        qrSearching = qrSearching,
+                                        qrSearchStatus = qrSearchStatus,
+                                    )
+                                }
+                                selectedTab == 1 -> {
+                                    ScanPage(
+                                        colors = colors,
+                                        bleManager = bleManager,
+                                        onScanClick = { showScanner = true },
+                                        qrScanResult = qrScanResult,
+                                        qrSearchStatus = qrSearchStatus,
+                                        qrSearching = qrSearching,
+                                    )
+                                }
+                                selectedTab == 2 -> {
+                                    MinePage(
+                                        colors = colors,
+                                        bleManager = bleManager,
+                                        onDisconnect = onDisconnect,
+                                    )
+                                }
                             }
                         }
                     }
-                    selectedTab == 0 -> {
-                        BluetoothPage(
-                            bleManager = bleManager,
-                            colors = colors,
-                            onRequestPermissions = onRequestPermissions,
-                            onConnectDevice = onConnectDevice,
-                            onDisconnect = onDisconnect,
-                            onConnectedClick = { showConsole = true },
-                            modifier = Modifier.fillMaxSize(),
-                            searchQuery = searchQuery,
-                            onSearchQueryChange = { searchQuery = it },
-                            qrSearching = qrSearching,
-                            qrSearchStatus = qrSearchStatus,
-                        )
-                    }
-                    selectedTab == 1 -> {
-                        ScanPage(
-                            colors = colors,
-                            bleManager = bleManager,
-                            onScanClick = { showScanner = true },
-                            qrScanResult = qrScanResult,
-                            qrSearchStatus = qrSearchStatus,
-                            qrSearching = qrSearching,
-                        )
-                    }
-                    selectedTab == 2 -> {
-                        MinePage(
-                            colors = colors,
-                            bleManager = bleManager,
-                            onDisconnect = onDisconnect,
-                        )
-                    }
+                }
+            } else {
+                // Wide screen: show MinePage when sidebar is hidden and tab is 2
+                if (!sidebarVisible && selectedTab == 2) {
+                    MinePage(
+                        colors = colors,
+                        bleManager = bleManager,
+                        onDisconnect = onDisconnect,
+                    )
                 }
             }
         }
@@ -1278,7 +1290,8 @@ fun BmsApp(
 
         // ===== Bottom navigation bar (compact, matching UI height) =====
         if (showBottomBar) {
-            val navBarFraction = if (isWideScreen && sidebarVisible) {
+            // Nav bar width follows sidebar width on wide screen; full width on narrow screen
+            val navBarFraction = if (isWideScreen) {
                 (sidebarWidthDp / configuration.screenWidthDp.toFloat()).coerceIn(0.3f, 0.45f)
             } else {
                 1f
@@ -1970,9 +1983,18 @@ fun QrScannerDialog(
         }
     }
 
+    // Resume scanner after view is attached
+    LaunchedEffect(scannerView, hasPermission) {
+        if (scannerView != null && hasPermission) {
+            kotlinx.coroutines.delay(200)
+            scannerView?.resume()
+        }
+    }
+
     DisposableEffect(scannerView) {
         onDispose {
             scannerView?.pause()
+            scannerView = null
         }
     }
 
@@ -2002,7 +2024,6 @@ fun QrScannerDialog(
                                     onScanned(text)
                                 }
                             }
-                            resume()
                             scannerView = this
                         }
                     },
