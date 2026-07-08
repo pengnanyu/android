@@ -27,4 +27,10 @@
     @android.webkit.JavascriptInterface <methods>;
 }
 
+# ZXing barcode scanner
+-keep class com.google.zxing.** { *; }
+-keep class com.journeyapps.barcodescanner.** { *; }
+-dontwarn com.google.zxing.**
+-dontwarn com.journeyapps.barcodescanner.**
+
 # R8 full mode is enabled via android.enableR8.fullMode=true in gradle.properties
