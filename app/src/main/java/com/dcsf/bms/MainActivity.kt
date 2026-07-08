@@ -20,9 +20,12 @@ import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.os.Environment
 import android.content.SharedPreferences
-import com.journeyapps.barcodescanner.ScanContract
-import com.journeyapps.barcodescanner.ScanOptions
+import com.journeyapps.barcodescanner.DecoratedBarcodeView
+import com.journeyapps.barcodescanner.DefaultDecoderFactory
 import com.google.zxing.BarcodeFormat
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.draw.clip
 import java.io.File
 import java.io.FileOutputStream
 
@@ -31,7 +34,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.animateColorAsState
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -73,10 +76,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.core.content.ContextCompat
-import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
-import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Person
@@ -84,6 +83,8 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.BatteryChargingFull
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.foundation.border
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.ui.text.TextStyle
@@ -828,46 +829,43 @@ fun BmsApp(
     var qrSearching by remember { mutableStateOf(false) }
     var showConsole by rememberSaveable { mutableStateOf(false) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
+    var showScanner by remember { mutableStateOf(false) }
 
-    // ZXing scan launcher
-    val scanLauncher = rememberLauncherForActivityResult(
-        contract = ScanContract()
-    ) { result ->
-        if (result.contents != null) {
-            val scanned = result.contents
-            qrScanResult = scanned
+    // Handle QR scan result - called from embedded scanner dialog
+    val handleQrResult: (String) -> Unit = { scanned ->
+        qrScanResult = scanned
+        showScanner = false
 
-            // Extract search term from scanned result
-            val searchTerm = when {
-                scanned.contains("SN=", ignoreCase = true) -> {
-                    scanned.substringAfter("SN=", "").substringBefore("&").substringBefore("#").trim()
-                }
-                scanned.startsWith("DC", ignoreCase = true) -> scanned.trim()
-                else -> ""
+        // Extract search term from scanned result
+        val searchTerm = when {
+            scanned.contains("SN=", ignoreCase = true) -> {
+                scanned.substringAfter("SN=", "").substringBefore("&").substringBefore("#").trim()
+            }
+            scanned.startsWith("DC", ignoreCase = true) -> scanned.trim()
+            else -> ""
+        }
+
+        if (searchTerm.isNotBlank()) {
+            // Put extracted info into search box and switch to device tab
+            searchQuery = searchTerm
+            selectedTab = 0
+            showConsole = false
+
+            // Determine match predicate: DC = exact match, SN = fuzzy (contains) match
+            val predicate: (String) -> Boolean = if (scanned.startsWith("DC", ignoreCase = true)) {
+                { name -> name.equals(searchTerm, ignoreCase = true) }
+            } else {
+                { name -> name.contains(searchTerm, ignoreCase = true) }
             }
 
-            if (searchTerm.isNotBlank()) {
-                // Put extracted info into search box and switch to device tab
-                searchQuery = searchTerm
-                selectedTab = 0
-                showConsole = false
+            qrSearching = true
+            qrSearchStatus = "Searching: $searchTerm"
 
-                // Determine match predicate: DC = exact match, SN = fuzzy (contains) match
-                val predicate: (String) -> Boolean = if (scanned.startsWith("DC", ignoreCase = true)) {
-                    { name -> name.equals(searchTerm, ignoreCase = true) }
-                } else {
-                    { name -> name.contains(searchTerm, ignoreCase = true) }
-                }
-
-                qrSearching = true
-                qrSearchStatus = "Searching: $searchTerm"
-
-                bleManager.findAndConnectByName(context, predicate) { success ->
-                    qrSearching = false
-                    qrSearchStatus = if (success) "Connected: $searchTerm" else "Not found: $searchTerm"
-                    if (success) {
-                        showConsole = true
-                    }
+            bleManager.findAndConnectByName(context, predicate) { success ->
+                qrSearching = false
+                qrSearchStatus = if (success) "Connected: $searchTerm" else "Not found: $searchTerm"
+                if (success) {
+                    showConsole = true
                 }
             }
         }
@@ -1109,7 +1107,7 @@ fun BmsApp(
                         onConnectedClick = { showConsole = true },
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(bottom = 48.dp + navBarInset),
+                            .padding(bottom = 48.dp),
                         searchQuery = searchQuery,
                         onSearchQueryChange = { searchQuery = it },
                         qrSearching = qrSearching,
@@ -1130,7 +1128,7 @@ fun BmsApp(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(start = if (isWideScreen && sidebarVisible) (sidebarWidthDp + 1).dp else 0.dp)
-                .padding(bottom = if (!isWideScreen && showBottomBar) (48.dp + navBarInset) else navBarInset)
+                .padding(bottom = if (!isWideScreen && showBottomBar) 48.dp else navBarInset)
         ) {
             if (isWideScreen) {
                 // Wide screen: show WebView (console) in the main area when sidebar is visible
@@ -1222,16 +1220,7 @@ fun BmsApp(
                         ScanPage(
                             colors = colors,
                             bleManager = bleManager,
-                            onScanClick = {
-                                val options = ScanOptions().apply {
-                                    setDesiredBarcodeFormats(ScanOptions.QR_CODE)
-                                    setPrompt("Scan a QR code")
-                                    setCameraId(0)
-                                    setBeepEnabled(true)
-                                    setOrientationLocked(true)
-                                }
-                                scanLauncher.launch(options)
-                            },
+                            onScanClick = { showScanner = true },
                             qrScanResult = qrScanResult,
                             qrSearchStatus = qrSearchStatus,
                             qrSearching = qrSearching,
@@ -1326,14 +1315,7 @@ fun BmsApp(
                         .clickable {
                             showConsole = false
                             selectedTab = 1
-                            val options = ScanOptions().apply {
-                                setDesiredBarcodeFormats(ScanOptions.QR_CODE)
-                                setPrompt("Scan a QR code")
-                                setCameraId(0)
-                                setBeepEnabled(true)
-                                setOrientationLocked(true)
-                            }
-                            scanLauncher.launch(options)
+                            showScanner = true
                         },
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
@@ -1385,6 +1367,14 @@ fun BmsApp(
                     )
                 }
             }
+        }
+
+        // ===== Embedded QR Scanner Dialog =====
+        if (showScanner) {
+            QrScannerDialog(
+                onScanned = { handleQrResult(it) },
+                onDismiss = { showScanner = false },
+            )
         }
 
     }
@@ -1626,7 +1616,6 @@ fun BluetoothPage(
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SwipeDeviceCard(
     device: BleDevice,
@@ -1640,78 +1629,37 @@ fun SwipeDeviceCard(
     onDisconnect: () -> Unit,
     onConnectedClick: () -> Unit = {},
 ) {
-    val dismissState = rememberSwipeToDismissBoxState()
-    val showSwipe = (isConn && !isRemembered) || (!isConn && isRemembered)
-
-    // Use rememberUpdatedState so LaunchedEffect always sees the latest values
-    val currentIsConn by rememberUpdatedState(isConn)
-    val currentIsRemembered by rememberUpdatedState(isRemembered)
-    val currentOnSaveRemember by rememberUpdatedState(onSaveRemember)
-    val currentOnForget by rememberUpdatedState(onForget)
-
-    if (showSwipe) {
-        SwipeToDismissBox(
-            state = dismissState,
-            backgroundContent = {
-                val isSave = isConn && !isRemembered
-                val bgColor by animateColorAsState(
-                    when (dismissState.targetValue) {
-                        SwipeToDismissBoxValue.EndToStart -> if (isSave) colors.primary else colors.swipeBg
-                        else -> Color.Transparent
-                    }, label = "swipe-bg"
-                )
-                val fgColor by animateColorAsState(
-                    when (dismissState.targetValue) {
-                        SwipeToDismissBoxValue.EndToStart -> if (isSave) colors.primaryFg else Color.White
-                        else -> Color.Transparent
-                    }, label = "swipe-fg"
-                )
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(bgColor, RoundedCornerShape(12.dp))
-                        .padding(end = 20.dp),
-                    contentAlignment = Alignment.CenterEnd,
-                ) {
-                    Text(
-                        if (isSave) stringResource(R.string.save_memory) else stringResource(R.string.cancel_memory),
-                        color = fgColor,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 14.sp,
-                    )
-                }
-            },
-            enableDismissFromStartToEnd = false,
-        ) {
-            if (isConn) {
-                ConnectedCard(device = device, colors = colors, onDisconnect = onDisconnect, onClick = onConnectedClick)
-            } else {
-                DeviceCard(device = device, colors = colors, onClick = onClick, isConnecting = isConnecting)
-            }
-        }
-
-        LaunchedEffect(dismissState.currentValue) {
-            if (dismissState.currentValue == SwipeToDismissBoxValue.EndToStart) {
-                // Use latest values via rememberUpdatedState
-                if (currentIsConn && !currentIsRemembered) {
-                    currentOnSaveRemember()
-                } else {
-                    currentOnForget()
-                }
-                dismissState.reset()
-            }
-        }
+    val onToggleRemember = if (isRemembered) onForget else onSaveRemember
+    if (isConn) {
+        ConnectedCard(
+            device = device,
+            colors = colors,
+            onDisconnect = onDisconnect,
+            onClick = onConnectedClick,
+            isRemembered = isRemembered,
+            onToggleRemember = onToggleRemember,
+        )
     } else {
-        if (isConn) {
-            ConnectedCard(device = device, colors = colors, onDisconnect = onDisconnect, onClick = onConnectedClick)
-        } else {
-            DeviceCard(device = device, colors = colors, onClick = onClick, isConnecting = isConnecting)
-        }
+        DeviceCard(
+            device = device,
+            colors = colors,
+            onClick = onClick,
+            isConnecting = isConnecting,
+            isRemembered = isRemembered,
+            onToggleRemember = onToggleRemember,
+        )
     }
 }
 
 @Composable
-fun ConnectedCard(device: BleDevice, colors: AppColors, onDisconnect: () -> Unit, onClick: () -> Unit = {}) {
+fun ConnectedCard(
+    device: BleDevice,
+    colors: AppColors,
+    onDisconnect: () -> Unit,
+    onClick: () -> Unit = {},
+    isRemembered: Boolean = false,
+    onToggleRemember: () -> Unit = {},
+) {
     Card(
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = colors.surfaceConn, contentColor = colors.fg),
@@ -1773,12 +1721,33 @@ fun ConnectedCard(device: BleDevice, colors: AppColors, onDisconnect: () -> Unit
                     }
                 }
             }
+            // Star button for remember/forget
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .clickable { onToggleRemember() },
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    if (isRemembered) Icons.Default.Star else Icons.Default.StarBorder,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = if (isRemembered) Color(0xFFF59E0B) else colors.fg3,
+                )
+            }
         }
     }
 }
 
 @Composable
-fun DeviceCard(device: BleDevice, colors: AppColors, onClick: () -> Unit, isConnecting: Boolean = false) {
+fun DeviceCard(
+    device: BleDevice,
+    colors: AppColors,
+    onClick: () -> Unit,
+    isConnecting: Boolean = false,
+    isRemembered: Boolean = false,
+    onToggleRemember: () -> Unit = {},
+) {
     Card(
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = colors.surface),
@@ -1845,6 +1814,20 @@ fun DeviceCard(device: BleDevice, colors: AppColors, onClick: () -> Unit, isConn
                             }
                         }
                     }
+                }
+                // Star button for remember/forget
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clickable { onToggleRemember() },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        if (isRemembered) Icons.Default.Star else Icons.Default.StarBorder,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = if (isRemembered) Color(0xFFF59E0B) else colors.fg3,
+                    )
                 }
             }
             if (isConnecting) {
@@ -1939,6 +1922,112 @@ fun UiPage(
                     Text(stringResource(R.string.please_connect_ble), color = colors.fg3, fontSize = 14.sp)
                 }
             }
+        }
+    }
+}
+
+// ===== Embedded QR Scanner Dialog =====
+@Composable
+fun QrScannerDialog(
+    onScanned: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val context = LocalContext.current
+    var hasPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+        )
+    }
+    var scannerView by remember { mutableStateOf<DecoratedBarcodeView?>(null) }
+    var hasScanned by remember { mutableStateOf(false) }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (!granted) onDismiss()
+        else hasPermission = true
+    }
+
+    LaunchedEffect(Unit) {
+        if (!hasPermission) {
+            permissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
+    DisposableEffect(scannerView) {
+        onDispose {
+            scannerView?.pause()
+        }
+    }
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            dismissOnBackPress = true,
+            dismissOnClickOutside = false,
+        ),
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black),
+        ) {
+            if (hasPermission) {
+                AndroidView(
+                    factory = { ctx ->
+                        DecoratedBarcodeView(ctx).apply {
+                            barcodeView.decoderFactory = DefaultDecoderFactory(listOf(BarcodeFormat.QR_CODE))
+                            decodeContinuous { result ->
+                                val text = result.text
+                                if (text != null && text.isNotEmpty() && !hasScanned) {
+                                    hasScanned = true
+                                    pause()
+                                    onScanned(text)
+                                }
+                            }
+                            resume()
+                            scannerView = this
+                        }
+                    },
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+
+            // Top bar with title and close button
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.Black.copy(alpha = 0.6f))
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    stringResource(R.string.scan_qr_code),
+                    color = Color.White,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Spacer(Modifier.weight(1f))
+                Icon(
+                    Icons.Default.Close,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier
+                        .size(28.dp)
+                        .clickable { onDismiss() },
+                )
+            }
+
+            // Hint text at bottom
+            Text(
+                "SN / DC",
+                color = Color.White.copy(alpha = 0.7f),
+                fontSize = 13.sp,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 24.dp),
+            )
         }
     }
 }
