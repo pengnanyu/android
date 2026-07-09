@@ -1134,11 +1134,11 @@ fun BmsApp(
 
 
 
-    // Bottom bar: narrow screen shows it when not in console; wide screen shows it only when sidebar is visible
+    // Bottom bar: narrow screen shows it when not in console; wide screen always shows it when sidebar is visible
     val navBarInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     val showBottomBar = if (isWideScreen) sidebarVisible else (!showConsole || !bleManager.connected.value)
-    // Wide screen: sidebar width is adaptive - 38% of screen but capped at 340dp
-    val sidebarWidthDp = (configuration.screenWidthDp * 0.38f).toInt().coerceAtMost(340).coerceAtLeast(280)
+    // Wide screen: sidebar width is adaptive - wrap content with reasonable bounds
+    val sidebarWidthDp = (configuration.screenWidthDp * 0.32f).toInt().coerceAtMost(320).coerceAtLeast(260)
 
     Box(modifier = Modifier
         .fillMaxSize()
@@ -1156,22 +1156,34 @@ fun BmsApp(
                         .width(sidebarWidthDp.dp)
                         .fillMaxHeight()
                 ) {
-                    BluetoothPage(
-                        bleManager = bleManager,
-                        colors = colors,
-                        onRequestPermissions = onRequestPermissions,
-                        onConnectDevice = onConnectDevice,
-                        onDisconnect = onDisconnect,
-                        onConnectedClick = { showConsole = true },
-                        onScanClick = { showScanner = true },
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(bottom = 48.dp + navBarInset),
-                        searchQuery = searchQuery,
-                        onSearchQueryChange = { searchQuery = it },
-                        qrSearching = qrSearching,
-                        qrSearchStatus = qrSearchStatus,
-                    )
+                    // Switch between BluetoothPage and MinePage within the sidebar
+                    if (selectedTab == 1) {
+                        MinePage(
+                            colors = colors,
+                            bleManager = bleManager,
+                            onDisconnect = onDisconnect,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(bottom = 48.dp + navBarInset),
+                        )
+                    } else {
+                        BluetoothPage(
+                            bleManager = bleManager,
+                            colors = colors,
+                            onRequestPermissions = onRequestPermissions,
+                            onConnectDevice = onConnectDevice,
+                            onDisconnect = onDisconnect,
+                            onConnectedClick = { showConsole = true },
+                            onScanClick = { showScanner = true },
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(bottom = 48.dp + navBarInset),
+                            searchQuery = searchQuery,
+                            onSearchQueryChange = { searchQuery = it },
+                            qrSearching = qrSearching,
+                            qrSearchStatus = qrSearchStatus,
+                        )
+                    }
                 }
                 Box(
                     modifier = Modifier
@@ -1283,14 +1295,8 @@ fun BmsApp(
                     }
                 }
             } else {
-            // Wide screen: show MinePage when sidebar is hidden and tab is 1
-            if (!sidebarVisible && selectedTab == 1) {
-                MinePage(
-                    colors = colors,
-                    bleManager = bleManager,
-                    onDisconnect = onDisconnect,
-                )
-            }
+            // Wide screen: main content area always shows WebView / disconnected overlay
+            // MinePage is rendered inside the sidebar, not here
             }
         }
 
@@ -1325,8 +1331,8 @@ fun BmsApp(
             } else {
                 1f
             }
-            val deviceTabSelected = if (isWideScreen) sidebarVisible else (selectedTab == 0 && !showConsole)
-            val mineTabSelected = if (isWideScreen) (!sidebarVisible && selectedTab == 1) else (selectedTab == 1)
+            val deviceTabSelected = if (isWideScreen) (sidebarVisible && selectedTab == 0) else (selectedTab == 0 && !showConsole)
+            val mineTabSelected = if (isWideScreen) (sidebarVisible && selectedTab == 1) else (selectedTab == 1)
 
             Row(
                 modifier = Modifier
@@ -1373,7 +1379,7 @@ fun BmsApp(
                         .clickable {
                             showConsole = false
                             selectedTab = 1
-                            if (isWideScreen) sidebarVisible = false
+                            if (isWideScreen) sidebarVisible = true
                         },
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
@@ -1421,19 +1427,26 @@ fun BluetoothPageHeader(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Text(
-            stringResource(R.string.nearby_devices),
-            fontSize = 16.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = colors.fg,
-        )
-        // Fixed-size Box prevents layout shift when indicator appears/disappears
-        Box(modifier = Modifier.size(16.dp)) {
+        // Scan button with overlapping scanning indicator
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .background(colors.primary, RoundedCornerShape(18.dp))
+                .clickable(onClick = onScanClick),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                Icons.Default.QrCodeScanner,
+                contentDescription = stringResource(R.string.scan),
+                tint = colors.primaryFg,
+                modifier = Modifier.size(20.dp),
+            )
+            // Scanning indicator overlaps on top of scan icon
             if (isScanning) {
                 CircularProgressIndicator(
-                    modifier = Modifier.size(16.dp),
+                    modifier = Modifier.size(36.dp),
                     strokeWidth = 2.dp,
-                    color = colors.primary,
+                    color = colors.primaryFg,
                 )
             }
         }
@@ -1472,21 +1485,6 @@ fun BluetoothPageHeader(
                     tint = colors.fg3,
                 )
             }
-        }
-        // QR scan button
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .background(colors.primary, RoundedCornerShape(18.dp))
-                .clickable(onClick = onScanClick),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                Icons.Default.QrCodeScanner,
-                contentDescription = stringResource(R.string.scan),
-                tint = colors.primaryFg,
-                modifier = Modifier.size(20.dp),
-            )
         }
     }
 }
@@ -1750,12 +1748,37 @@ fun ConnectedCard(
             modifier = Modifier.padding(12.dp, 14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            SocCircle(
-                soc = device.soc,
-                isGlowing = true,
-                trackColor = colors.track,
-                modifier = Modifier.clickable(onClick = onDisconnect),
-            )
+            // SocCircle with star icon overlay, dBm text below - all in one column
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(46.dp)
+                        .clickable { onToggleRemember() },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    SocCircle(
+                        soc = device.soc,
+                        isGlowing = true,
+                        trackColor = colors.track,
+                        modifier = Modifier.clickable(onClick = onDisconnect),
+                    )
+                    // Star icon overlays on top of SocCircle, transparent
+                    Icon(
+                        if (isRemembered) Icons.Default.Star else Icons.Default.StarBorder,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = if (isRemembered) Color(0xFFF59E0B).copy(alpha = 0.7f) else colors.fg3.copy(alpha = 0.4f),
+                    )
+                }
+                Spacer(Modifier.height(2.dp))
+                if (device.rssi != 0) {
+                    RssiIndicator(device.rssi, showDbm = true, trackColor = colors.track, fg2Color = colors.fg2)
+                } else {
+                    Text("--", fontSize = 10.sp, fontWeight = FontWeight.Medium, color = colors.fg3)
+                }
+            }
             Spacer(Modifier.width(10.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1795,27 +1818,6 @@ fun ConnectedCard(
                     }
                 }
             }
-            // RSSI indicator - moved outside Column for right alignment
-            if (device.rssi != 0) {
-                RssiIndicator(device.rssi, showDbm = true, trackColor = colors.track, fg2Color = colors.fg2)
-            } else {
-                Text("--", fontSize = 11.sp, fontWeight = FontWeight.Medium, color = colors.fg3)
-            }
-            Spacer(Modifier.width(4.dp))
-            // Star button for remember/forget
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .clickable { onToggleRemember() },
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    if (isRemembered) Icons.Default.Star else Icons.Default.StarBorder,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                    tint = if (isRemembered) Color(0xFFF59E0B) else colors.fg3,
-                )
-            }
         }
     }
 }
@@ -1841,16 +1843,39 @@ fun DeviceCard(
                 modifier = Modifier.padding(12.dp, 14.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                if (isConnecting) {
-                    Box(modifier = Modifier.size(46.dp), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(32.dp),
-                            strokeWidth = 3.dp,
-                            color = colors.primary,
+                // SocCircle with star icon overlay, dBm text below - all in one column
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(46.dp)
+                            .clickable { onToggleRemember() },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        if (isConnecting) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(32.dp),
+                                strokeWidth = 3.dp,
+                                color = colors.primary,
+                            )
+                        } else {
+                            SocCircle(soc = device.soc, isGlowing = false, trackColor = colors.track)
+                        }
+                        // Star icon overlays on top of SocCircle, transparent
+                        Icon(
+                            if (isRemembered) Icons.Default.Star else Icons.Default.StarBorder,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = if (isRemembered) Color(0xFFF59E0B).copy(alpha = 0.7f) else colors.fg3.copy(alpha = 0.4f),
                         )
                     }
-                } else {
-                    SocCircle(soc = device.soc, isGlowing = false, trackColor = colors.track)
+                    Spacer(Modifier.height(2.dp))
+                    if (device.rssi != 0) {
+                        RssiIndicator(device.rssi, showDbm = true, trackColor = colors.track, fg2Color = colors.fg2)
+                    } else {
+                        Text("--", fontSize = 10.sp, fontWeight = FontWeight.Medium, color = colors.fg3)
+                    }
                 }
                 Spacer(Modifier.width(10.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -1890,27 +1915,6 @@ fun DeviceCard(
                             }
                         }
                     }
-                }
-                // RSSI indicator - moved outside Column for right alignment
-                if (device.rssi != 0) {
-                    RssiIndicator(device.rssi, showDbm = true, trackColor = colors.track, fg2Color = colors.fg2)
-                } else {
-                    Text("--", fontSize = 11.sp, fontWeight = FontWeight.Medium, color = colors.fg3)
-                }
-                Spacer(Modifier.width(4.dp))
-                // Star button for remember/forget
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clickable { onToggleRemember() },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        if (isRemembered) Icons.Default.Star else Icons.Default.StarBorder,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp),
-                        tint = if (isRemembered) Color(0xFFF59E0B) else colors.fg3,
-                    )
                 }
             }
             if (isConnecting) {
@@ -2241,6 +2245,7 @@ fun MinePage(
     colors: AppColors,
     bleManager: BleManager,
     onDisconnect: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val packageInfo = remember {
@@ -2253,7 +2258,7 @@ fun MinePage(
     }
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(colors.bg)
             .padding(24.dp),
