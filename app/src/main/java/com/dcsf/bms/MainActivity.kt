@@ -558,6 +558,7 @@ class BleManager {
     }
 
     fun startScan(context: Context) {
+        if (scanning.value) return // Already scanning, prevent duplicate start
         val bm = context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
         bluetoothAdapter = bm?.adapter
 
@@ -1141,72 +1142,67 @@ fun BmsApp(
         }
 
         // ===== Main content area =====
+        // In wide screen, the nav bar sits under the sidebar (not under content),
+        // so the content area only needs navBarInset at the bottom.
+        // In narrow screen, the nav bar spans full width under the content.
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(start = if (isWideScreen && sidebarVisible) (sidebarWidthDp + 1).dp else 0.dp)
-                .padding(bottom = if (showBottomBar) 48.dp + navBarInset else navBarInset)
+                .padding(bottom = if (!isWideScreen && showBottomBar) 48.dp + navBarInset else navBarInset)
         ) {
-            // Always keep WebView in composition to prevent state loss on tab switch / rotation
-            // Only show it when appropriate; other pages overlay on top
-            val showWebView = if (isWideScreen) {
-                !(!sidebarVisible && selectedTab == 2)
-            } else {
-                showConsole && bleManager.connected.value
-            }
-
-            if (showWebView) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    AndroidView(
-                        factory = createWebView,
+            // Always keep WebView in composition to prevent state loss on tab switch / rotation.
+            // Overlay pages with opaque backgrounds cover it when it should be hidden.
+            Box(modifier = Modifier.fillMaxSize()) {
+                AndroidView(
+                    factory = createWebView,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = if (!isWideScreen && showConsole && bleManager.connected.value) 40.dp else 0.dp),
+                )
+                // Narrow screen: header bar for console view
+                if (!isWideScreen && showConsole && bleManager.connected.value) {
+                    Row(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .padding(top = if (!isWideScreen && showConsole && bleManager.connected.value) 40.dp else 0.dp),
-                    )
-                    // Narrow screen: header bar for console view
-                    if (!isWideScreen && showConsole && bleManager.connected.value) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(40.dp)
-                                .background(colors.bg)
-                                .clickable { showConsole = false }
-                                .padding(horizontal = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Icon(
-                                Icons.Default.ArrowBack,
-                                contentDescription = null,
-                                tint = colors.fg2,
-                                modifier = Modifier.size(20.dp),
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Icon(
-                                Icons.Default.BluetoothConnected,
-                                contentDescription = null,
-                                tint = colors.primary,
-                                modifier = Modifier.size(16.dp),
-                            )
-                            Spacer(Modifier.width(6.dp))
-                            Text(
-                                bleManager.connectedDevice.value?.name ?: "BMS",
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = colors.fg,
-                            )
-                        }
+                            .fillMaxWidth()
+                            .height(40.dp)
+                            .background(colors.bg)
+                            .clickable { showConsole = false }
+                            .padding(horizontal = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = null,
+                            tint = colors.fg2,
+                            modifier = Modifier.size(20.dp),
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Icon(
+                            Icons.Default.BluetoothConnected,
+                            contentDescription = null,
+                            tint = colors.primary,
+                            modifier = Modifier.size(16.dp),
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            bleManager.connectedDevice.value?.name ?: "BMS",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = colors.fg,
+                        )
                     }
-                    // Disconnected overlay
-                    if (isWideScreen && !bleManager.connected.value) {
-                        Box(
-                            modifier = Modifier.fillMaxSize().background(colors.bg),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(Icons.Default.BluetoothDisabled, contentDescription = null, modifier = Modifier.size(48.dp), tint = colors.fg3)
-                                Spacer(Modifier.height(8.dp))
-                                Text(stringResource(R.string.please_connect_ble), color = colors.fg3, fontSize = 14.sp)
-                            }
+                }
+                // Disconnected overlay (wide screen only)
+                if (isWideScreen && !bleManager.connected.value) {
+                    Box(
+                        modifier = Modifier.fillMaxSize().background(colors.bg),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(Icons.Default.BluetoothDisabled, contentDescription = null, modifier = Modifier.size(48.dp), tint = colors.fg3)
+                            Spacer(Modifier.height(8.dp))
+                            Text(stringResource(R.string.please_connect_ble), color = colors.fg3, fontSize = 14.sp)
                         }
                     }
                 }
@@ -1412,6 +1408,99 @@ fun BmsApp(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+/** Isolated header for BluetoothPage. Extracted as a separate composable so that
+ * device-list updates (which cause BluetoothPage to recompose) do NOT force the
+ * BasicTextField to recompose, preventing visual jitter/shaking. */
+@Composable
+fun BluetoothPageHeader(
+    isScanning: Boolean,
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit,
+    qrSearching: Boolean,
+    qrSearchStatus: String,
+    colors: AppColors,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(
+            stringResource(R.string.nearby_devices),
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = colors.fg,
+        )
+        // Fixed-size Box prevents layout shift when indicator appears/disappears
+        Box(modifier = Modifier.size(16.dp)) {
+            if (isScanning) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp),
+                    strokeWidth = 2.dp,
+                    color = colors.primary,
+                )
+            }
+        }
+        // Search box
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .height(36.dp)
+                .background(colors.surface, RoundedCornerShape(18.dp))
+                .border(1.dp, colors.border, RoundedCornerShape(18.dp))
+                .padding(horizontal = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(16.dp), tint = colors.fg3)
+            Spacer(Modifier.width(6.dp))
+            BasicTextField(
+                value = searchQuery,
+                onValueChange = onSearchQueryChange,
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+                textStyle = TextStyle(fontSize = 13.sp, color = colors.fg),
+                cursorBrush = androidx.compose.ui.graphics.SolidColor(colors.primary),
+                decorationBox = { innerTextField ->
+                    if (searchQuery.isEmpty()) {
+                        Text(stringResource(R.string.search_devices), fontSize = 13.sp, color = colors.fg3)
+                    }
+                    innerTextField()
+                },
+            )
+            if (searchQuery.isNotEmpty()) {
+                Spacer(Modifier.width(6.dp))
+                Icon(
+                    Icons.Default.Close,
+                    contentDescription = null,
+                    modifier = Modifier.size(14.dp).clickable { onSearchQueryChange("") },
+                    tint = colors.fg3,
+                )
+            }
+        }
+    }
+    // QR search status
+    if (qrSearching || qrSearchStatus.isNotBlank()) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (qrSearching) {
+                CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp, color = colors.primary)
+                Spacer(Modifier.width(8.dp))
+            }
+            Text(
+                qrSearchStatus.ifBlank { stringResource(R.string.searching_device) },
+                fontSize = 12.sp,
+                color = when {
+                    qrSearchStatus.startsWith("Connected") -> Color(0xFF22C55E)
+                    qrSearchStatus.startsWith("Not found") || qrSearchStatus.startsWith("Invalid") -> colors.danger
+                    else -> colors.fg2
+                },
+            )
+        }
+    }
+}
+
 fun BluetoothPage(
     bleManager: BleManager,
     colors: AppColors,
@@ -1449,82 +1538,14 @@ fun BluetoothPage(
             .background(colors.bg)
             .padding(16.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Text(
-                stringResource(R.string.nearby_devices),
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = colors.fg,
-            )
-            if (bleManager.scanning.value) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(16.dp),
-                    strokeWidth = 2.dp,
-                    color = colors.primary,
-                )
-            }
-            // Search box
-            Row(
-                modifier = Modifier
-                    .weight(1f)
-                    .height(36.dp)
-                    .background(colors.surface, RoundedCornerShape(18.dp))
-                    .border(1.dp, colors.border, RoundedCornerShape(18.dp))
-                    .padding(horizontal = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(16.dp), tint = colors.fg3)
-                Spacer(Modifier.width(6.dp))
-                BasicTextField(
-                    value = searchQuery,
-                    onValueChange = onSearchQueryChange,
-                    modifier = Modifier.weight(1f),
-                    singleLine = true,
-                    textStyle = TextStyle(fontSize = 13.sp, color = colors.fg),
-                    cursorBrush = androidx.compose.ui.graphics.SolidColor(colors.primary),
-                    decorationBox = { innerTextField ->
-                        if (searchQuery.isEmpty()) {
-                            Text(stringResource(R.string.search_devices), fontSize = 13.sp, color = colors.fg3)
-                        }
-                        innerTextField()
-                    },
-                )
-                if (searchQuery.isNotEmpty()) {
-                    Spacer(Modifier.width(6.dp))
-                    Icon(
-                        Icons.Default.Close,
-                        contentDescription = null,
-                        modifier = Modifier.size(14.dp).clickable { onSearchQueryChange("") },
-                        tint = colors.fg3,
-                    )
-                }
-            }
-        }
-        // QR search status
-        if (qrSearching || qrSearchStatus.isNotBlank()) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                if (qrSearching) {
-                    CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp, color = colors.primary)
-                    Spacer(Modifier.width(8.dp))
-                }
-                Text(
-                    qrSearchStatus.ifBlank { stringResource(R.string.searching_device) },
-                    fontSize = 12.sp,
-                    color = when {
-                        qrSearchStatus.startsWith("Connected") -> Color(0xFF22C55E)
-                        qrSearchStatus.startsWith("Not found") || qrSearchStatus.startsWith("Invalid") -> colors.danger
-                        else -> colors.fg2
-                    },
-                )
-            }
-        }
+        BluetoothPageHeader(
+            isScanning = bleManager.scanning.value,
+            searchQuery = searchQuery,
+            onSearchQueryChange = onSearchQueryChange,
+            qrSearching = qrSearching,
+            qrSearchStatus = qrSearchStatus,
+            colors = colors,
+        )
 
         if (bleManager.devices.isEmpty() && !bleManager.scanning.value) {
             Box(
