@@ -422,9 +422,7 @@ class BleManager {
     private var pendingDataCallback: ((ByteArray) -> Unit)? = null
     private val backgroundScanCache = mutableListOf<BleDevice>()
     private val missCount = mutableMapOf<String, Int>()
-    private val firstSeenCycle = mutableMapOf<String, Int>()
-    private var scanCycleCount = 0
-    private var prefs: SharedPreferences? = null
+            private var prefs: SharedPreferences? = null
 
     companion object {
         const val SERVICE_UUID = "0000ff00-0000-1000-8000-00805f9b34fb"
@@ -623,7 +621,6 @@ class BleManager {
     }
 
     fun processScanCycle() {
-        scanCycleCount++
         // Build a map of scanned addresses for quick lookup
         val cacheMap = backgroundScanCache.associateBy { it.address }
         val connAddr = connectedDevice.value?.address
@@ -655,7 +652,6 @@ class BleManager {
                     if (!isProtected) {
                         toRemove.add(dev)
                         missCount.remove(dev.address)
-                        firstSeenCycle.remove(dev.address)
                     } else {
                         // For protected devices, just clear RSSI but keep in list
                         val idx = devices.indexOfFirst { it.address == dev.address }
@@ -672,29 +668,11 @@ class BleManager {
         }
 
         // Add new devices from cache that aren't in display list yet
-        // Require seeing a device in 2 consecutive cycles before adding to prevent flicker
         for (cached in backgroundScanCache) {
             if (devices.none { it.address == cached.address } && devices.size < MAX_DEVICES) {
-                val firstSeen = firstSeenCycle[cached.address]
-                if (firstSeen == null) {
-                    // First time seeing this device - record the cycle but don't add yet
-                    firstSeenCycle[cached.address] = scanCycleCount
-                } else if (scanCycleCount - firstSeen >= 1) {
-                    // Seen in 2 consecutive cycles - add to display list
-                    devices.add(cached)
-                    missCount[cached.address] = 0
-                    firstSeenCycle.remove(cached.address)
-                }
-                // If not seen for a while, clean up firstSeenCycle
+                devices.add(cached)
+                missCount[cached.address] = 0
             }
-        }
-
-        // Clean up firstSeenCycle for devices no longer in cache
-        val cacheAddrs = cacheMap.keys
-        val staleFirstSeen = firstSeenCycle.keys.filter { it !in cacheAddrs && it !in devices.map { d -> d.address } }
-        for (addr in staleFirstSeen) {
-            // If device hasn't been seen for 3+ cycles, remove from firstSeen tracking
-            firstSeenCycle.remove(addr)
         }
 
         if (toRemove.isNotEmpty()) {
