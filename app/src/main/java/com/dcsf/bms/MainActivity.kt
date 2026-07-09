@@ -23,6 +23,7 @@ import android.content.SharedPreferences
 import com.journeyapps.barcodescanner.DecoratedBarcodeView
 import com.journeyapps.barcodescanner.DefaultDecoderFactory
 import com.google.zxing.BarcodeFormat
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.ui.draw.clip
 import java.io.File
 import java.io.FileOutputStream
@@ -414,6 +415,8 @@ class BleManager {
     private var pendingDataCallback: ((ByteArray) -> Unit)? = null
     private val backgroundScanCache = mutableListOf<BleDevice>()
     private val missCount = mutableMapOf<String, Int>()
+    private val firstSeenCycle = mutableMapOf<String, Int>()
+    private var scanCycleCount = 0
     private var prefs: SharedPreferences? = null
 
     companion object {
@@ -613,6 +616,7 @@ class BleManager {
     }
 
     fun processScanCycle() {
+        scanCycleCount++
         // Build a map of scanned addresses for quick lookup
         val cacheMap = backgroundScanCache.associateBy { it.address }
         val connAddr = connectedDevice.value?.address
@@ -628,22 +632,31 @@ class BleManager {
                 // Device found in cache - update it and reset miss count
                 val idx = devices.indexOfFirst { it.address == dev.address }
                 if (idx >= 0) {
-                    devices[idx] = cached
+                    // Only update if RSSI or data changed significantly to reduce UI flicker
+                    val old = devices[idx]!!
+                    if (old.rssi != cached.rssi || old.soc != cached.soc || old.voltage != cached.voltage || old.current != cached.current || old.safety != cached.safety) {
+                        devices[idx] = cached
+                    }
                 }
                 missCount[dev.address] = 0
             } else {
                 // Device not in cache - increment miss count
                 val count = (missCount[dev.address] ?: 0) + 1
                 missCount[dev.address] = count
-                if (count > 5) {
+                // Remove after 7 consecutive misses (7 seconds at 1s scan cycle)
+                if (count > 7) {
                     if (!isProtected) {
                         toRemove.add(dev)
                         missCount.remove(dev.address)
+                        firstSeenCycle.remove(dev.address)
                     } else {
                         // For protected devices, just clear RSSI but keep in list
                         val idx = devices.indexOfFirst { it.address == dev.address }
                         if (idx >= 0) {
-                            devices[idx] = dev.copy(rssi = 0)
+                            val old = devices[idx]!!
+                            if (old.rssi != 0) {
+                                devices[idx] = old.copy(rssi = 0)
+                            }
                         }
                         missCount[dev.address] = 0
                     }
@@ -652,11 +665,29 @@ class BleManager {
         }
 
         // Add new devices from cache that aren't in display list yet
+        // Require seeing a device in 2 consecutive cycles before adding to prevent flicker
         for (cached in backgroundScanCache) {
             if (devices.none { it.address == cached.address } && devices.size < MAX_DEVICES) {
-                devices.add(cached)
-                missCount[cached.address] = 0
+                val firstSeen = firstSeenCycle[cached.address]
+                if (firstSeen == null) {
+                    // First time seeing this device - record the cycle but don't add yet
+                    firstSeenCycle[cached.address] = scanCycleCount
+                } else if (scanCycleCount - firstSeen >= 1) {
+                    // Seen in 2 consecutive cycles - add to display list
+                    devices.add(cached)
+                    missCount[cached.address] = 0
+                    firstSeenCycle.remove(cached.address)
+                }
+                // If not seen for a while, clean up firstSeenCycle
             }
+        }
+
+        // Clean up firstSeenCycle for devices no longer in cache
+        val cacheAddrs = cacheMap.keys
+        val staleFirstSeen = firstSeenCycle.keys.filter { it !in cacheAddrs && it !in devices.map { d -> d.address } }
+        for (addr in staleFirstSeen) {
+            // If device hasn't been seen for 3+ cycles, remove from firstSeen tracking
+            firstSeenCycle.remove(addr)
         }
 
         if (toRemove.isNotEmpty()) {
@@ -696,6 +727,7 @@ class BleManager {
         }
         bleConnection?.connect(context) { success ->
             connectingDevice.value = null
+            connected.value = success
             if (success) {
                 connectedDevice.value = device
                 connectionError.value = false
@@ -910,6 +942,8 @@ fun BmsApp(
 
         if (bleManager.connected.value) {
             showConsole = true
+            // Auto-hide sidebar in landscape mode after connection
+            if (isWideScreen) sidebarVisible = false
         } else {
             showConsole = false
         }
@@ -924,6 +958,9 @@ fun BmsApp(
 
     LaunchedEffect(darkTheme) {
         pushToUi(webView, "bms:theme-change", """{"theme":"$themeStr"}""")
+        // Update WebView background color to match new theme without recreating
+        val bgHex = if (darkTheme) "#060709" else "#F3F5F9"
+        webView.value?.setBackgroundColor(android.graphics.Color.parseColor(bgHex))
 
     }
 
@@ -1141,6 +1178,7 @@ fun BmsApp(
                         onConnectDevice = onConnectDevice,
                         onDisconnect = onDisconnect,
                         onConnectedClick = { showConsole = true },
+                        onScanClick = { showScanner = true },
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(bottom = 48.dp + navBarInset),
@@ -1240,6 +1278,7 @@ fun BmsApp(
                                         onConnectDevice = onConnectDevice,
                                         onDisconnect = onDisconnect,
                                         onConnectedClick = { showConsole = true },
+                                        onScanClick = { showScanner = true },
                                         modifier = Modifier.fillMaxSize(),
                                         searchQuery = searchQuery,
                                         onSearchQueryChange = { searchQuery = it },
@@ -1248,16 +1287,6 @@ fun BmsApp(
                                     )
                                 }
                                 selectedTab == 1 -> {
-                                    ScanPage(
-                                        colors = colors,
-                                        bleManager = bleManager,
-                                        onScanClick = { showScanner = true },
-                                        qrScanResult = qrScanResult,
-                                        qrSearchStatus = qrSearchStatus,
-                                        qrSearching = qrSearching,
-                                    )
-                                }
-                                selectedTab == 2 -> {
                                     MinePage(
                                         colors = colors,
                                         bleManager = bleManager,
@@ -1269,14 +1298,14 @@ fun BmsApp(
                     }
                 }
             } else {
-                // Wide screen: show MinePage when sidebar is hidden and tab is 2
-                if (!sidebarVisible && selectedTab == 2) {
-                    MinePage(
-                        colors = colors,
-                        bleManager = bleManager,
-                        onDisconnect = onDisconnect,
-                    )
-                }
+            // Wide screen: show MinePage when sidebar is hidden and tab is 1
+            if (!sidebarVisible && selectedTab == 1) {
+                MinePage(
+                    colors = colors,
+                    bleManager = bleManager,
+                    onDisconnect = onDisconnect,
+                )
+            }
             }
         }
 
@@ -1312,7 +1341,7 @@ fun BmsApp(
                 1f
             }
             val deviceTabSelected = if (isWideScreen) sidebarVisible else (selectedTab == 0 && !showConsole)
-            val mineTabSelected = if (isWideScreen) (!sidebarVisible && selectedTab == 2) else (selectedTab == 2)
+            val mineTabSelected = if (isWideScreen) (!sidebarVisible && selectedTab == 1) else (selectedTab == 1)
 
             Row(
                 modifier = Modifier
@@ -1351,39 +1380,6 @@ fun BmsApp(
                         color = if (deviceTabSelected) colors.primary else colors.fg2,
                     )
                 }
-                // Scan tab
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight()
-                        .clickable {
-                            showConsole = false
-                            selectedTab = 1
-                            showScanner = true
-                        },
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(28.dp)
-                            .background(colors.primary, RoundedCornerShape(14.dp)),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(
-                            Icons.Default.QrCodeScanner,
-                            contentDescription = stringResource(R.string.scan),
-                            tint = colors.primaryFg,
-                            modifier = Modifier.size(18.dp),
-                        )
-                    }
-                    Text(
-                        stringResource(R.string.scan),
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = colors.fg2,
-                    )
-                }
                 // Mine tab
                 Column(
                     modifier = Modifier
@@ -1391,7 +1387,7 @@ fun BmsApp(
                         .fillMaxHeight()
                         .clickable {
                             showConsole = false
-                            selectedTab = 2
+                            selectedTab = 1
                             if (isWideScreen) sidebarVisible = false
                         },
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -1433,6 +1429,7 @@ fun BluetoothPageHeader(
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,
     colors: AppColors,
+    onScanClick: () -> Unit = {},
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -1491,6 +1488,21 @@ fun BluetoothPageHeader(
                 )
             }
         }
+        // QR scan button
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .background(colors.primary, RoundedCornerShape(18.dp))
+                .clickable(onClick = onScanClick),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                Icons.Default.QrCodeScanner,
+                contentDescription = stringResource(R.string.scan),
+                tint = colors.primaryFg,
+                modifier = Modifier.size(20.dp),
+            )
+        }
     }
 }
 
@@ -1503,6 +1515,7 @@ fun BluetoothPage(
     onConnectDevice: (BleDevice) -> Unit,
     onDisconnect: () -> Unit,
     onConnectedClick: () -> Unit = {},
+    onScanClick: () -> Unit = {},
     modifier: Modifier = Modifier,
     searchQuery: String = "",
     onSearchQueryChange: (String) -> Unit = {},
@@ -1538,6 +1551,7 @@ fun BluetoothPage(
             searchQuery = searchQuery,
             onSearchQueryChange = onSearchQueryChange,
             colors = colors,
+            onScanClick = onScanClick,
         )
 
         // Floating QR search status toast (disappears after 2s via parent clearing qrSearchStatus)
@@ -1759,13 +1773,7 @@ fun ConnectedCard(
             Spacer(Modifier.width(10.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(device.name, fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = colors.fg)
-                    Spacer(Modifier.weight(1f))
-                    if (device.rssi != 0) {
-                        RssiIndicator(device.rssi, showDbm = true, trackColor = colors.track, fg2Color = colors.fg2)
-                    } else {
-                        Text("--", fontSize = 11.sp, fontWeight = FontWeight.Medium, color = colors.fg3)
-                    }
+                    Text(device.name, fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = colors.fg, maxLines = 1, modifier = Modifier.weight(1f, fill = false).basicMarquee())
                 }
                 Spacer(Modifier.height(3.dp))
                 Row(
@@ -1801,6 +1809,13 @@ fun ConnectedCard(
                     }
                 }
             }
+            // RSSI indicator - moved outside Column for right alignment
+            if (device.rssi != 0) {
+                RssiIndicator(device.rssi, showDbm = true, trackColor = colors.track, fg2Color = colors.fg2)
+            } else {
+                Text("--", fontSize = 11.sp, fontWeight = FontWeight.Medium, color = colors.fg3)
+            }
+            Spacer(Modifier.width(4.dp))
             // Star button for remember/forget
             Box(
                 modifier = Modifier
@@ -1853,13 +1868,7 @@ fun DeviceCard(
                 Spacer(Modifier.width(10.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(device.name, fontWeight = FontWeight.Medium, fontSize = 15.sp, color = colors.fg)
-                        Spacer(Modifier.weight(1f))
-                        if (device.rssi != 0) {
-                            RssiIndicator(device.rssi, showDbm = true, trackColor = colors.track, fg2Color = colors.fg2)
-                        } else {
-                            Text("--", fontSize = 11.sp, fontWeight = FontWeight.Medium, color = colors.fg3)
-                        }
+                        Text(device.name, fontWeight = FontWeight.Medium, fontSize = 15.sp, color = colors.fg, maxLines = 1, modifier = Modifier.weight(1f, fill = false).basicMarquee())
                     }
                     Spacer(Modifier.height(3.dp))
                     Row(
@@ -1895,6 +1904,13 @@ fun DeviceCard(
                         }
                     }
                 }
+                // RSSI indicator - moved outside Column for right alignment
+                if (device.rssi != 0) {
+                    RssiIndicator(device.rssi, showDbm = true, trackColor = colors.track, fg2Color = colors.fg2)
+                } else {
+                    Text("--", fontSize = 11.sp, fontWeight = FontWeight.Medium, color = colors.fg3)
+                }
+                Spacer(Modifier.width(4.dp))
                 // Star button for remember/forget
                 Box(
                     modifier = Modifier
