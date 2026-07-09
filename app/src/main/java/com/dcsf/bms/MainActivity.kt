@@ -23,6 +23,7 @@ import android.content.SharedPreferences
 import com.journeyapps.barcodescanner.DecoratedBarcodeView
 import com.journeyapps.barcodescanner.DefaultDecoderFactory
 import com.google.zxing.BarcodeFormat
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.ui.draw.clip
 import java.io.File
@@ -355,27 +356,31 @@ object SafetyBits {
 fun getScanRecordBytes(record: android.bluetooth.le.ScanRecord): ByteArray? = record.getBytes()
 
 fun parseMfgData(data: ByteArray): IntArray? {
-    Log.d("BMS_BLE", "parseMfgData: ${data.size} bytes: ${data.joinToString("") { "%02x".format(it) }}")
-    // Format 1: 9+ bytes (old format, first 2 bytes are prefix)
-    if (data.size >= 9) {
-        val soc = data[2].toInt() and 0xFF
-        val voltage = ((data[4].toInt() and 0xFF) shl 8) or (data[3].toInt() and 0xFF)
-        val current = ((data[6].toInt() and 0xFF) shl 8) or (data[5].toInt() and 0xFF)
-        val safety = ((data[8].toInt() and 0xFF) shl 8) or (data[7].toInt() and 0xFF)
-        Log.d("BMS_BLE", "parseMfgData(fmt1 9B): soc=$soc V=$voltage I=$current safety=0x${safety.toString(16)}")
-        return intArrayOf(soc, voltage, current, safety)
-    }
-    // Format 2: 7 bytes (new format, no prefix)
-    if (data.size >= 7) {
-        val soc = data[0].toInt() and 0xFF
-        val voltage = ((data[2].toInt() and 0xFF) shl 8) or (data[1].toInt() and 0xFF)
-        val current = ((data[4].toInt() and 0xFF) shl 8) or (data[3].toInt() and 0xFF)
-        val safety = ((data[6].toInt() and 0xFF) shl 8) or (data[5].toInt() and 0xFF)
-        Log.d("BMS_BLE", "parseMfgData(fmt2 7B): soc=$soc V=$voltage I=$current safety=0x${safety.toString(16)}")
-        return intArrayOf(soc, voltage, current, safety)
-    }
-    Log.d("BMS_BLE", "parseMfgData: data too short (${data.size} bytes)")
-    return null
+Log.d("BMS_BLE", "parseMfgData: ${data.size} bytes: ${data.joinToString("") { "%02x".format(it) }}")
+// Format 1: 9+ bytes (old format, first 2 bytes are prefix)
+if (data.size >= 9) {
+val soc = data[2].toInt() and 0xFF
+val voltage = ((data[4].toInt() and 0xFF) shl 8) or (data[3].toInt() and 0xFF)
+val currentRaw = ((data[6].toInt() and 0xFF) shl 8) or (data[5].toInt() and 0xFF)
+// Convert to signed 16-bit: if bit 15 is set, subtract 0x10000
+val current = if (currentRaw >= 0x8000) currentRaw - 0x10000 else currentRaw
+val safety = ((data[8].toInt() and 0xFF) shl 8) or (data[7].toInt() and 0xFF)
+Log.d("BMS_BLE", "parseMfgData(fmt1 9B): soc=$soc V=$voltage I=$current safety=0x${safety.toString(16)}")
+return intArrayOf(soc, voltage, current, safety)
+}
+// Format 2: 7 bytes (new format, no prefix)
+if (data.size >= 7) {
+val soc = data[0].toInt() and 0xFF
+val voltage = ((data[2].toInt() and 0xFF) shl 8) or (data[1].toInt() and 0xFF)
+val currentRaw = ((data[4].toInt() and 0xFF) shl 8) or (data[3].toInt() and 0xFF)
+// Convert to signed 16-bit: if bit 15 is set, subtract 0x10000
+val current = if (currentRaw >= 0x8000) currentRaw - 0x10000 else currentRaw
+val safety = ((data[6].toInt() and 0xFF) shl 8) or (data[5].toInt() and 0xFF)
+Log.d("BMS_BLE", "parseMfgData(fmt2 7B): soc=$soc V=$voltage I=$current safety=0x${safety.toString(16)}")
+return intArrayOf(soc, voltage, current, safety)
+}
+Log.d("BMS_BLE", "parseMfgData: data too short (${data.size} bytes)")
+return null
 }
 
 fun parseAdData(bytes: ByteArray): IntArray? {
@@ -390,7 +395,9 @@ fun parseAdData(bytes: ByteArray): IntArray? {
                 val off = i + 4
                 val soc = bytes[off + 2].toInt() and 0xFF
                 val voltage = ((bytes[off + 4].toInt() and 0xFF) shl 8) or (bytes[off + 3].toInt() and 0xFF)
-                val current = ((bytes[off + 6].toInt() and 0xFF) shl 8) or (bytes[off + 5].toInt() and 0xFF)
+                val currentRaw = ((bytes[off + 6].toInt() and 0xFF) shl 8) or (bytes[off + 5].toInt() and 0xFF)
+                // Convert to signed 16-bit: if bit 15 is set, subtract 0x10000
+                val current = if (currentRaw >= 0x8000) currentRaw - 0x10000 else currentRaw
                 val safety = ((bytes[off + 8].toInt() and 0xFF) shl 8) or (bytes[off + 7].toInt() and 0xFF)
                 return intArrayOf(soc, voltage, current, safety)
             }
@@ -1745,6 +1752,7 @@ fun SwipeDeviceCard(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ConnectedCard(
     device: BleDevice,
@@ -1781,7 +1789,7 @@ fun ConnectedCard(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     Text("%.3fV".format(device.voltageV()), color = colors.fg, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
-                    Text("${if (device.currentA() > 0) "+" else ""}%.2fA".format(device.currentA()), color = colors.fg, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                    Text("${if (device.currentA() < 0) "" else "+"}%.2fA".format(device.currentA()), color = colors.fg, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                     val flags = SafetyBits.activeFlags(device.safety)
                     if (flags.isNotEmpty()) {
                         Box(
@@ -1834,6 +1842,7 @@ fun ConnectedCard(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun DeviceCard(
     device: BleDevice,
@@ -1876,7 +1885,7 @@ fun DeviceCard(
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
                         Text("%.3fV".format(device.voltageV()), color = colors.fg, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
-                        Text("${if (device.currentA() > 0) "+" else ""}%.2fA".format(device.currentA()), color = colors.fg, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                        Text("${if (device.currentA() < 0) "" else "+"}%.2fA".format(device.currentA()), color = colors.fg, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                         val flags = SafetyBits.activeFlags(device.safety)
                         if (flags.isNotEmpty()) {
                             Box(
