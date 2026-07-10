@@ -1889,6 +1889,7 @@ fun DeviceCard(
                         }
                     }
                 }
+                }
                 // RSSI indicator on the right
                 if (device.rssi != 0) {
                     RssiIndicator(device.rssi, showDbm = true, trackColor = colors.track, fg2Color = colors.fg2)
