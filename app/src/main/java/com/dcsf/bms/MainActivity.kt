@@ -1794,26 +1794,27 @@ fun ConnectedCard(
                     }
                 }
             }
-            // RSSI indicator on the right
-            if (device.rssi != 0) {
-                RssiIndicator(device.rssi, showDbm = true, trackColor = colors.track, fg2Color = colors.fg2)
-            } else {
-                Text("--", fontSize = 11.sp, fontWeight = FontWeight.Medium, color = colors.fg3)
-            }
-            Spacer(Modifier.width(4.dp))
-            // Star button for remember/forget
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .clickable { onToggleRemember() },
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    if (isRemembered) Icons.Default.Star else Icons.Default.StarBorder,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                    tint = if (isRemembered) Color(0xFFF59E0B) else colors.fg3,
-                )
+            // Right column: dBm aligned with name (top), star aligned with V/A row (bottom)
+            Column(horizontalAlignment = Alignment.End) {
+                if (device.rssi != 0) {
+                    RssiIndicator(device.rssi, showDbm = true, trackColor = colors.track, fg2Color = colors.fg2)
+                } else {
+                    Text("--", fontSize = 11.sp, fontWeight = FontWeight.Medium, color = colors.fg3)
+                }
+                Spacer(Modifier.height(2.dp))
+                Box(
+                    modifier = Modifier
+                        .size(28.dp)
+                        .clickable { onToggleRemember() },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        if (isRemembered) Icons.Default.Star else Icons.Default.StarBorder,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = if (isRemembered) Color(0xFFF59E0B) else colors.fg3,
+                    )
+                }
             }
         }
     }
@@ -1889,27 +1890,27 @@ fun DeviceCard(
                         }
                     }
                 }
-                }
-                // RSSI indicator on the right
-                if (device.rssi != 0) {
-                    RssiIndicator(device.rssi, showDbm = true, trackColor = colors.track, fg2Color = colors.fg2)
-                } else {
-                    Text("--", fontSize = 11.sp, fontWeight = FontWeight.Medium, color = colors.fg3)
-                }
-                Spacer(Modifier.width(4.dp))
-                // Star button for remember/forget
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clickable { onToggleRemember() },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        if (isRemembered) Icons.Default.Star else Icons.Default.StarBorder,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp),
-                        tint = if (isRemembered) Color(0xFFF59E0B) else colors.fg3,
-                    )
+                // Right column: dBm aligned with name (top), star aligned with V/A row (bottom)
+                Column(horizontalAlignment = Alignment.End) {
+                    if (device.rssi != 0) {
+                        RssiIndicator(device.rssi, showDbm = true, trackColor = colors.track, fg2Color = colors.fg2)
+                    } else {
+                        Text("--", fontSize = 11.sp, fontWeight = FontWeight.Medium, color = colors.fg3)
+                    }
+                    Spacer(Modifier.height(2.dp))
+                    Box(
+                        modifier = Modifier
+                            .size(28.dp)
+                            .clickable { onToggleRemember() },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            if (isRemembered) Icons.Default.Star else Icons.Default.StarBorder,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                            tint = if (isRemembered) Color(0xFFF59E0B) else colors.fg3,
+                        )
+                    }
                 }
             }
             if (isConnecting) {
