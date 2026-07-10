@@ -1883,12 +1883,13 @@ fun DeviceCard(
                                         shape = RoundedCornerShape(3.dp),
                                         color = c.copy(alpha = 0.12f),
                                         border = androidx.compose.foundation.BorderStroke(1.dp, c.copy(alpha = 0.25f)),
-                                ) {
-                                    Text(f, color = c, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp))
-                                }
+                                    ) {
+                                        Text(f, color = c, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp))
+                                    }
                             }
                         }
                     }
+                }
                 }
                 // Right column: dBm aligned with name (top), star aligned with V/A row (bottom)
                 Column(horizontalAlignment = Alignment.End) {
