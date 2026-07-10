@@ -73,6 +73,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.navigationBars
@@ -83,7 +85,6 @@ import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.BatteryChargingFull
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Star
@@ -1748,37 +1749,12 @@ fun ConnectedCard(
             modifier = Modifier.padding(12.dp, 14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // SocCircle with star icon overlay, dBm text below - all in one column
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(46.dp)
-                        .clickable { onToggleRemember() },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    SocCircle(
-                        soc = device.soc,
-                        isGlowing = true,
-                        trackColor = colors.track,
-                        modifier = Modifier.clickable(onClick = onDisconnect),
-                    )
-                    // Star icon overlays on top of SocCircle, transparent
-                    Icon(
-                        if (isRemembered) Icons.Default.Star else Icons.Default.StarBorder,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = if (isRemembered) Color(0xFFF59E0B).copy(alpha = 0.7f) else colors.fg3.copy(alpha = 0.4f),
-                    )
-                }
-                Spacer(Modifier.height(2.dp))
-                if (device.rssi != 0) {
-                    RssiIndicator(device.rssi, showDbm = true, trackColor = colors.track, fg2Color = colors.fg2)
-                } else {
-                    Text("--", fontSize = 10.sp, fontWeight = FontWeight.Medium, color = colors.fg3)
-                }
-            }
+            SocCircle(
+                soc = device.soc,
+                isGlowing = true,
+                trackColor = colors.track,
+                modifier = Modifier.clickable(onClick = onDisconnect),
+            )
             Spacer(Modifier.width(10.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1818,6 +1794,27 @@ fun ConnectedCard(
                     }
                 }
             }
+            // RSSI indicator on the right
+            if (device.rssi != 0) {
+                RssiIndicator(device.rssi, showDbm = true, trackColor = colors.track, fg2Color = colors.fg2)
+            } else {
+                Text("--", fontSize = 11.sp, fontWeight = FontWeight.Medium, color = colors.fg3)
+            }
+            Spacer(Modifier.width(4.dp))
+            // Star button for remember/forget
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .clickable { onToggleRemember() },
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    if (isRemembered) Icons.Default.Star else Icons.Default.StarBorder,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = if (isRemembered) Color(0xFFF59E0B) else colors.fg3,
+                )
+            }
         }
     }
 }
@@ -1843,39 +1840,16 @@ fun DeviceCard(
                 modifier = Modifier.padding(12.dp, 14.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                // SocCircle with star icon overlay, dBm text below - all in one column
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(46.dp)
-                            .clickable { onToggleRemember() },
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        if (isConnecting) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(32.dp),
-                                strokeWidth = 3.dp,
-                                color = colors.primary,
-                            )
-                        } else {
-                            SocCircle(soc = device.soc, isGlowing = false, trackColor = colors.track)
-                        }
-                        // Star icon overlays on top of SocCircle, transparent
-                        Icon(
-                            if (isRemembered) Icons.Default.Star else Icons.Default.StarBorder,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp),
-                            tint = if (isRemembered) Color(0xFFF59E0B).copy(alpha = 0.7f) else colors.fg3.copy(alpha = 0.4f),
+                if (isConnecting) {
+                    Box(modifier = Modifier.size(46.dp), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(32.dp),
+                            strokeWidth = 3.dp,
+                            color = colors.primary,
                         )
                     }
-                    Spacer(Modifier.height(2.dp))
-                    if (device.rssi != 0) {
-                        RssiIndicator(device.rssi, showDbm = true, trackColor = colors.track, fg2Color = colors.fg2)
-                    } else {
-                        Text("--", fontSize = 10.sp, fontWeight = FontWeight.Medium, color = colors.fg3)
-                    }
+                } else {
+                    SocCircle(soc = device.soc, isGlowing = false, trackColor = colors.track)
                 }
                 Spacer(Modifier.width(10.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -1908,13 +1882,33 @@ fun DeviceCard(
                                         shape = RoundedCornerShape(3.dp),
                                         color = c.copy(alpha = 0.12f),
                                         border = androidx.compose.foundation.BorderStroke(1.dp, c.copy(alpha = 0.25f)),
-                                    ) {
-                                        Text(f, color = c, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp))
-                                    }
+                                ) {
+                                    Text(f, color = c, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp))
                                 }
                             }
                         }
                     }
+                }
+                // RSSI indicator on the right
+                if (device.rssi != 0) {
+                    RssiIndicator(device.rssi, showDbm = true, trackColor = colors.track, fg2Color = colors.fg2)
+                } else {
+                    Text("--", fontSize = 11.sp, fontWeight = FontWeight.Medium, color = colors.fg3)
+                }
+                Spacer(Modifier.width(4.dp))
+                // Star button for remember/forget
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clickable { onToggleRemember() },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        if (isRemembered) Icons.Default.Star else Icons.Default.StarBorder,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = if (isRemembered) Color(0xFFF59E0B) else colors.fg3,
+                    )
                 }
             }
             if (isConnecting) {
@@ -2265,24 +2259,16 @@ fun MinePage(
     ) {
         Spacer(Modifier.height(20.dp))
 
-        // App icon and name
+        // App launcher icon and name
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Box(
-                modifier = Modifier
-                    .size(56.dp)
-                    .background(colors.primary.copy(alpha = 0.1f), RoundedCornerShape(16.dp)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    Icons.Default.BatteryChargingFull,
-                    contentDescription = null,
-                    tint = colors.primary,
-                    modifier = Modifier.size(32.dp),
-                )
-            }
+            Image(
+                painter = painterResource(R.mipmap.ic_launcher),
+                contentDescription = null,
+                modifier = Modifier.size(56.dp),
+            )
             Spacer(Modifier.width(16.dp))
             Column {
                 Text(
@@ -2363,6 +2349,26 @@ fun MinePage(
                 Text(stringResource(R.string.saved_devices), fontSize = 14.sp, color = colors.fg, modifier = Modifier.weight(1f))
                 Text("${bleManager.rememberedDevices.size}", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = colors.primary)
             }
+        }
+
+        Spacer(Modifier.weight(1f))
+
+        // Ownership information
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                stringResource(R.string.copyright),
+                fontSize = 11.sp,
+                color = colors.fg3,
+            )
+            Spacer(Modifier.height(2.dp))
+            Text(
+                stringResource(R.string.all_rights_reserved),
+                fontSize = 10.sp,
+                color = colors.fg3,
+            )
         }
     }
 }

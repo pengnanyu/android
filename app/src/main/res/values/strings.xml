@@ -29,7 +29,8 @@
     <string name="cancel_memory">取消记忆</string>
     <string name="search_devices">搜索设备</string>
     <string name="no_matching_device">未找到匹配设备</string>
-    <color name="primary">#C8941E</color>
+    <string name="copyright">版权所有 © 2024 深圳市德诚四方科技有限公司</string>
+    <string name="all_rights_reserved">保留所有权利</string>
     <color name="primary_dark">#A07616</color>
     <color name="background">#F8F9FA</color>
     <color name="surface">#FFFFFF</color>

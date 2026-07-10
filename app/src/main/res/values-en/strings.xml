@@ -29,4 +29,6 @@
     <string name="cancel_memory">Cancel</string>
     <string name="search_devices">Search devices</string>
     <string name="no_matching_device">No matching device</string>
+    <string name="copyright">Copyright © 2024 Shenzhen DCSF Technology Co., Ltd.</string>
+    <string name="all_rights_reserved">All rights reserved.</string>
 </resources>
