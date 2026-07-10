@@ -950,6 +950,15 @@ fun BmsApp(
 
     }
 
+    // Force WebView to re-layout when sidebar visibility changes (prevents horizontal scroll in landscape)
+    LaunchedEffect(sidebarVisible) {
+        kotlinx.coroutines.delay(100)
+        webView.value?.evaluateJavascript(
+            "window.dispatchEvent(new Event('resize'));",
+            null
+        )
+    }
+
     LaunchedEffect(Unit) {
         bleManager.setOnDataReceived { data ->
             if (!uiReady.value) return@setOnDataReceived
