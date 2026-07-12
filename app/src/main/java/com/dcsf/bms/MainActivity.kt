@@ -93,6 +93,7 @@ import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.foundation.border
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.animation.core.*
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -1478,24 +1479,38 @@ fun BluetoothPageHeader(
         Box(
             modifier = Modifier
                 .size(36.dp)
-                .background(colors.primary, RoundedCornerShape(18.dp))
                 .clickable(onClick = onScanClick),
             contentAlignment = Alignment.Center,
         ) {
+            if (isScanning) {
+                val infiniteTransition = rememberInfiniteTransition(label = "scanGlow")
+                val glowAlpha by infiniteTransition.animateFloat(
+                    initialValue = 0.2f,
+                    targetValue = 0.8f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(durationMillis = 1200, easing = FastOutSlowInEasing),
+                        repeatMode = RepeatMode.Reverse,
+                    ),
+                    label = "glowAlpha",
+                )
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .background(colors.primary.copy(alpha = glowAlpha), RoundedCornerShape(18.dp))
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .background(colors.primary, RoundedCornerShape(18.dp))
+                )
+            }
             Icon(
                 Icons.Default.QrCodeScanner,
                 contentDescription = stringResource(R.string.scan),
                 tint = colors.primaryFg,
                 modifier = Modifier.size(20.dp),
             )
-            // Scanning indicator overlaps on top of scan icon
-            if (isScanning) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(36.dp),
-                    strokeWidth = 2.dp,
-                    color = colors.primaryFg,
-                )
-            }
         }
         // Search box
         Row(
