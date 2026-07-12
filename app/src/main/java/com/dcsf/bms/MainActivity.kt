@@ -1180,6 +1180,7 @@ fun BmsApp(
 
     // Bottom bar: narrow screen shows it when not in console; wide screen always shows it when sidebar is visible
     val navBarInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    val imeInset = WindowInsets.ime.asPaddingValues().calculateBottomPadding()
     val showBottomBar = if (isWideScreen) sidebarVisible else (!showConsole || !bleManager.connected.value)
     // Wide screen: sidebar width is adaptive - wrap content with reasonable bounds
     val sidebarWidthDp = (configuration.screenWidthDp * 0.32f).toInt().coerceAtMost(320).coerceAtLeast(260)
@@ -1242,7 +1243,7 @@ fun BmsApp(
         // In wide screen, the nav bar sits under the sidebar (not under content),
         // so the content area only needs navBarInset at the bottom.
         // In narrow screen, the nav bar spans full width under the content.
-        val imeInset = WindowInsets.ime.asPaddingValues().calculateBottomPadding()
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
