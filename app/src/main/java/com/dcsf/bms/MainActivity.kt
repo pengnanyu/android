@@ -78,6 +78,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.windowInsetsPadding
 import android.view.View
 import android.view.ViewTreeObserver
@@ -1207,7 +1208,7 @@ fun BmsApp(
                             onDisconnect = onDisconnect,
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(bottom = 48.dp + navBarInset),
+                                .padding(bottom = 48.dp + navBarInset + imeInset),
                         )
                     } else {
                         BluetoothPage(
@@ -1220,7 +1221,7 @@ fun BmsApp(
                             onScanClick = { showScanner = true },
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(bottom = 48.dp + navBarInset),
+                                .padding(bottom = 48.dp + navBarInset + imeInset),
                             searchQuery = searchQuery,
                             onSearchQueryChange = { searchQuery = it },
                             qrSearching = qrSearching,
@@ -1241,11 +1242,12 @@ fun BmsApp(
         // In wide screen, the nav bar sits under the sidebar (not under content),
         // so the content area only needs navBarInset at the bottom.
         // In narrow screen, the nav bar spans full width under the content.
+        val imeInset = WindowInsets.ime.asPaddingValues().calculateBottomPadding()
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(start = if (isWideScreen && sidebarVisible) (sidebarWidthDp + 1).dp else 0.dp)
-                .padding(bottom = if (!isWideScreen && showBottomBar) 48.dp + navBarInset else navBarInset)
+                .padding(bottom = if (!isWideScreen && showBottomBar) 48.dp + navBarInset + imeInset else navBarInset + imeInset)
         ) {
             // Always keep WebView in composition to prevent state loss on tab switch / rotation.
             // Overlay pages with opaque backgrounds cover it when it should be hidden.
@@ -1367,7 +1369,8 @@ fun BmsApp(
         }
 
         // ===== Bottom navigation bar (compact, matching UI height) =====
-        if (showBottomBar) {
+        // Hide bottom bar when keyboard is visible to maximize content area
+        if (showBottomBar && imeInset < 20.dp) {
             // Nav bar width follows sidebar width on wide screen; full width on narrow screen
             val navBarFraction = if (isWideScreen) {
                 (sidebarWidthDp / configuration.screenWidthDp.toFloat()).coerceIn(0.3f, 0.45f)
