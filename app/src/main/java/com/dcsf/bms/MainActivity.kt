@@ -8,6 +8,9 @@ import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
 import android.content.Context
+import android.content.BroadcastReceiver
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
 import android.view.WindowManager
@@ -337,6 +340,8 @@ class MainActivity : ComponentActivity() {
         bleManager.disconnect()
     }
 
+    private var bluetoothStateReceiver: BroadcastReceiver? = null
+
     override fun onResume() {
         super.onResume()
         val status = if (bleManager.connected.value) "connected" else "disconnected"
@@ -347,6 +352,35 @@ class MainActivity : ComponentActivity() {
                 wv.evaluateJavascript(js, null)
             }
         }
+
+        if (bluetoothStateReceiver == null) {
+            bluetoothStateReceiver = object : BroadcastReceiver() {
+                override fun onReceive(context: Context, intent: Intent) {
+                    if (BluetoothAdapter.ACTION_STATE_CHANGED == intent.action) {
+                        val state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR)
+                        if (state == BluetoothAdapter.STATE_ON) {
+                            if (!bleManager.scanning.value && !bleManager.connected.value) {
+                                if (hasBlePermissions(this@MainActivity)) {
+                                    bleManager.startScan(this@MainActivity)
+                                }
+                            }
+                        } else if (state == BluetoothAdapter.STATE_OFF) {
+                            bleManager.stopScan()
+                        }
+                    }
+                }
+            }
+            registerReceiver(bluetoothStateReceiver, IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED))
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        bluetoothStateReceiver?.let {
+            unregisterReceiver(it)
+            bluetoothStateReceiver = null
+        }
+    }
     }
 }
 
@@ -657,39 +691,30 @@ class BleManager {
     }
 
     fun processScanCycle() {
-        // Build a map of scanned addresses for quick lookup
+        val now = System.currentTimeMillis()
         val cacheMap = backgroundScanCache.associateBy { it.address }
         val connAddr = connectedDevice.value?.address
 
         val toRemove = mutableListOf<BleDevice>()
 
-        // Check existing display devices against cache
         for (dev in devices) {
             val isProtected = connAddr == dev.address || isRemembered(dev.address)
             val cached = cacheMap[dev.address]
 
             if (cached != null) {
-                // Device found in cache - update it and reset miss count
                 val idx = devices.indexOfFirst { it.address == dev.address }
                 if (idx >= 0) {
-                    // Only update if RSSI or data changed significantly to reduce UI flicker
                     val old = devices[idx]!!
                     if (old.rssi != cached.rssi || old.soc != cached.soc || old.voltage != cached.voltage || old.current != cached.current || old.safety != cached.safety) {
                         devices[idx] = cached
                     }
                 }
-                missCount[dev.address] = 0
             } else {
-                // Device not in cache - increment miss count
-                val count = (missCount[dev.address] ?: 0) + 1
-                missCount[dev.address] = count
-                // Remove after 7 consecutive misses (7 seconds at 1s scan cycle)
-                if (count > 7) {
+                val elapsed = now - dev.lastSeen
+                if (elapsed > 5000) {
                     if (!isProtected) {
                         toRemove.add(dev)
-                        missCount.remove(dev.address)
                     } else {
-                        // For protected devices, just clear RSSI but keep in list
                         val idx = devices.indexOfFirst { it.address == dev.address }
                         if (idx >= 0) {
                             val old = devices[idx]!!
@@ -697,17 +722,17 @@ class BleManager {
                                 devices[idx] = old.copy(rssi = 0)
                             }
                         }
-                        missCount[dev.address] = 0
                     }
                 }
             }
         }
 
-        // Add new devices from cache that aren't in display list yet
         for (cached in backgroundScanCache) {
-            if (devices.none { it.address == cached.address } && devices.size < MAX_DEVICES) {
+            val idx = devices.indexOfFirst { it.address == cached.address }
+            if (idx >= 0) {
+                devices[idx] = cached
+            } else if (devices.size < MAX_DEVICES) {
                 devices.add(cached)
-                missCount[cached.address] = 0
             }
         }
 
@@ -715,7 +740,6 @@ class BleManager {
             devices.removeAll(toRemove)
         }
 
-        // Clear cache for next cycle
         backgroundScanCache.clear()
     }
 
@@ -2105,7 +2129,7 @@ fun QrScannerDialog(
     LaunchedEffect(scannerView, hasPermission) {
         if (scannerView != null && hasPermission) {
             val sv = scannerView!!
-            // Wait for the view to have non-zero dimensions, then resume on next frame
+            delay(200)
             sv.post {
                 if (sv.width > 0 && sv.height > 0) {
                     sv.resume()
@@ -2137,6 +2161,7 @@ fun QrScannerDialog(
     ) {
         if (hasPermission) {
             AndroidView(
+                key = hasPermission,
                 factory = { ctx ->
                     DecoratedBarcodeView(ctx).apply {
                         barcodeView.decoderFactory = DefaultDecoderFactory(listOf(BarcodeFormat.QR_CODE))
