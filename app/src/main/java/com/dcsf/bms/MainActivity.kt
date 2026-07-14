@@ -490,7 +490,7 @@ class BleManager {
     private var bluetoothAdapter: BluetoothAdapter? = null
     private var bleConnection: BleConnection? = null
     private var pendingDataCallback: ((ByteArray) -> Unit)? = null
-    private val backgroundScanCache = mutableListOf<BleDevice>()
+    private val scanHeap = mutableListOf<BleDevice>()
     private val missCount = mutableMapOf<String, Int>()
             private var prefs: SharedPreferences? = null
 
@@ -621,13 +621,8 @@ class BleManager {
                 rememberedDevices[remIdx] = device
             }
 
-            // Add to background cache (will be compared to display list in processScanCycle)
-            val cacheIdx = backgroundScanCache.indexOfFirst { it.address == result.device.address }
-            if (cacheIdx >= 0) {
-                backgroundScanCache[cacheIdx] = device
-            } else {
-                backgroundScanCache.add(device)
-            }
+            // Append to scan heap (FIFO, processed by processScanCycle)
+            scanHeap.add(device)
         }
 
         override fun onScanFailed(errorCode: Int) {
@@ -674,7 +669,7 @@ class BleManager {
         // Do NOT clear devices list - let processScanCycle handle removal
         // This preserves connected/remembered devices across scan restarts
         missCount.clear()
-        backgroundScanCache.clear()
+        scanHeap.clear()
         scanning.value = true
         scanStatus.value = "Scanning..."
         // Don't use ScanFilter.setDeviceName - it does exact match, not prefix match.
@@ -694,22 +689,32 @@ class BleManager {
         val now = System.currentTimeMillis()
         val connAddr = connectedDevice.value?.address
 
+        // Remove entries older than 5 seconds from heap (FIFO)
+        scanHeap.removeAll { now - it.lastSeen > 5000 }
+
+        // Build latest snapshot from heap entries (most recent wins per address)
+        val recentMap = mutableMapOf<String, BleDevice>()
+        for (entry in scanHeap) {
+            recentMap[entry.address] = entry
+        }
+
         val toRemove = mutableListOf<BleDevice>()
 
         for (dev in devices) {
             val isProtected = connAddr == dev.address || isRemembered(dev.address)
-            val cachedIdx = backgroundScanCache.indexOfFirst { it.address == dev.address }
+            val latest = recentMap[dev.address]
 
-            if (cachedIdx >= 0) {
-                val cached = backgroundScanCache[cachedIdx]
-                val old = dev
-                if (old.rssi != cached.rssi || old.soc != cached.soc || old.voltage != cached.voltage || old.current != cached.current || old.safety != cached.safety) {
-                    val idx = devices.indexOfFirst { it.address == dev.address }
-                    if (idx >= 0) devices[idx] = cached
+            if (latest != null) {
+                val idx = devices.indexOfFirst { it.address == dev.address }
+                if (idx >= 0) {
+                    val old = devices[idx]!!
+                    if (old.rssi != latest.rssi || old.soc != latest.soc || old.voltage != latest.voltage || old.current != latest.current || old.safety != latest.safety) {
+                        devices[idx] = latest
+                    }
                 }
             } else {
                 val elapsed = now - dev.lastSeen
-                if (elapsed > 5000) {
+                if (elapsed > 7000) {
                     if (!isProtected) {
                         toRemove.add(dev)
                     } else {
@@ -725,21 +730,19 @@ class BleManager {
             }
         }
 
-        for (cached in backgroundScanCache) {
-            val idx = devices.indexOfFirst { it.address == cached.address }
+        // Add new devices from heap that aren't in display list yet
+        for ((_, latest) in recentMap) {
+            val idx = devices.indexOfFirst { it.address == latest.address }
             if (idx >= 0) {
-                devices[idx] = cached
+                devices[idx] = latest
             } else if (devices.size < MAX_DEVICES) {
-                devices.add(cached)
+                devices.add(latest)
             }
         }
 
         if (toRemove.isNotEmpty()) {
             devices.removeAll(toRemove)
         }
-
-        val expiredCache = backgroundScanCache.filter { now - it.lastSeen > 5000 }
-        backgroundScanCache.removeAll(expiredCache)
     }
 
     fun stopScan() {
