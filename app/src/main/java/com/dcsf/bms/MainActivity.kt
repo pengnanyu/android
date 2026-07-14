@@ -707,10 +707,7 @@ class BleManager {
             if (latest != null) {
                 val idx = devices.indexOfFirst { it.address == dev.address }
                 if (idx >= 0) {
-                    val old = devices[idx]!!
-                    if (old.rssi != latest.rssi || old.soc != latest.soc || old.voltage != latest.voltage || old.current != latest.current || old.safety != latest.safety) {
-                        devices[idx] = latest
-                    }
+                    devices[idx] = latest
                 }
             } else {
                 val elapsed = now - dev.lastSeen
@@ -733,9 +730,7 @@ class BleManager {
         // Add new devices from heap that aren't in display list yet
         for ((_, latest) in recentMap) {
             val idx = devices.indexOfFirst { it.address == latest.address }
-            if (idx >= 0) {
-                devices[idx] = latest
-            } else if (devices.size < MAX_DEVICES) {
+            if (idx < 0 && devices.size < MAX_DEVICES) {
                 devices.add(latest)
             }
         }
@@ -754,23 +749,30 @@ class BleManager {
         stopScan()
         connectingDevice.value = device
 
+        // Ensure device stays in list during connection
+        if (devices.none { it.address == device.address }) {
+            devices.add(0, device)
+        }
+
         // Always disconnect old connection first
         bleConnection?.onDisconnected = null
         bleConnection?.disconnect()
         bleConnection = null
-        connected.value = false
-        connectedDevice.value = null
 
         val adapter = bluetoothAdapter
-        if (adapter == null) { connectingDevice.value = null; onResult(false); return }
+        if (adapter == null) { connectingDevice.value = null; connected.value = false; connectedDevice.value = null; onResult(false); return }
         val btDevice = adapter.getRemoteDevice(device.address)
-        if (btDevice == null) { connectingDevice.value = null; onResult(false); return }
+        if (btDevice == null) { connectingDevice.value = null; connected.value = false; connectedDevice.value = null; onResult(false); return }
 
         bleConnection = BleConnection(btDevice, SERVICE_UUID, NOTIFY_UUID, WRITE_UUID)
         pendingDataCallback?.let { bleConnection?.onDataReceived = it }
         bleConnection?.onDisconnected = {
             connected.value = false
             connectedDevice.value = null
+            // Ensure device remains in list after disconnect so user can see it
+            if (devices.none { it.address == device.address }) {
+                devices.add(0, device.copy(rssi = 0))
+            }
         }
         bleConnection?.connect(context) { success ->
             connectingDevice.value = null
@@ -778,7 +780,6 @@ class BleManager {
             if (success) {
                 connectedDevice.value = device
                 connectionError.value = false
-                // Ensure connected device stays in the devices list so it doesn't disappear
                 if (devices.none { it.address == device.address }) {
                     devices.add(0, device)
                 }
@@ -789,10 +790,15 @@ class BleManager {
     }
 
     fun disconnect() {
+        val device = connectedDevice.value
         bleConnection?.disconnect()
         bleConnection = null
         connected.value = false
         connectedDevice.value = null
+        // Ensure device remains in list after disconnect
+        if (device != null && devices.none { it.address == device.address }) {
+            devices.add(0, device.copy(rssi = 0))
+        }
     }
 
     fun send(data: ByteArray): Boolean {
