@@ -381,7 +381,7 @@ class MainActivity : ComponentActivity() {
             bluetoothStateReceiver = null
         }
     }
-    }
+
 }
 
 data class BleDevice(
@@ -2160,24 +2160,25 @@ fun QrScannerDialog(
             .background(Color.Black),
     ) {
         if (hasPermission) {
-            AndroidView(
-                key = hasPermission,
-                factory = { ctx ->
-                    DecoratedBarcodeView(ctx).apply {
-                        barcodeView.decoderFactory = DefaultDecoderFactory(listOf(BarcodeFormat.QR_CODE))
-                        decodeContinuous { result ->
-                            val text = result.text
-                            if (text != null && text.isNotEmpty() && !hasScanned) {
-                                hasScanned = true
-                                pause()
-                                onScanned(text)
+            key(hasPermission) {
+                AndroidView(
+                    factory = { ctx ->
+                        DecoratedBarcodeView(ctx).apply {
+                            barcodeView.decoderFactory = DefaultDecoderFactory(listOf(BarcodeFormat.QR_CODE))
+                            decodeContinuous { result ->
+                                val text = result.text
+                                if (text != null && text.isNotEmpty() && !hasScanned) {
+                                    hasScanned = true
+                                    pause()
+                                    onScanned(text)
+                                }
                             }
+                            scannerView = this
                         }
-                        scannerView = this
-                    }
-                },
-                modifier = Modifier.fillMaxSize(),
-            )
+                    },
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
         }
 
         // Top bar with title and close button
