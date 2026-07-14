@@ -84,7 +84,7 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.windowInsetsPadding
 import android.view.View
-import android.view.ViewTreeObserver
+
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Person
@@ -692,22 +692,20 @@ class BleManager {
 
     fun processScanCycle() {
         val now = System.currentTimeMillis()
-        val cacheMap = backgroundScanCache.associateBy { it.address }
         val connAddr = connectedDevice.value?.address
 
         val toRemove = mutableListOf<BleDevice>()
 
         for (dev in devices) {
             val isProtected = connAddr == dev.address || isRemembered(dev.address)
-            val cached = cacheMap[dev.address]
+            val cachedIdx = backgroundScanCache.indexOfFirst { it.address == dev.address }
 
-            if (cached != null) {
-                val idx = devices.indexOfFirst { it.address == dev.address }
-                if (idx >= 0) {
-                    val old = devices[idx]!!
-                    if (old.rssi != cached.rssi || old.soc != cached.soc || old.voltage != cached.voltage || old.current != cached.current || old.safety != cached.safety) {
-                        devices[idx] = cached
-                    }
+            if (cachedIdx >= 0) {
+                val cached = backgroundScanCache[cachedIdx]
+                val old = dev
+                if (old.rssi != cached.rssi || old.soc != cached.soc || old.voltage != cached.voltage || old.current != cached.current || old.safety != cached.safety) {
+                    val idx = devices.indexOfFirst { it.address == dev.address }
+                    if (idx >= 0) devices[idx] = cached
                 }
             } else {
                 val elapsed = now - dev.lastSeen
@@ -740,7 +738,8 @@ class BleManager {
             devices.removeAll(toRemove)
         }
 
-        backgroundScanCache.clear()
+        val expiredCache = backgroundScanCache.filter { now - it.lastSeen > 5000 }
+        backgroundScanCache.removeAll(expiredCache)
     }
 
     fun stopScan() {
@@ -2107,8 +2106,8 @@ fun QrScannerDialog(
             ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
         )
     }
-    var scannerView by remember { mutableStateOf<DecoratedBarcodeView?>(null) }
     var hasScanned by remember { mutableStateOf(false) }
+    var scannerRef by remember { mutableStateOf<DecoratedBarcodeView?>(null) }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -2125,32 +2124,9 @@ fun QrScannerDialog(
 
     BackHandler { onDismiss() }
 
-    // Resume scanner after view is attached and laid out
-    LaunchedEffect(scannerView, hasPermission) {
-        if (scannerView != null && hasPermission) {
-            val sv = scannerView!!
-            delay(200)
-            sv.post {
-                if (sv.width > 0 && sv.height > 0) {
-                    sv.resume()
-                } else {
-                    sv.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
-                        override fun onGlobalLayout() {
-                            if (sv.width > 0 && sv.height > 0) {
-                                sv.viewTreeObserver.removeOnGlobalLayoutListener(this)
-                                sv.post { sv.resume() }
-                            }
-                        }
-                    })
-                }
-            }
-        }
-    }
-
-    DisposableEffect(scannerView) {
+    DisposableEffect(Unit) {
         onDispose {
-            scannerView?.pause()
-            scannerView = null
+            scannerRef?.pause()
         }
     }
 
@@ -2160,28 +2136,26 @@ fun QrScannerDialog(
             .background(Color.Black),
     ) {
         if (hasPermission) {
-            key(hasPermission) {
-                AndroidView(
-                    factory = { ctx ->
-                        DecoratedBarcodeView(ctx).apply {
-                            barcodeView.decoderFactory = DefaultDecoderFactory(listOf(BarcodeFormat.QR_CODE))
-                            decodeContinuous { result ->
-                                val text = result.text
-                                if (text != null && text.isNotEmpty() && !hasScanned) {
-                                    hasScanned = true
-                                    pause()
-                                    onScanned(text)
-                                }
+            AndroidView(
+                factory = { ctx ->
+                    DecoratedBarcodeView(ctx).apply {
+                        barcodeView.decoderFactory = DefaultDecoderFactory(listOf(BarcodeFormat.QR_CODE))
+                        decodeContinuous { result ->
+                            val text = result.text
+                            if (text != null && text.isNotEmpty() && !hasScanned) {
+                                hasScanned = true
+                                pause()
+                                onScanned(text)
                             }
-                            scannerView = this
                         }
-                    },
-                    modifier = Modifier.fillMaxSize(),
-                )
-            }
+                        scannerRef = this
+                        resume()
+                    }
+                },
+                modifier = Modifier.fillMaxSize(),
+            )
         }
 
-        // Top bar with title and close button
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -2206,7 +2180,6 @@ fun QrScannerDialog(
             )
         }
 
-        // Hint text at bottom
         Text(
             "SN / DC",
             color = Color.White.copy(alpha = 0.7f),
